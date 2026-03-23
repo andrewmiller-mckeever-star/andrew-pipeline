@@ -1,0 +1,45 @@
+{
+  "$schema": "Apollo Sequence Builder Data Format v1.0",
+  "account": "Company Name",
+  "domain": "company.com",
+  "generated_at": "2026-03-09T00:00:00Z",
+  "sequences": [
+    {
+      "name": "YDC | Company | Seq A: Engineering Leader",
+      "steps": [
+        {
+          "type": "automatic_email",
+          "email_type": "new_thread",
+          "subject": "Subject line here",
+          "body": "Hi {{first_name}},\n\nFirst paragraph.\n\nSecond paragraph.\n\nRyan Reed\nYou.com"
+        },
+        {
+          "type": "linkedin_connect",
+          "message": "LinkedIn connect note under 250 chars. No pitch, no CTA."
+        },
+        {
+          "type": "automatic_email",
+          "email_type": "reply",
+          "body": "Hi {{first_name}},\n\nFollow-up paragraph.\n\nProof point.\n\nCTA question?\n\nRyan"
+        },
+        {
+          "type": "phone_call",
+          "task_note": "Call script text goes here."
+        },
+        {
+          "type": "automatic_email",
+          "email_type": "reply",
+          "body": "Hi {{first_name}},\n\nBreakup paragraph.\n\nFinal offer.\n\nRyan"
+        }
+      ]
+    }
+  ],
+  "_step_types": {
+    "automatic_email": "Auto-sent email. Requires body, optionally subject (Touch 1 only) and email_type (new_thread|reply).",
+    "manual_email": "Email requiring manual send. Same fields as automatic_email.",
+    "phone_call": "Phone task. Requires task_note (call script).",
+    "linkedin_connect": "Connection request. Requires message (the connect note).",
+    "linkedin_message": "InMail / LinkedIn message. Requires message.",
+    "action_item": "Generic task. Requires task_note."
+  }
+}

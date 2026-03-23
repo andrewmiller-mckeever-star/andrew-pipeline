@@ -1,0 +1,7 @@
+node_modules/
+*.json.bak
+*_results.json
+*_sequences.json
+*_linkedin_raw.json
+.DS_Store
+*.log

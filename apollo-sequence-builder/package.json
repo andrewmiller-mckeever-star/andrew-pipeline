@@ -1,0 +1,14 @@
+{
+  "name": "apollo-sequence-builder",
+  "version": "1.0.0",
+  "description": "Automated Apollo.io sequence builder using Playwright",
+  "main": "build-sequences.js",
+  "scripts": {
+    "build": "node build-sequences.js",
+    "build:headed": "HEADED=true node build-sequences.js",
+    "build:debug": "DEBUG=true HEADED=true node build-sequences.js"
+  },
+  "dependencies": {
+    "playwright": "^1.50.0"
+  }
+}
