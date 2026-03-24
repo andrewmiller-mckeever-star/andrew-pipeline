@@ -76,7 +76,7 @@ See: [outreach-rules.md](outreach-rules.md) for full details
 - **Expanded banned AI-ism vocab:** utilize, comprehensive, enhance, delve, embark, robust, streamline
 - Only Touch 1 gets a unique subject line; Touches 3 and 5 are replies to Touch 1 thread
 - Never reference specific evals (even anonymized) or name competitors in outreach
-- **LinkedIn connect notes: Recognition + Curiosity Hook + Connect formula.** Under 250 chars. Zero pitch, zero CTA, zero flattery, zero role claims. Reference a specific initiative, then ask a genuine curiosity question about a problem they face (plants the problem seed without pitching). Add light domain signals in parentheses: "(be it with a web index or otherwise)." No product names, no meeting asks, no "impressive," no title drops. Profile handles identity. Email sequence carries the pitch.
+- **LinkedIn connect notes: Fact-to-Consequence + Curiosity Hook formula.** Under 250 chars. Zero pitch, zero CTA, zero flattery, zero role claims. State what they did AND what problem it creates, then end on a curiosity question. No "Would be great to connect" close (connect button handles this). No glazing or characterizing initiatives ("big move," "notable shift"). Add light domain signals in parentheses: "(be it with a web index or otherwise)." No product names, no meeting asks, no "impressive," no title drops. Profile handles identity. Email sequence carries the pitch.
 - **MCP server hook is NOT a required element.** Use only when it naturally fits the persona and context.
 
 ## Pipeline Accounts Processed

@@ -154,6 +154,18 @@ Hi {{first_name}},
 [A - Action: Interest-based CTA only. One ask. Never time-based ("15 minutes," "quick call this week"). Use: "Is this something you're evaluating?" / "Worth a conversation?" / "Are you open to exploring this?"]
 ```
 
+**Standardized 5-touch cadence (all sequences, non-negotiable):**
+
+| Touch | Day | Channel | Type |
+|-------|-----|---------|------|
+| 1 | Day 1 | Email | New thread, unique subject |
+| 2 | Day 2 | LinkedIn Connect | No-pitch connection request |
+| 3 | Day 5 | Email | Reply to Touch 1 thread |
+| 4 | Day 8 | Call | Phone task |
+| 5 | Day 14 | Email | Reply to Touch 1 thread (breakup) |
+
+**Threading:** Only Touch 1 gets a unique subject line. Touches 3 and 5 are replies to the original thread. In Apollo: use "reply to previous email" step type.
+**Contact cap:** 5 contacts per sequence (A, B, C, D). No duplicates across sequences. Priority: title relevance > verified email > use case alignment.
 **Word counts:** Opener 100-150 words. Follow-up 80-120 words. Breakup 80-120 words.
 **Reading level:** 5th-7th grade. Short, punchy sentences. No compound-complex structures.
 **Paragraphs:** 2-3 sentences max. White space makes emails scannable.
@@ -165,6 +177,24 @@ Hi {{first_name}},
 3. Mutual connection or shared context
 4. Company initiative (AI program, hiring surge, strategic pivot)
 5. Role-based pain point (last resort)
+
+**Reference example (gold standard, confirmed 2026-03-23):**
+
+```
+Hi Irvinder,
+
+Given the urgency you described around hallucination issues and the number of tools your team has already evaluated without a clean result, I wanted to offer something before the testing begins next week.
+
+Richard Socher, our founder, holds a patent pending specifically on connecting LLMs with real-time search to produce grounded, verifiable output. That research is the foundation of what your team will be testing. Before the other tools failed your eval, most of them were not designed with that problem as their starting point. Richard's was.
+
+If a short call with him before the eval would be useful context for you, I am happy to make that introduction. No agenda other than giving you a direct line to the thinking behind the approach.
+
+Let me know if that is of interest.
+
+Thanks, Ryan
+```
+
+Why it works: starts with THEM (their urgency, their failed evals). Zero AI-isms, em dashes, superlatives, or glazing. One proof point (Richard's patent), one ask (short call). Interest-based CTA ("if useful... let me know"). Reframes competitive landscape without naming anyone. No product names, no case studies. Maps founder credibility to their specific problem.
 
 ---
 
