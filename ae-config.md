@@ -34,49 +34,20 @@ APOLLO_BUILDER_PATH: /Users/nick/ydc-sales-pipeline/apollo-sequence-builder
 ## Google Drive
 
 ```
-GDRIVE_FOLDER:   Account Plans, Lists & Personalized Sequences
-RCLONE_REMOTE:   gdrive
+RCLONE_REMOTE:    gdrive
+GDRIVE_FOLDER_URL: https://drive.google.com/drive/folders/1LQt3Bccyplg3vbP37H0BrzMazDKc2FFj
 ```
 
-> Account plans (.docx) are uploaded here via rclone. The folder must exist in
-> your Google Drive. The rclone remote name must match your local rclone config
-> (`rclone listremotes` to check). Run `rclone config` to set up if needed.
+> `RCLONE_REMOTE` is the name of the remote you created with `rclone config` (default: gdrive).
+> `GDRIVE_FOLDER_URL` is the Google Drive folder where account plans will be saved.
 
 ---
 
 ## Sales Deck
 
 ```
-SALES_DECK_PATH: ~/Downloads/You.com - AI Search Infra Pitch Deck - January 2026.pdf
+SALES_DECK_PATH: /Users/nick/ydc-sales-pipeline/downloads/You.com - API Pitch Deck - 10.30.25.pptx
 ```
 
-> The current pitch bible. Update this path when a new deck is released.
-> Used for pitch framing, case study references, and competitive positioning context.
-
----
-
-## Memory Files Location
-
-```
-MEMORY_PATH: ~/.claude/projects/-Users-{your-username}-{your-project-path}/memory/
-```
-
-> Claude auto-generates this path based on where the project lives on your machine.
-> You don't need to set this manually — it's here for reference when skills
-> cross-reference memory files.
-
----
-
-## Notes for New AEs
-
-- **Apollo MCP:** Your Apollo.io account must be connected in Claude Code settings.
-  Ask your admin to share the MCP server config (UUID in settings.json).
-- **Slack MCP:** Your Slack user token must be connected. Same — ask your admin.
-- **rclone:** Must be installed and authenticated to your Google account.
-  Quick setup: `brew install rclone && rclone config`
-- **Playwright:** Must be installed in the apollo-sequence-builder directory.
-  `cd ~/Desktop/YDC\ Pipeline/apollo-sequence-builder && npm install`
-- **First pipeline run:** Start with a single account to verify all integrations
-  are working before running a batch.
-
-See SETUP.md for full step-by-step onboarding instructions.
+> Local path to the downloaded sales deck. Set automatically by the setup wizard.
+> Claude reads this file at the start of each pipeline run for pitch framing and positioning.

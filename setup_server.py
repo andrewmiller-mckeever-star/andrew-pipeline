@@ -16,8 +16,10 @@ import subprocess
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 
-BASE_DIR    = Path(__file__).parent
-CONFIG_PATH = BASE_DIR / "ae-config.md"
+BASE_DIR      = Path(__file__).parent
+CONFIG_PATH   = BASE_DIR / "ae-config.md"
+DOWNLOADS_DIR = BASE_DIR / "downloads"
+DOWNLOADS_DIR.mkdir(exist_ok=True)
 PORT        = 8002
 
 # ── Config I/O ────────────────────────────────────────────────────────────────
@@ -48,6 +50,91 @@ def write_config(updates: dict):
 
 def expand(p: str) -> Path:
     return Path(p).expanduser()
+
+def resolve_drive_folder_url(remote: str, folder_url: str) -> dict:
+    """Parse a Google Drive folder URL and resolve the folder name via rclone lsjson."""
+    import json as _json
+    m = re.search(r'/folders/([a-zA-Z0-9_-]+)', folder_url)
+    if not m:
+        return {'ok': False, 'msg': 'Could not find a folder ID in that URL — make sure you copied the full Drive folder link'}
+    folder_id = m.group(1)
+    try:
+        # First check whether the remote is configured at all
+        remotes_r = subprocess.run(['rclone', 'listremotes'], capture_output=True, text=True, timeout=6)
+        stderr_lower = remotes_r.stderr.lower()
+        if 'config file' in stderr_lower and 'not found' in stderr_lower:
+            return {'ok': False, 'msg': 'not_configured',
+                    'detail': 'rclone has not been configured yet. Run rclone config in Terminal to set up your Google Drive remote.'}
+        configured = [r.rstrip(':') for r in remotes_r.stdout.strip().splitlines()]
+        if remote not in configured:
+            available = ', '.join(configured) if configured else 'none'
+            return {'ok': False, 'msg': 'not_configured',
+                    'detail': f'No remote named "{remote}" found. Run rclone config to create one. Available: {available}'}
+
+        r = subprocess.run(
+            ['rclone', 'lsjson', f'{remote}:', '--dirs-only', '--no-modtime'],
+            capture_output=True, text=True, timeout=20
+        )
+        if r.returncode != 0:
+            err_lines = [l for l in r.stderr.strip().splitlines() if 'ERROR' in l or 'Failed' in l]
+            err = err_lines[0] if err_lines else r.stderr.strip().splitlines()[0] if r.stderr.strip() else 'unknown error'
+            if 'token' in err.lower() or 'oauth' in err.lower() or 'auth' in err.lower():
+                return {'ok': False, 'msg': 'not_configured',
+                        'detail': f'Google Drive auth expired. Run rclone config reconnect {remote}: to re-authenticate.'}
+            return {'ok': False, 'msg': f'rclone error — {err}'}
+        folders = _json.loads(r.stdout or '[]')
+        for f in folders:
+            if f.get('ID') == folder_id:
+                return {'ok': True, 'msg': f'Resolved: {f["Name"]}', 'name': f['Name']}
+        return {'ok': False, 'msg': 'Folder not found in the root of your Drive — make sure the folder is at the top level (not nested inside another folder)'}
+    except FileNotFoundError:
+        return {'ok': False, 'msg': 'rclone not installed — complete the rclone CLI check first'}
+    except _json.JSONDecodeError:
+        return {'ok': False, 'msg': 'Could not parse rclone output — try re-authenticating with rclone config reconnect'}
+    except subprocess.TimeoutExpired:
+        return {'ok': False, 'msg': 'Timed out — check your network or re-authenticate'}
+    except Exception as e:
+        return {'ok': False, 'msg': str(e)}
+
+def test_rclone_remote(remote: str) -> dict:
+    """Verify the remote exists in config then do a live connection test via rclone lsd."""
+    try:
+        # Step 1 — remote in config?
+        r = subprocess.run(['rclone', 'listremotes'], capture_output=True, text=True, timeout=6)
+        stderr_lower = r.stderr.lower()
+        if 'config file' in stderr_lower and 'not found' in stderr_lower:
+            return {'ok': False, 'msg': 'rclone has not been configured yet — run rclone config to set up your Google Drive remote'}
+        configured = [x.rstrip(':') for x in r.stdout.strip().splitlines()]
+        if remote not in configured:
+            available = ', '.join(configured) if configured else 'none'
+            return {'ok': False, 'msg': f'No remote named "{remote}" found (available: {available}) — run rclone config to create it'}
+        # Step 2 — live connection test: list Drive root directories
+        r2 = subprocess.run(
+            ['rclone', 'lsd', f'{remote}:', '--max-depth', '1'],
+            capture_output=True, text=True, timeout=15
+        )
+        if r2.returncode == 0:
+            return {'ok': True, 'msg': f'Remote "{remote}" connected — Google Drive authenticated'}
+        err = r2.stderr.strip().splitlines()[0] if r2.stderr.strip() else 'connection failed'
+        if 'token' in err.lower() or 'oauth' in err.lower() or 'auth' in err.lower():
+            return {'ok': False, 'msg': f'Authentication expired — run: rclone config reconnect {remote}:'}
+        return {'ok': False, 'msg': f'Could not connect to Drive: {err}'}
+    except FileNotFoundError:
+        return {'ok': False, 'msg': 'rclone not installed'}
+    except subprocess.TimeoutExpired:
+        return {'ok': False, 'msg': 'Connection timed out — check your network or re-authenticate'}
+    except Exception as e:
+        return {'ok': False, 'msg': str(e)}
+
+def test_rclone_install() -> dict:
+    try:
+        r = subprocess.run(['rclone', '--version'], capture_output=True, text=True, timeout=6)
+        version = r.stdout.splitlines()[0] if r.stdout else 'rclone'
+        return {'ok': True, 'msg': f'{version} installed'}
+    except FileNotFoundError:
+        return {'ok': False, 'msg': 'rclone not installed — install via Homebrew'}
+    except Exception as e:
+        return {'ok': False, 'msg': str(e)}
 
 def test_rclone(remote: str, folder: str) -> dict:
     try:
@@ -90,18 +177,151 @@ def test_playwright(path_str: str) -> dict:
     return {'ok': True, 'msg': 'Playwright installed'}
 
 def test_sales_deck(path_str: str) -> dict:
-    p = expand(path_str)
-    if p.exists():
-        return {'ok': True, 'msg': f'Found ({p.stat().st_size / 1048576:.1f} MB)'}
+    if not path_str or not path_str.strip():
+        return {'ok': False, 'msg': 'No file path saved — download the deck first'}
+    p = expand(path_str.strip())
+    if p.exists() and p.is_file():
+        size_mb = p.stat().st_size / 1048576
+        return {'ok': True, 'msg': f'Found ({size_mb:.1f} MB)'}
     return {'ok': False, 'msg': f'File not found — download from shared Drive'}
+
+def _drive_api_token(remote: str) -> str:
+    """Return a fresh OAuth access token for the given rclone remote.
+    Runs a lightweight rclone op first so rclone refreshes the token if needed."""
+    import configparser as _cp, json as _json, os as _os
+    # Touch Drive to let rclone refresh the token file if it has expired
+    subprocess.run(['rclone', 'about', f'{remote}:', '--json'],
+                   capture_output=True, timeout=15)
+    cfg_path = subprocess.run(['rclone', 'config', 'file'],
+                              capture_output=True, text=True).stdout.strip()
+    # 'rclone config file' prints e.g. "Configuration file is stored at:\n/path/rclone.conf\n"
+    for line in cfg_path.splitlines():
+        line = line.strip()
+        if line.endswith('.conf') or line.endswith('.ini'):
+            cfg_path = line
+            break
+    else:
+        cfg_path = _os.path.expanduser('~/.config/rclone/rclone.conf')
+    cfg = _cp.ConfigParser()
+    cfg.read(cfg_path)
+    if remote not in cfg:
+        raise ValueError(f'Remote "{remote}" not found in rclone config')
+    return _json.loads(cfg[remote]['token'])['access_token']
+
+
+def resolve_drive_file_url(remote: str, file_url: str) -> dict:
+    """Resolve a Google Drive file URL via the Drive API (instant, no tree scan)."""
+    import urllib.request as _ur, json as _json
+    m = re.search(r'/(?:file/d|presentation/d|document/d|spreadsheets/d|d)/([a-zA-Z0-9_-]+)', file_url)
+    if not m:
+        return {'ok': False, 'msg': 'Could not find a file ID in that URL'}
+    file_id = m.group(1)
+    try:
+        token = _drive_api_token(remote)
+        api_url = f'https://www.googleapis.com/drive/v3/files/{file_id}?fields=id,name,mimeType,parents'
+        req = _ur.Request(api_url, headers={'Authorization': f'Bearer {token}'})
+        data = _json.loads(_ur.urlopen(req, timeout=10).read())
+        parent_id = (data.get('parents') or [''])[0]
+        # path encodes parent_id|file_name so download can scope rclone to that one folder
+        return {'ok': True, 'name': data['name'],
+                'path': f"{parent_id}|{data['name']}",
+                'mime': data['mimeType'], 'file_id': file_id}
+    except FileNotFoundError:
+        return {'ok': False, 'msg': 'rclone not installed'}
+    except Exception as e:
+        code = getattr(e, 'code', None)
+        if code == 401:
+            return {'ok': False, 'msg': 'Authentication expired — go back to Step 3 and click Test to refresh'}
+        if code == 404:
+            return {'ok': False, 'msg': 'File not found — make sure the file is shared with your account'}
+        return {'ok': False, 'msg': str(e)}
+
+
+def download_drive_file(remote: str, path: str, name: str, mime: str = '') -> dict:
+    """Download a Drive file by scoping rclone to the parent folder (no full-tree scan)."""
+    import os as _os, json as _json
+    is_google_native = mime.startswith('application/vnd.google-apps.')
+    # path = "PARENT_FOLDER_ID|filename" set by resolve_drive_file_url
+    if '|' in path:
+        parent_id, fname = path.split('|', 1)
+        src = f'{remote},root_folder_id={parent_id}:'
+    else:
+        # Legacy fallback: treat path as a regular rclone path
+        from pathlib import Path as _P
+        p = _P(path)
+        parent = str(p.parent)
+        fname = p.name
+        src = f'{remote}:{parent}' if parent and parent != '.' else f'{remote}:'
+    # Wildcard suffix so the include pattern matches after export extension is added
+    include_pattern = fname + ('*' if is_google_native else '')
+    _ext_map = {
+        'application/vnd.google-apps.presentation': 'pptx',
+        'application/vnd.google-apps.document':     'docx',
+        'application/vnd.google-apps.spreadsheet':  'xlsx',
+    }
+    cmd = ['rclone', 'copy', src, str(DOWNLOADS_DIR), '--include', include_pattern]
+    if is_google_native:
+        cmd += ['--drive-export-formats', _ext_map.get(mime, 'pdf')]
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        if r.returncode != 0:
+            err = next(
+                (l for l in r.stderr.splitlines() if 'ERROR' in l or 'Failed' in l),
+                r.stderr.strip().splitlines()[0] if r.stderr.strip() else 'download failed'
+            )
+            return {'ok': False, 'msg': f'Download failed: {err}'}
+        base = _os.path.splitext(fname)[0]
+        for ext in ('.pptx', '.pdf', '.docx', '.xlsx', '.ppt'):
+            candidate = DOWNLOADS_DIR / (base + ext)
+            if candidate.exists():
+                return {'ok': True, 'msg': f'Downloaded: {candidate.name}',
+                        'local_path': str(candidate)}
+        existing = [f for f in DOWNLOADS_DIR.iterdir() if base.lower() in f.stem.lower()]
+        if existing:
+            return {'ok': True, 'msg': f'Downloaded: {existing[0].name}',
+                    'local_path': str(existing[0])}
+        listed = [f.name for f in DOWNLOADS_DIR.iterdir()]
+        debug = f' | rclone: {r.stderr.strip()[:200]}' if r.stderr.strip() else ''
+        return {'ok': False, 'msg': f'File not found after download. downloads/ contains: {listed or "nothing"}{debug}'}
+    except subprocess.TimeoutExpired:
+        return {'ok': False, 'msg': 'Download timed out — check your network'}
+    except Exception as e:
+        return {'ok': False, 'msg': str(e)}
+
+def _check_project_mcp_permissions(uuid: str) -> bool:
+    """Return True if the project settings.json grants permissions for the given MCP UUID."""
+    import json as _json
+    proj_settings = BASE_DIR / 'settings.json'
+    try:
+        data = _json.loads(proj_settings.read_text())
+        allowed = data.get('permissions', {}).get('allow', [])
+        return any(uuid in entry for entry in allowed)
+    except Exception:
+        return False
+
+def test_apollo_mcp() -> dict:
+    apollo_uuid = '1bce6c2a-2c4c-4908-a5e8-f1bca738186e'
+    if _check_project_mcp_permissions(apollo_uuid):
+        return {'ok': True, 'msg': 'Apollo tools enabled for this project'}
+    return {'ok': False, 'msg': 'Apollo permissions missing from project settings.json'}
+
+def test_slack_mcp() -> dict:
+    slack_uuid = '440c028e-25dc-49ef-9cbd-6650b738bb3d'
+    if _check_project_mcp_permissions(slack_uuid):
+        return {'ok': True, 'msg': 'Slack tools enabled for this project'}
+    return {'ok': False, 'msg': 'Slack permissions missing from project settings.json'}
 
 def run_all_tests(cfg: dict) -> dict:
     return {
+        'rclone_install': test_rclone_install(),
+        'rclone_remote':  test_rclone_remote(cfg.get('RCLONE_REMOTE', 'gdrive')),
         'rclone':         test_rclone(cfg.get('RCLONE_REMOTE', 'gdrive'), cfg.get('GDRIVE_FOLDER', '')),
         'node':           test_node(),
         'apollo_builder': test_apollo_builder(cfg.get('APOLLO_BUILDER_PATH', '')),
         'playwright':     test_playwright(cfg.get('APOLLO_BUILDER_PATH', '')),
         'sales_deck':     test_sales_deck(cfg.get('SALES_DECK_PATH', '')),
+        'apollo_mcp':     test_apollo_mcp(),
+        'slack_mcp':      test_slack_mcp(),
     }
 
 
@@ -392,6 +612,7 @@ input::placeholder { color: var(--border2); }
   box-shadow: 0 1px 3px rgba(37,99,235,0.3);
 }
 .btn-primary:hover:not(:disabled) { background: #1d4ed8; }
+.btn-primary:disabled { background: #93c5fd; box-shadow: none; cursor: not-allowed; }
 
 .btn-ghost {
   background: var(--surface); color: var(--text);
@@ -528,6 +749,19 @@ input::placeholder { color: var(--border2); }
 .summary-dot.err { background: var(--red); }
 .summary-dot.skip { background: var(--border2); }
 
+/* ── Prompt chips ─────────────────────────────────────────────────── */
+.prompt-chip {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 9px 14px;
+  display: flex; align-items: baseline; gap: 10px; font-size: 13px;
+}
+.prompt-label {
+  font-size: 10.5px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .04em; color: var(--blue); flex-shrink: 0; min-width: 90px;
+}
+.prompt-text { color: var(--text); line-height: 1.5; }
+.prompt-text em { font-style: normal; opacity: .6; }
+
 /* ── Step panels ──────────────────────────────────────────────────── */
 .step-panel { display: none; }
 .step-panel.active { display: block; }
@@ -579,7 +813,12 @@ code.inline {
     </div>
     <div class="st-line" id="sl-4"></div>
     <div class="st-item" id="st-5" onclick="jumpTo(5)">
-      <div class="st-circle" id="sc-5">&#10003;</div>
+      <div class="st-circle" id="sc-5">5</div>
+      <span class="st-label">MCP</span>
+    </div>
+    <div class="st-line" id="sl-5"></div>
+    <div class="st-item" id="st-6" onclick="jumpTo(6)">
+      <div class="st-circle" id="sc-6">&#10003;</div>
       <span class="st-label">Done</span>
     </div>
   </div>
@@ -588,7 +827,7 @@ code.inline {
   <div class="step-panel active" id="panel-1">
     <div class="card">
       <div class="card-header">
-        <div class="step-eyebrow">Step 1 of 4</div>
+        <div class="step-eyebrow">Step 1 of 5</div>
         <div class="card-title">Let&rsquo;s get you set up</div>
         <div class="card-sub">
           These details appear in every outreach email signature, Apollo sequence label,
@@ -641,7 +880,7 @@ code.inline {
   <div class="step-panel" id="panel-2">
     <div class="card">
       <div class="card-header">
-        <div class="step-eyebrow">Step 2 of 4</div>
+        <div class="step-eyebrow">Step 2 of 5</div>
         <div class="card-title">Apollo Sequence Builder</div>
         <div class="card-sub">
           A local Node.js + Playwright script that automates sequence creation in Apollo&rsquo;s UI.
@@ -654,7 +893,7 @@ code.inline {
           <div class="browse-wrap">
             <input type="text" id="APOLLO_BUILDER_PATH"
                    placeholder="~/Desktop/YDC Pipeline/apollo-sequence-builder"
-                   oninput="closePicker()" autocomplete="off">
+                   oninput="closePicker(); syncPlaywrightPath()" autocomplete="off">
             <button class="browse-btn" type="button" onclick="openPicker()">&#128193; Browse</button>
           </div>
           <div class="field-hint">
@@ -721,21 +960,15 @@ code.inline {
           </div>
           <div class="fix-block" id="fix-playwright">
             <div class="fix-label">Install dependencies in the script directory:</div>
-            <code>cd ~/Desktop/YDC\\ Pipeline/apollo-sequence-builder</code>
+            <code id="fix-playwright-path">cd ...</code>
             <code>npm install</code>
             <div class="fix-btns">
-              <button class="copy-btn" onclick="copyText(this,'cd ~/Desktop/YDC\\ Pipeline/apollo-sequence-builder && npm install')">Copy</button>
-              <button class="terminal-btn" onclick="openInTerminal(this,'cd ~/Desktop/YDC\\ Pipeline/apollo-sequence-builder && npm install')">&#x2318; Open in Terminal</button>
+              <button class="copy-btn" onclick="copyText(this, 'cd ' + document.getElementById('APOLLO_BUILDER_PATH').value.trim() + ' && npm install')">Copy</button>
+              <button class="terminal-btn" onclick="openInTerminal(this, 'cd ' + document.getElementById('APOLLO_BUILDER_PATH').value.trim() + ' && npm install')">&#x2318; Open in Terminal</button>
             </div>
           </div>
         </div>
 
-        <div style="margin-top:14px">
-          <button class="btn btn-ghost" style="width:100%;justify-content:center"
-                  onclick="runTestGroup(['apollo_builder','node','playwright'])">
-            &#9654; Test All Three
-          </button>
-        </div>
       </div>
       <div class="card-footer">
         <div class="footer-left">
@@ -743,7 +976,7 @@ code.inline {
         </div>
         <div class="footer-right">
           <button class="btn-link" onclick="saveAndNext(2, true)">Skip for now</button>
-          <button class="btn btn-primary" onclick="saveAndNext(2)">Continue &rarr;</button>
+          <button class="btn btn-primary" id="btn-continue-2" onclick="saveAndNext(2)" disabled>Continue &rarr;</button>
         </div>
       </div>
     </div>
@@ -753,58 +986,115 @@ code.inline {
   <div class="step-panel" id="panel-3">
     <div class="card">
       <div class="card-header">
-        <div class="step-eyebrow">Step 3 of 4</div>
+        <div class="step-eyebrow">Step 3 of 5</div>
         <div class="card-title">Google Drive</div>
         <div class="card-sub">
-          Account plan documents (.docx) are uploaded to your Drive automatically after
-          each pipeline run using rclone &mdash; a CLI tool for cloud storage.
+          Account plan documents (.docx) are saved to a folder in your Google Drive after
+          each pipeline run. This uses rclone &mdash; a command-line tool that syncs files
+          to cloud storage.
         </div>
       </div>
       <div class="card-body">
-        <div class="info-box">
-          <span class="icon">&#x2139;&#xFE0F;</span>
-          <div>
-            <strong>First time?</strong> Install and authenticate rclone:<br>
-            <code class="inline" style="display:inline-block;margin-top:5px">brew install rclone</code>
-            &nbsp;then&nbsp;
-            <code class="inline">rclone config</code>
-            &nbsp;&rarr; New remote &rarr; name it <em>gdrive</em> &rarr; type: Google Drive &rarr; follow OAuth.
-          </div>
+
+        <!-- ── Step A: Install rclone ───────────────────────────────────── -->
+        <div style="margin-bottom:14px">
+          <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-dark)">Connect your Google Drive</div>
         </div>
 
-        <div class="field-row" style="margin-bottom:20px">
-          <div class="field">
-            <label>rclone Remote <span class="req">*</span></label>
-            <input type="text" id="RCLONE_REMOTE" placeholder="gdrive">
-            <div class="field-hint">
-              Verify with <code class="inline">rclone listremotes</code>
-            </div>
-          </div>
-          <div class="field">
-            <label>Drive Folder <span class="req">*</span></label>
-            <input type="text" id="GDRIVE_FOLDER"
-                   placeholder="Account Plans, Lists &amp; Personalized Sequences">
-            <div class="field-hint">Must exist in your Drive</div>
-          </div>
-        </div>
-
-        <div class="test-block">
+        <div class="test-block" style="margin-bottom:20px">
           <div class="test-row">
-            <div class="test-dot" id="dot-rclone"></div>
-            <span class="test-name">rclone + Drive folder</span>
-            <span class="test-msg" id="msg-rclone">Not tested</span>
-            <button class="test-btn" onclick="runTest('rclone')">Test</button>
+            <div class="test-dot" id="dot-rclone_install"></div>
+            <span class="test-name">rclone CLI</span>
+            <span class="test-msg" id="msg-rclone_install">Not tested</span>
+            <button class="test-btn" onclick="runTest('rclone_install')">Check</button>
           </div>
-          <div class="fix-block" id="fix-rclone">
-            <div class="fix-label">Install rclone and set up Google Drive remote:</div>
+          <div class="fix-block" id="fix-rclone_install">
+            <div class="fix-label">Install rclone via Homebrew, then re-check:</div>
             <code>brew install rclone</code>
-            <code>rclone config</code>
             <div class="fix-btns">
-              <button class="copy-btn" onclick="copyText(this,'brew install rclone && rclone config')">Copy</button>
-              <button class="terminal-btn" onclick="openInTerminal(this,'brew install rclone && rclone config')">&#x2318; Open in Terminal</button>
+              <button class="copy-btn" onclick="copyText(this,'brew install rclone')">Copy</button>
+              <button class="terminal-btn" onclick="openInTerminal(this,'brew install rclone')">&#x2318; Open in Terminal</button>
             </div>
           </div>
         </div>
+
+        <!-- ── Step B: shown after rclone CLI passes ────────────────────── -->
+        <div id="rclone-remote-section" style="display:none">
+
+          <hr style="border:none;border-top:1px solid var(--border);margin:0 0 20px">
+
+          <div class="test-block" style="margin-bottom:0">
+            <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px">
+              <div class="test-dot spin" id="dot-rclone_remote" style="margin-top:2px;flex-shrink:0"></div>
+              <div style="flex:1">
+                <div style="font-weight:500;font-size:14px;color:var(--text)">Configure remote access to Google Drive</div>
+                <div style="display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap">
+                  <span class="test-msg" id="msg-rclone_remote">Checking&hellip;</span>
+                  <button class="terminal-btn" id="btn-rclone-terminal" style="display:none;flex-shrink:0"
+                          onclick="openInTerminal(this,'rclone config delete gdrive; rclone config')">&#x2318; Open in Terminal</button>
+                  <button class="test-btn" id="btn-rclone-recheck" style="display:none;flex-shrink:0"
+                          onclick="runTest('rclone_remote')">Check again</button>
+                  <button class="btn btn-ghost" id="btn-rclone-delete" style="display:none;flex-shrink:0;font-size:12px;padding:4px 10px;color:var(--red);border-color:var(--red)"
+                          onclick="deleteRcloneConfig()">Delete Config</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step-by-step instructions — shown when remote not configured -->
+            <div id="rclone-instructions" style="display:none;margin-top:12px;padding:14px 16px;background:var(--bg);border:1px solid var(--border);border-radius:8px">
+              <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-dark);margin-bottom:6px">If you&rsquo;ve attempted this before, clean up first:</div>
+              <div style="background:var(--code-bg);border-radius:6px;padding:8px 12px;font-family:monospace;font-size:13px;color:var(--text);margin-bottom:14px">rclone config delete gdrive</div>
+              <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-dark);margin-bottom:10px">Then run <code style="font-size:11px;text-transform:none">rclone config</code> and follow these steps:</div>
+              <ol style="margin:0;padding-left:18px;font-size:13px;color:var(--text);line-height:1.9;display:flex;flex-direction:column;gap:4px">
+                <li>Enter <code class="inline">n</code> for <strong>New remote</strong></li>
+                <li>Enter <code class="inline">gdrive</code> as the remote name</li>
+                <li>Enter <code class="inline">24</code> for <strong>Google Drive</strong> storage</li>
+                <li>Leave <strong>Client ID</strong> blank — press <kbd style="font-size:11px;padding:1px 5px;border:1px solid var(--border);border-radius:3px;background:#fff">Return</kbd> <span style="color:var(--gray-dark)">(uses rclone&rsquo;s built-in credentials)</span></li>
+                <li>Leave <strong>Client Secret</strong> blank — press <kbd style="font-size:11px;padding:1px 5px;border:1px solid var(--border);border-radius:3px;background:#fff">Return</kbd></li>
+                <li>Enter <code class="inline">1</code> for full access to all files in your Google Drive</li>
+                <li>Leave <strong>Service Account</strong> blank — press <kbd style="font-size:11px;padding:1px 5px;border:1px solid var(--border);border-radius:3px;background:#fff">Return</kbd></li>
+                <li>Enter <code class="inline">n</code> for Advanced Config</li>
+                <li>Enter <code class="inline">y</code> for browser authentication — a sign-in window will open</li>
+                <li>Enter <code class="inline">n</code> to configure as a Shared Drive</li>
+                <li>Enter <code class="inline">y</code> to keep the <strong>gdrive</strong> remote</li>
+                <li>Enter <code class="inline">q</code> to quit config</li>
+              </ol>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ── Step C: shown after remote check passes ────────────────────── -->
+        <div id="rclone-folder-section" style="display:none">
+
+          <hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
+
+          <!-- RCLONE_REMOTE is set by instructions to 'gdrive' — saved silently -->
+          <input type="hidden" id="RCLONE_REMOTE" value="gdrive">
+
+          <div style="margin-bottom:14px">
+            <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-dark)">Where your account plans will live</div>
+          </div>
+
+          <div class="field" style="margin-bottom:6px">
+            <label>Google Drive Folder URL <span class="req">*</span></label>
+            <div class="browse-wrap">
+              <input type="text" id="GDRIVE_FOLDER_URL"
+                     placeholder="https://drive.google.com/drive/folders/..."
+                     oninput="clearDriveResolve()" autocomplete="off" style="font-size:12px">
+              <button class="browse-btn" type="button" onclick="resolveDriveFolder()">Resolve</button>
+            </div>
+            <div class="field-hint">
+              Create a folder in Google Drive for your account plans, open it in your browser,
+              then paste the URL here. We&rsquo;ll look up the folder name automatically.
+            </div>
+            <div id="drive-resolve-msg" style="display:none;margin-top:6px;font-size:13px;font-weight:500"></div>
+            <!-- Hidden field — populated by Resolve, read by rclone and saved to config -->
+            <input type="hidden" id="GDRIVE_FOLDER">
+          </div>
+
+        </div>
+
       </div>
       <div class="card-footer">
         <div class="footer-left">
@@ -812,7 +1102,7 @@ code.inline {
         </div>
         <div class="footer-right">
           <button class="btn-link" onclick="saveAndNext(3, true)">Skip for now</button>
-          <button class="btn btn-primary" onclick="saveAndNext(3)">Continue &rarr;</button>
+          <button class="btn btn-primary" id="btn-continue-3" onclick="saveAndNext(3)" disabled>Continue &rarr;</button>
         </div>
       </div>
     </div>
@@ -822,7 +1112,7 @@ code.inline {
   <div class="step-panel" id="panel-4">
     <div class="card">
       <div class="card-header">
-        <div class="step-eyebrow">Step 4 of 4</div>
+        <div class="step-eyebrow">Step 4 of 5</div>
         <div class="card-title">Sales Deck PDF</div>
         <div class="card-sub">
           The current You.com pitch bible. Claude reads this at the start of each pipeline
@@ -830,23 +1120,37 @@ code.inline {
         </div>
       </div>
       <div class="card-body">
-        <div class="warn-box">
-          <span class="icon">&#x1F4C2;</span>
-          <span>
-            Download the latest deck from the shared Google Drive folder
-            (ask your manager or sales ops if you don&rsquo;t have access).
-            Save it locally and paste the path below.
-          </span>
+
+        <div class="field" style="margin-bottom:6px">
+          <label>Google Drive File URL <span class="req">*</span></label>
+          <div class="browse-wrap">
+            <input type="text" id="SALES_DECK_URL"
+                   placeholder="https://drive.google.com/file/d/... or docs.google.com/presentation/d/..."
+                   oninput="clearDeckResolve()" autocomplete="off" style="font-size:12px">
+            <button class="browse-btn" type="button" onclick="resolveDeckFile()">Resolve</button>
+          </div>
+          <div class="field-hint">
+            Open the sales deck in Google Drive and paste the URL. Supports PDF, PowerPoint, and Google Slides.
+            The file will be downloaded to <code class="inline">ydc-sales-pipeline/downloads/</code> as a PDF.
+          </div>
+          <div id="deck-resolve-msg" style="display:none;margin-top:6px;font-size:13px;font-weight:500"></div>
         </div>
 
-        <div class="field" style="margin-bottom:20px">
-          <label>Local PDF Path <span class="req">*</span></label>
-          <input type="text" id="SALES_DECK_PATH"
-                 placeholder="~/Downloads/You.com - AI Search Infra Pitch Deck.pdf">
-          <div class="field-hint">Full local path including filename</div>
+        <!-- Download section — shown after resolve -->
+        <div id="deck-download-section" style="display:none;margin-top:14px">
+          <button class="btn btn-primary" id="btn-deck-download" onclick="downloadDeckFile()"
+                  style="width:100%;justify-content:center">
+            &#x2193; Download to downloads/
+          </button>
+          <div id="deck-download-msg" style="display:none;margin-top:8px;font-size:13px;font-weight:500"></div>
         </div>
 
-        <div class="test-block">
+        <!-- Hidden fields populated by resolve + download -->
+        <input type="hidden" id="SALES_DECK_URL_RESOLVED_NAME">
+        <input type="hidden" id="SALES_DECK_URL_RESOLVED_PATH">
+        <input type="text"   id="SALES_DECK_PATH" style="display:none">
+
+        <div class="test-block" style="margin-top:16px">
           <div class="test-row">
             <div class="test-dot" id="dot-sales_deck"></div>
             <span class="test-name">Sales deck file</span>
@@ -854,9 +1158,7 @@ code.inline {
             <button class="test-btn" onclick="runTest('sales_deck')">Check</button>
           </div>
           <div class="fix-block" id="fix-sales_deck">
-            <div class="fix-label">
-              File not found at that path. Download the deck, update the path above, then re-check.
-            </div>
+            <div class="fix-label">File not found — use the Download button above to fetch it from Drive.</div>
           </div>
         </div>
       </div>
@@ -866,14 +1168,74 @@ code.inline {
         </div>
         <div class="footer-right">
           <button class="btn-link" onclick="saveAndNext(4, true)">Skip for now</button>
-          <button class="btn btn-primary" onclick="saveAndNext(4)">Finish &amp; Review &rarr;</button>
+          <button class="btn btn-primary" onclick="saveAndNext(4)">Continue &rarr;</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ═══════════════════ STEP 5: DONE ═══════════════════ -->
+  <!-- ═══════════════════ STEP 5: MCP CONNECTIONS ═══════════════════ -->
   <div class="step-panel" id="panel-5">
+    <div class="card">
+      <div class="card-header">
+        <div class="step-eyebrow">Step 5 of 5</div>
+        <div class="card-title">MCP Connections</div>
+        <div class="card-sub">
+          Apollo and Slack are built-in capabilities of Claude Code — no separate installation needed.
+          This step confirms the tool permissions are enabled for this project.
+        </div>
+      </div>
+      <div class="card-body">
+
+        <div class="test-block">
+          <div class="test-row">
+            <div class="test-dot" id="dot-apollo_mcp"></div>
+            <span class="test-name">Apollo</span>
+            <span class="test-msg" id="msg-apollo_mcp">Not tested</span>
+            <button class="test-btn" onclick="runTest('apollo_mcp')">Check</button>
+          </div>
+          <div class="fix-block" id="fix-apollo_mcp">
+            <div class="fix-label">Apollo tool permissions are missing from this project&rsquo;s
+              <code class="inline">settings.json</code>. Contact your pipeline admin to get the
+              correct <code class="inline">settings.json</code> for this repo.</div>
+          </div>
+
+          <div class="test-row">
+            <div class="test-dot" id="dot-slack_mcp"></div>
+            <span class="test-name">Slack</span>
+            <span class="test-msg" id="msg-slack_mcp">Not tested</span>
+            <button class="test-btn" onclick="runTest('slack_mcp')">Check</button>
+          </div>
+          <div class="fix-block" id="fix-slack_mcp">
+            <div class="fix-label">Slack tool permissions are missing from this project&rsquo;s
+              <code class="inline">settings.json</code>. Contact your pipeline admin to get the
+              correct <code class="inline">settings.json</code> for this repo.</div>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;padding:12px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--gray-dark)">
+          <strong style="color:var(--text)">How this works:</strong>
+          Apollo and Slack are provided as Claude tools — Claude can search contacts, create sequences,
+          and read Slack channels directly during pipeline runs. The project&rsquo;s
+          <code class="inline">settings.json</code> controls which tools are permitted.
+          If checks pass, you&rsquo;re ready to run the pipeline.
+        </div>
+
+      </div>
+      <div class="card-footer">
+        <div class="footer-left">
+          <button class="btn btn-ghost" onclick="goTo(4)">&larr; Back</button>
+        </div>
+        <div class="footer-right">
+          <button class="btn-link" onclick="saveAndNext(5, true)">Skip for now</button>
+          <button class="btn btn-primary" onclick="saveAndNext(5)">Continue &rarr;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ STEP 6: DONE ═══════════════════ -->
+  <div class="step-panel" id="panel-6">
     <div class="card">
       <div class="card-body">
 
@@ -888,28 +1250,52 @@ code.inline {
           <!-- populated by JS -->
         </div>
 
-        <!-- MCP reminder -->
-        <div class="warn-box">
+        <!-- MCP warning — shown only if MCPs failed -->
+        <div class="warn-box" id="done-mcp-warn" style="display:none">
           <span class="icon">&#9888;&#xFE0F;</span>
-          <div>
-            <strong>Two more things not configured here:</strong><br>
-            <strong>Apollo MCP</strong> and <strong>Slack MCP</strong> are connected in
-            Claude Code settings &mdash; not this file. Ask your admin for the server config
-            and compare it against <code class="inline">settings.json</code> in this repo.
-          </div>
+          <div id="done-mcp-warn-text"></div>
         </div>
 
-        <!-- Launch -->
-        <div style="text-align:center; padding-top: 4px;">
-          <p style="font-size:13px; color:var(--muted); margin-bottom:14px;">
-            Open a terminal in the project directory and start Claude Code:
-          </p>
-          <div style="background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:12px 16px; font-family:ui-monospace,monospace; font-size:13px; margin-bottom:16px; text-align:left;">
-            cd /path/to/ydc-sales-pipeline<br>claude
+        <!-- Launch instructions -->
+        <div style="margin-top:20px; padding-top:20px; border-top:1px solid var(--border);">
+          <p style="font-size:14px; font-weight:600; color:var(--text); margin:0 0 14px 0;">How to run the pipeline</p>
+
+          <div style="background:#f0f7ff; border:1px solid #c5dcf5; border-radius:8px; padding:12px 14px; margin-bottom:14px; font-size:13px; color:#1a3a5c; line-height:1.6;">
+            <strong>This pipeline runs through Claude Code</strong> &mdash; the same app you&rsquo;re using right now.
+            No terminal or CLI commands needed.
           </div>
-          <p style="font-size:12.5px; color:var(--muted);">
-            Then say: <em>&ldquo;Run pipeline for [Company Name]&rdquo;</em>
+
+          <p style="font-size:12.5px; color:var(--muted); margin:0 0 8px 0;">1 &mdash; Open <strong>Claude.app</strong> &rarr; click <strong>Work in a project</strong> &rarr; select this folder:</p>
+          <div style="background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:10px 16px; font-family:ui-monospace,monospace; font-size:13px; margin-bottom:6px;">
+            __BASE_DIR__
+          </div>
+          <p style="font-size:12px; color:var(--muted); margin:0 0 14px 0;">
+            If you see a &ldquo;workspace failed to start&rdquo; error, dismiss it &mdash; that&rsquo;s a separate VM feature the pipeline doesn&rsquo;t use.
           </p>
+
+          <p style="font-size:12.5px; color:var(--muted); margin:0 0 8px 0;">2 &mdash; Type one of these prompts and press Enter:</p>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div class="prompt-chip">
+              <span class="prompt-label">Full pipeline</span>
+              <span class="prompt-text">&ldquo;Run the sales pipeline for <em>[Company Name]</em>&rdquo;</span>
+            </div>
+            <div class="prompt-chip">
+              <span class="prompt-label">Research only</span>
+              <span class="prompt-text">&ldquo;Research <em>[Company Name]</em> and build a prospect brief&rdquo;</span>
+            </div>
+            <div class="prompt-chip">
+              <span class="prompt-label">Meeting prep</span>
+              <span class="prompt-text">&ldquo;Prepare me for my meeting with <em>[Company]</em> tomorrow&rdquo;</span>
+            </div>
+            <div class="prompt-chip">
+              <span class="prompt-label">Account context</span>
+              <span class="prompt-text">&ldquo;Pull internal context on <em>[Company Name]</em> from Slack and Drive&rdquo;</span>
+            </div>
+            <div class="prompt-chip">
+              <span class="prompt-label">Score accounts</span>
+              <span class="prompt-text">&ldquo;Score my account list at <em>[file path]</em> against our ICP&rdquo;</span>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -932,23 +1318,27 @@ code.inline {
 <script>
 // ── State ─────────────────────────────────────────────────────────────────────
 let current = 1;
-const TOTAL  = 4;
+const TOTAL  = 5;
 
 // Fields saved on each step
 const STEP_FIELDS = {
   1: ['AE_NAME','AE_FIRST_NAME','AE_EMAIL','AE_TITLE'],
   2: ['APOLLO_BUILDER_PATH'],
-  3: ['RCLONE_REMOTE','GDRIVE_FOLDER'],
-  4: ['SALES_DECK_PATH'],
+  3: ['RCLONE_REMOTE','GDRIVE_FOLDER','GDRIVE_FOLDER_URL'],
+  4: ['SALES_DECK_PATH','SALES_DECK_URL'],
 };
 
 // Map service key → API endpoint suffix
 const SVC_ENDPOINT = {
+  rclone_install: 'rclone-install',
+  rclone_remote:  'rclone-remote',
   rclone:         'rclone',
   node:           'node',
   apollo_builder: 'apollo-builder',
   playwright:     'playwright',
   sales_deck:     'sales-deck',
+  apollo_mcp:     'apollo-mcp',
+  slack_mcp:      'slack-mcp',
 };
 
 // Track test results for summary
@@ -968,26 +1358,50 @@ async function loadAllFields() {
   try {
     const cfg = await (await fetch('/api/config')).json();
     const ALL_FIELDS = ['AE_NAME','AE_FIRST_NAME','AE_EMAIL','AE_TITLE',
-                        'APOLLO_BUILDER_PATH','SALES_DECK_PATH',
-                        'RCLONE_REMOTE','GDRIVE_FOLDER'];
+                        'APOLLO_BUILDER_PATH','SALES_DECK_PATH','SALES_DECK_URL',
+                        'RCLONE_REMOTE','GDRIVE_FOLDER','GDRIVE_FOLDER_URL'];
     ALL_FIELDS.forEach(k => {
       const el = document.getElementById(k);
       if (!el) return;
-      el.value = cfg[k] || '';
+      // RCLONE_REMOTE defaults to 'gdrive' if not yet configured
+      el.value = cfg[k] || (k === 'RCLONE_REMOTE' ? 'gdrive' : '');
     });
     // If identity loaded, mark first-name as manual so auto-fill doesn't clobber it
     if (cfg.AE_FIRST_NAME) {
       document.getElementById('AE_FIRST_NAME').dataset.manual = 'true';
     }
+    // If drive folder was previously resolved, show the confirmation message
+    if (cfg.GDRIVE_FOLDER) {
+      const msgEl = document.getElementById('drive-resolve-msg');
+      if (msgEl) {
+        msgEl.style.display = 'block';
+        msgEl.style.color   = 'var(--green)';
+        msgEl.textContent   = '✓ Resolved: ' + cfg.GDRIVE_FOLDER;
+      }
+    }
+    // If deck was previously downloaded, restore the download confirmation message
+    if (cfg.SALES_DECK_PATH) {
+      const dlMsg = document.getElementById('deck-download-msg');
+      const dlBtn = document.getElementById('btn-deck-download');
+      if (dlMsg) {
+        dlMsg.style.display = 'block';
+        dlMsg.style.color   = 'var(--green)';
+        dlMsg.textContent   = '\u2713 Previously downloaded: ' + cfg.SALES_DECK_PATH.split('/').pop();
+      }
+      if (dlBtn) { dlBtn.textContent = '\u2713 Downloaded'; }
+    }
     // Re-run step 1 validation so Continue unlocks if fields are already filled
     checkStep1();
+    syncPlaywrightPath();
+    checkStep2Deps();
+    checkStep3Deps();
   } catch (e) { console.error('Load failed', e); }
 }
 
 // Persist & restore wizard position using localStorage
 function saveState() {
   const done = [];
-  for (let i = 1; i <= 4; i++) {
+  for (let i = 1; i <= 5; i++) {
     const c = document.getElementById('sc-' + i);
     if (c && c.dataset.done === 'true') done.push(i);
   }
@@ -1008,7 +1422,9 @@ function restoreState() {
   });
 
   // Restore step (clamp to valid range)
-  if (savedStep > 1) goTo(Math.min(savedStep, 5));
+  const step = Math.min(savedStep, 6);
+  if (step > 1) goTo(step);
+  if (step === 6) buildSummary();
 }
 
 // ── Navigation ────────────────────────────────────────────────────────────────
@@ -1019,6 +1435,15 @@ function goTo(n) {
   updateStepper();
   saveState();
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Auto-run rclone CLI check the first time Step 3 is reached
+  if (n === 3 && !testResults['rclone_install']) {
+    setTimeout(() => runTest('rclone_install'), 400);
+  }
+  // Auto-run MCP checks the first time Step 5 is reached
+  if (n === 5) {
+    if (!testResults['apollo_mcp']) setTimeout(() => runTest('apollo_mcp'), 300);
+    if (!testResults['slack_mcp'])  setTimeout(() => runTest('slack_mcp'),  600);
+  }
 }
 
 function jumpTo(n) {
@@ -1049,14 +1474,14 @@ async function saveAndNext(step, skip = false) {
   // If this is the last step, show done screen with summary
   if (step >= TOTAL) {
     await buildSummary();
-    goTo(5);
+    goTo(6);
   } else {
     goTo(step + 1);
   }
 }
 
 function updateStepper() {
-  for (let i = 1; i <= 5; i++) {
+  for (let i = 1; i <= 6; i++) {
     const item   = document.getElementById('st-' + i);
     const circle = document.getElementById('sc-' + i);
     if (!item) continue;
@@ -1066,7 +1491,7 @@ function updateStepper() {
     } else if (circle && circle.dataset.done === 'true') {
       item.classList.add('done');
     }
-    if (i < 5) {
+    if (i < 6) {
       const line = document.getElementById('sl-' + i);
       if (line) {
         line.classList.toggle('done', circle && circle.dataset.done === 'true');
@@ -1125,7 +1550,7 @@ function checkStep1() {
 async function runTest(svc) {
   setChecking(svc);
   // Save current step's fields first so the server uses the latest values
-  const stepForSvc = { rclone: 3, node: 2, apollo_builder: 2, playwright: 2, sales_deck: 4 };
+  const stepForSvc = { rclone_install: 3, rclone_remote: 3, node: 2, apollo_builder: 2, playwright: 2, sales_deck: 4, apollo_mcp: 5, slack_mcp: 5 };
   const step = stepForSvc[svc];
   if (step) {
     const data = {};
@@ -1143,11 +1568,11 @@ async function runTest(svc) {
   try {
     const res = await fetch('/api/test/' + SVC_ENDPOINT[svc], { method: 'POST' });
     const r   = await res.json();
+    testResults[svc] = r;           // store first so checkStep2Deps sees it
     setResult(svc, r.ok, r.msg);
-    testResults[svc] = r;
   } catch (e) {
-    setResult(svc, false, 'Request failed');
     testResults[svc] = { ok: false, msg: 'Request failed' };
+    setResult(svc, false, 'Request failed');
   }
 }
 
@@ -1171,6 +1596,228 @@ function setResult(svc, ok, text) {
   if (dot) dot.className = 'test-dot ' + (ok ? 'ok' : 'err');
   if (msg) { msg.textContent = text || ''; msg.className = 'test-msg ' + (ok ? 'ok' : 'err'); }
   if (fix) ok ? fix.classList.remove('show') : fix.classList.add('show');
+  // Special handling for rclone_remote: swap action button based on result
+  if (svc === 'rclone_remote') updateRcloneRemoteBtn(ok);
+  // When rclone installs successfully, auto-check the remote config
+  if (svc === 'rclone_install' && ok && !testResults['rclone_remote']) {
+    setTimeout(() => runTest('rclone_remote'), 300);
+  }
+  checkStep2Deps();
+  checkStep3Deps();
+}
+
+function checkStep2Deps() {
+  const required = ['apollo_builder', 'node', 'playwright'];
+  const allPass  = required.every(s => testResults[s] && testResults[s].ok);
+  const btn      = document.getElementById('btn-continue-2');
+  if (btn) btn.disabled = !allPass;
+}
+
+function checkStep3Deps() {
+  const installOk = !!(testResults['rclone_install'] && testResults['rclone_install'].ok);
+  const remoteOk  = !!(testResults['rclone_remote']  && testResults['rclone_remote'].ok);
+  const folderSet = !!((document.getElementById('GDRIVE_FOLDER') || {}).value);
+  // Gate B: remote name + check visible only after CLI passes
+  const remoteSection = document.getElementById('rclone-remote-section');
+  if (remoteSection) remoteSection.style.display = installOk ? 'block' : 'none';
+  // Gate C: folder URL visible only after remote check passes
+  const folderSection = document.getElementById('rclone-folder-section');
+  if (folderSection) folderSection.style.display = (installOk && remoteOk) ? 'block' : 'none';
+  const btn = document.getElementById('btn-continue-3');
+  if (btn) btn.disabled = !(installOk && remoteOk && folderSet);
+}
+
+function updateRcloneRemoteBtn(ok) {
+  const terminalBtn  = document.getElementById('btn-rclone-terminal');
+  const recheckBtn   = document.getElementById('btn-rclone-recheck');
+  const deleteBtn    = document.getElementById('btn-rclone-delete');
+  const instructions = document.getElementById('rclone-instructions');
+  if (!recheckBtn) return;
+  if (ok) {
+    // Remote found — hide terminal + instructions, show Test + Delete Config
+    if (terminalBtn)  terminalBtn.style.display  = 'none';
+    if (instructions) instructions.style.display = 'none';
+    if (deleteBtn)    deleteBtn.style.display     = '';
+    recheckBtn.textContent   = 'Test';
+    recheckBtn.style.display = '';
+  } else {
+    // Not configured — show instructions + Open in Terminal + Check again, hide Delete
+    if (terminalBtn)  terminalBtn.style.display  = '';
+    if (instructions) instructions.style.display = '';
+    if (deleteBtn)    deleteBtn.style.display     = 'none';
+    recheckBtn.textContent   = 'Check again';
+    recheckBtn.style.display = '';
+  }
+}
+
+function deleteRcloneConfig() {
+  openInTerminal(null, 'rclone config delete gdrive');
+  // Reset the check state so the user re-verifies after deletion
+  delete testResults['rclone_remote'];
+  const dot = document.getElementById('dot-rclone_remote');
+  const msg = document.getElementById('msg-rclone_remote');
+  const deleteBtn = document.getElementById('btn-rclone-delete');
+  const recheckBtn = document.getElementById('btn-rclone-recheck');
+  if (dot) dot.className = 'test-dot';
+  if (msg) { msg.textContent = 'Config deleted — re-check when ready'; msg.className = 'test-msg'; }
+  if (deleteBtn)  deleteBtn.style.display  = 'none';
+  if (recheckBtn) { recheckBtn.textContent = 'Check'; recheckBtn.style.display = ''; }
+  checkStep3Deps();
+}
+
+function onRemoteNameInput() {
+  // When the remote name changes, invalidate the remote check and collapse folder section
+  delete testResults['rclone_remote'];
+  delete testResults['rclone'];
+  const dot = document.getElementById('dot-rclone_remote');
+  const msg = document.getElementById('msg-rclone_remote');
+  const terminalBtn = document.getElementById('btn-rclone-terminal');
+  const recheckBtn  = document.getElementById('btn-rclone-recheck');
+  if (dot) dot.className = 'test-dot';
+  if (msg) { msg.textContent = 'Re-check required'; msg.className = 'test-msg'; }
+  if (terminalBtn) terminalBtn.style.display = 'none';
+  if (recheckBtn)  { recheckBtn.textContent = 'Check'; recheckBtn.style.display = ''; }
+  clearDriveResolve();
+  checkStep3Deps();
+}
+
+async function resolveDriveFolder() {
+  const urlEl    = document.getElementById('GDRIVE_FOLDER_URL');
+  const nameEl   = document.getElementById('GDRIVE_FOLDER');
+  const msgEl    = document.getElementById('drive-resolve-msg');
+  const remote   = (document.getElementById('RCLONE_REMOTE').value || 'gdrive').trim();
+  const url      = urlEl.value.trim();
+  if (!url) {
+    msgEl.style.display = 'block'; msgEl.style.color = 'var(--red)';
+    msgEl.textContent   = 'Paste a Google Drive folder URL first.';
+    return;
+  }
+  msgEl.style.display = 'block'; msgEl.style.color = 'var(--gray-dark)';
+  msgEl.textContent   = 'Resolving\u2026';
+  try {
+    const r = await fetch('/api/resolve-drive-folder', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({url, remote})
+    });
+    const d = await r.json();
+    if (d.ok) {
+      nameEl.value        = d.name;
+      msgEl.style.color   = 'var(--green)';
+      msgEl.textContent   = '\u2713 ' + d.msg;
+    } else {
+      nameEl.value        = '';
+      msgEl.style.color   = 'var(--red)';
+      msgEl.textContent   = d.msg;
+    }
+  } catch(e) {
+    nameEl.value        = '';
+    msgEl.style.color   = 'var(--red)';
+    msgEl.textContent   = 'Request failed — is the setup server running?';
+  }
+  checkStep3Deps();
+}
+
+function clearDriveResolve() {
+  document.getElementById('GDRIVE_FOLDER').value = '';
+  const msgEl = document.getElementById('drive-resolve-msg');
+  if (msgEl) msgEl.style.display = 'none';
+  checkStep3Deps();
+}
+
+// ── Sales Deck Drive download ─────────────────────────────────────────────────
+let deckResolvedPath = '';
+let deckResolvedName = '';
+let deckResolvedMime = '';
+
+async function resolveDeckFile() {
+  const urlEl  = document.getElementById('SALES_DECK_URL');
+  const msgEl  = document.getElementById('deck-resolve-msg');
+  const secEl  = document.getElementById('deck-download-section');
+  const cfg    = await (await fetch('/api/config')).json().catch(() => ({}));
+  const remote = cfg.RCLONE_REMOTE || 'gdrive';
+  const url    = urlEl.value.trim();
+  if (!url) {
+    msgEl.style.display = 'block'; msgEl.style.color = 'var(--red)';
+    msgEl.textContent   = 'Paste a Google Drive file URL first.'; return;
+  }
+  msgEl.style.display = 'block'; msgEl.style.color = 'var(--gray-dark)';
+  msgEl.textContent   = 'Resolving\u2026';
+  if (secEl) secEl.style.display = 'none';
+  try {
+    const r = await fetch('/api/resolve-drive-file', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({url, remote})
+    });
+    const d = await r.json();
+    if (d.ok) {
+      deckResolvedPath = d.path;
+      deckResolvedName = d.name;
+      deckResolvedMime = d.mime || '';
+      msgEl.style.color = 'var(--green)';
+      msgEl.textContent = '\u2713 Found: ' + d.name;
+      if (secEl) secEl.style.display = 'block';
+    } else {
+      deckResolvedPath = deckResolvedName = deckResolvedMime = '';
+      msgEl.style.color = 'var(--red)';
+      msgEl.textContent = d.msg;
+      if (secEl) secEl.style.display = 'none';
+    }
+  } catch(e) {
+    msgEl.style.color = 'var(--red)';
+    msgEl.textContent = 'Request failed — is the setup server running?';
+  }
+}
+
+async function downloadDeckFile() {
+  const dlBtn  = document.getElementById('btn-deck-download');
+  const dlMsg  = document.getElementById('deck-download-msg');
+  const cfg    = await (await fetch('/api/config')).json().catch(() => ({}));
+  const remote = cfg.RCLONE_REMOTE || 'gdrive';
+  if (!deckResolvedPath) return;
+  dlBtn.disabled = true; dlBtn.textContent = 'Downloading\u2026';
+  dlMsg.style.display = 'none';
+  try {
+    const r = await fetch('/api/download-drive-file', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({remote, path: deckResolvedPath, name: deckResolvedName, mime: deckResolvedMime})
+    });
+    const d = await r.json();
+    dlMsg.style.display = 'block';
+    if (d.ok) {
+      dlMsg.style.color = 'var(--green)';
+      dlMsg.textContent = '\u2713 ' + d.msg;
+      // Auto-fill hidden path field and save to config
+      document.getElementById('SALES_DECK_PATH').value = d.local_path;
+      await fetch('/api/config', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({SALES_DECK_PATH: d.local_path})
+      });
+      dlBtn.textContent = '\u2713 Downloaded';
+      // Auto-run the check
+      setTimeout(() => runTest('sales_deck'), 300);
+    } else {
+      dlMsg.style.color = 'var(--red)';
+      dlMsg.textContent = d.msg;
+      dlBtn.disabled = false;
+      dlBtn.textContent = '\u2193 Download to downloads/';
+    }
+  } catch(e) {
+    dlMsg.style.display = 'block'; dlMsg.style.color = 'var(--red)';
+    dlMsg.textContent   = 'Request failed.';
+    dlBtn.disabled = false; dlBtn.textContent = '\u2193 Download to downloads/';
+  }
+}
+
+function clearDeckResolve() {
+  deckResolvedPath = deckResolvedName = deckResolvedMime = '';
+  const msgEl = document.getElementById('deck-resolve-msg');
+  const secEl = document.getElementById('deck-download-section');
+  const dlMsg = document.getElementById('deck-download-msg');
+  const dlBtn = document.getElementById('btn-deck-download');
+  if (msgEl) msgEl.style.display = 'none';
+  if (secEl) secEl.style.display = 'none';
+  if (dlMsg) dlMsg.style.display = 'none';
+  if (dlBtn) { dlBtn.disabled = false; dlBtn.textContent = '\u2193 Download to downloads/'; }
 }
 
 // ── Done / Summary ────────────────────────────────────────────────────────────
@@ -1192,6 +1839,8 @@ async function buildSummary() {
     { label: 'Apollo Builder',   val: null,                   svc: 'apollo_builder' },
     { label: 'Playwright',       val: null,                   svc: 'playwright' },
     { label: 'Sales Deck',       val: null,                   svc: 'sales_deck' },
+    { label: 'Apollo',           val: null,                   svc: 'apollo_mcp' },
+    { label: 'Slack',            val: null,                   svc: 'slack_mcp' },
   ];
 
   const list = document.getElementById('summaryList');
@@ -1218,14 +1867,29 @@ async function buildSummary() {
   const passed = Object.values(testResults).filter(r => r.ok).length;
   const hero   = document.getElementById('done-hero');
   if (passed === total && total > 0) {
-    hero.querySelector('.done-icon').textContent = '\\u2705';
+    hero.querySelector('.done-icon').textContent = '\u2705';
     hero.querySelector('.done-title').textContent = "You're all set!";
     hero.querySelector('.done-sub').textContent   = 'All connections verified.';
   } else {
-    hero.querySelector('.done-icon').textContent = '\\uD83D\\uDCCB';
+    hero.querySelector('.done-icon').textContent = '\U0001F4CB';
     hero.querySelector('.done-title').textContent = 'Config saved';
     hero.querySelector('.done-sub').textContent   =
       `${passed} of ${total} connections verified — fix the red items above then re-run setup.`;
+  }
+
+  // Show MCP warning only if checks actually failed
+  const apolloOk = testResults['apollo_mcp'] && testResults['apollo_mcp'].ok;
+  const slackOk  = testResults['slack_mcp']  && testResults['slack_mcp'].ok;
+  const warnBox  = document.getElementById('done-mcp-warn');
+  if (!apolloOk || !slackOk) {
+    const missing = [!apolloOk && 'Apollo', !slackOk && 'Slack'].filter(Boolean).join(' and ');
+    document.getElementById('done-mcp-warn-text').innerHTML =
+      `<strong>${missing} tool permissions are missing.</strong> Make sure you cloned this repo
+       with its <code class="inline">settings.json</code> intact — that file grants Claude
+       access to ${missing} during pipeline runs.`;
+    warnBox.style.display = 'flex';
+  } else {
+    warnBox.style.display = 'none';
   }
 }
 
@@ -1310,7 +1974,14 @@ function pickerUp() {
 function selectCurrentDir() {
   if (!pickerCurrentPath) return;
   document.getElementById('APOLLO_BUILDER_PATH').value = pickerCurrentPath;
+  syncPlaywrightPath();
   closePicker();
+}
+
+function syncPlaywrightPath() {
+  const p   = document.getElementById('APOLLO_BUILDER_PATH').value.trim();
+  const el  = document.getElementById('fix-playwright-path');
+  if (el) el.textContent = p ? 'cd ' + p : 'cd ...';
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -1329,8 +2000,8 @@ function confirmStartOver() {
 async function startOver() {
   // Clear every field in the DOM
   const allFields = ['AE_NAME','AE_FIRST_NAME','AE_EMAIL','AE_TITLE',
-                     'APOLLO_BUILDER_PATH','SALES_DECK_PATH',
-                     'RCLONE_REMOTE','GDRIVE_FOLDER'];
+                     'APOLLO_BUILDER_PATH','SALES_DECK_PATH','SALES_DECK_URL',
+                     'RCLONE_REMOTE','GDRIVE_FOLDER','GDRIVE_FOLDER_URL'];
   allFields.forEach(k => {
     const el = document.getElementById(k);
     if (el) { el.value = ''; el.className = el.className.replace(/\\b(warn|valid)\\b/g, '').trim(); }
@@ -1341,9 +2012,16 @@ async function startOver() {
     const el = document.getElementById(id);
     if (el) el.classList.remove('show');
   });
+  // Hide drive resolve message
+  const driveMsg = document.getElementById('drive-resolve-msg');
+  if (driveMsg) { driveMsg.style.display = 'none'; driveMsg.textContent = ''; }
+  // Reset deck download UI
+  clearDeckResolve();
+  const deckMsg = document.getElementById('deck-resolve-msg');
+  if (deckMsg) { deckMsg.style.display = 'none'; deckMsg.textContent = ''; }
 
   // Reset all test dots + messages
-  ['rclone','node','apollo_builder','playwright','sales_deck'].forEach(svc => {
+  ['rclone_install','rclone_remote','node','apollo_builder','playwright','sales_deck','apollo_mcp','slack_mcp'].forEach(svc => {
     const dot = document.getElementById('dot-' + svc);
     const msg = document.getElementById('msg-' + svc);
     const fix = document.getElementById('fix-' + svc);
@@ -1353,7 +2031,7 @@ async function startOver() {
   });
 
   // Reset step badges back to numbers
-  for (let i = 1; i <= 4; i++) {
+  for (let i = 1; i <= 5; i++) {
     const circle = document.getElementById('sc-' + i);
     if (circle) { circle.dataset.done = 'false'; circle.textContent = i; }
     const line = document.getElementById('sl-' + i);
@@ -1452,9 +2130,11 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if self.path in ('/', '/setup'):
-            self.send_html(HTML)
+            self.send_html(HTML.replace('__BASE_DIR__', str(BASE_DIR)))
         elif self.path == '/api/config':
-            self.send_json(parse_config())
+            cfg = parse_config()
+            cfg['_BASE_DIR'] = str(BASE_DIR)   # injected read-only — not written back
+            self.send_json(cfg)
         elif self.path.startswith('/api/browse'):
             from urllib.parse import urlparse, parse_qs, unquote
             qs   = parse_qs(urlparse(self.path).query)
@@ -1482,6 +2162,29 @@ class Handler(BaseHTTPRequestHandler):
         elif self.path == '/api/test/all':
             self.send_json(run_all_tests(parse_config()))
 
+        elif self.path == '/api/resolve-drive-file':
+            body   = self.read_body()
+            cfg    = parse_config()
+            remote = body.get('remote') or cfg.get('RCLONE_REMOTE', 'gdrive')
+            url    = body.get('url', '')
+            self.send_json(resolve_drive_file_url(remote, url))
+
+        elif self.path == '/api/download-drive-file':
+            body   = self.read_body()
+            cfg    = parse_config()
+            remote = body.get('remote') or cfg.get('RCLONE_REMOTE', 'gdrive')
+            path   = body.get('path', '')
+            name   = body.get('name', '')
+            mime   = body.get('mime', '')
+            self.send_json(download_drive_file(remote, path, name, mime))
+
+        elif self.path == '/api/resolve-drive-folder':
+            body   = self.read_body()
+            cfg    = parse_config()
+            remote = body.get('remote') or cfg.get('RCLONE_REMOTE', 'gdrive')
+            url    = body.get('url', '')
+            self.send_json(resolve_drive_folder_url(remote, url))
+
         elif self.path == '/api/open-terminal':
             cmd = self.read_body().get('command', '')
             # Escape double quotes inside the command for AppleScript
@@ -1495,11 +2198,15 @@ class Handler(BaseHTTPRequestHandler):
             svc = self.path.split('/')[-1]
             cfg = parse_config()
             dispatch = {
+                'rclone-install': test_rclone_install,
+                'rclone-remote':  lambda: test_rclone_remote(cfg.get('RCLONE_REMOTE', 'gdrive')),
                 'rclone':         lambda: test_rclone(cfg.get('RCLONE_REMOTE', 'gdrive'), cfg.get('GDRIVE_FOLDER', '')),
                 'node':           test_node,
                 'apollo-builder': lambda: test_apollo_builder(cfg.get('APOLLO_BUILDER_PATH', '')),
                 'playwright':     lambda: test_playwright(cfg.get('APOLLO_BUILDER_PATH', '')),
                 'sales-deck':     lambda: test_sales_deck(cfg.get('SALES_DECK_PATH', '')),
+                'apollo-mcp':     test_apollo_mcp,
+                'slack-mcp':      test_slack_mcp,
             }
             fn = dispatch.get(svc)
             self.send_json(fn() if fn else {'ok': False, 'msg': f'Unknown: {svc}'})
