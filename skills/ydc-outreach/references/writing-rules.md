@@ -1,6 +1,16 @@
 # Outreach Writing Rules (Full Reference)
 
-## Sequence Writing Rules
+## Two-Layer System
+
+**Layer 1: Universal Writing Style** is defined in CLAUDE.md and applies to ALL writing (cold outreach, warm emails, Slack, call scripts, everything). It covers: no em dashes, no AI-isms, no glazing, short paragraphs, 5th-7th grade reading level, plain human tone.
+
+**Layer 2: Cold Outbound Rules** (this file) apply ONLY to cold outreach sequences and LinkedIn connection requests. These rules are in addition to Layer 1, not a replacement.
+
+If you are writing a warm reply, partner email, internal message, or anything other than cold prospecting, only Layer 1 applies. Do not apply sequence-specific rules (AIDA structure, hook prioritization, interest-based CTAs, etc.) to non-cold writing.
+
+---
+
+## Sequence Writing Rules (Cold Outbound Only)
 
 1. **No em dashes.** Use commas, periods, colons, semicolons, or pipes instead. This is a hard rule.
 2. **Personalize to the account.** Every sequence must reference specific details from the account plan research: company initiatives, product names, strategic shifts, leadership quotes, or recent press.

@@ -97,23 +97,40 @@ Never name competitors in prospect-facing outreach, emails, LinkedIn, or prospec
 
 ---
 
-## Outreach Guardrails (Always Apply)
+## Universal Writing Style (Always Apply)
 
-These rules apply to ALL prospect-facing writing: emails, LinkedIn, docs, follow-ups, sequences.
+These rules apply to EVERYTHING Claude writes for Ryan: cold outreach, warm emails, follow-ups, Slack drafts, call scripts, LinkedIn messages, partner emails, internal docs, conference abstracts, any written output. No exceptions.
 
-**Hard bans:**
-- No em dashes. Use commas, periods, colons, semicolons, or pipes.
+**Formatting:**
+- No em dashes. Use commas, periods, colons, semicolons, or pipes instead. This is a hard rule across all writing.
+- Short paragraphs. 2-3 sentences max. White space makes everything scannable.
+- 5th-7th grade reading level. Short, punchy sentences. No compound-complex structures. If a sentence needs a semicolon, split it into two.
+- No corporate suffixes ("Teradata" not "Teradata Corporation") in any external writing.
+
+**Banned vocabulary (AI-isms):** utilize (use "use"), comprehensive, enhance (use "improve"), delve, embark, robust, streamline, strong signal. These words instantly flag copy as AI-generated. Applies to all writing, not just outreach.
+
+**Banned filler patterns:**
+- Buzzword soup: synergy, leverage, paradigm shift, best-in-class, cutting-edge, game-changer, revolutionary
+- Generic flattery: "impressive," "incredible," "amazing," "doing great work" without connecting to a specific point
+- Glazing: referencing someone's work just to compliment it without connecting to a problem or next step. Every personalization must bridge to a point. If a compliment dead-ends, cut it. BAD: "Your AI expansion is a big move." GOOD: "Your AI expansion going agentic creates new demands on the real-time data layer."
+- Self-centered openers: starting with "I," "We," "Our," or "At You.com" as the first word. Start with them.
+
+**Tone:** Plain, human, conversational. Write like a smart peer, not a corporate marketer. No markdown formatting in emails (no bold, italic, headers, numbered lists). Plain text only for anything sent via email.
+
+---
+
+## Cold Outbound Rules (Sequences & LinkedIn Only)
+
+These rules apply ONLY when writing cold outreach sequences, LinkedIn connection requests, and first-touch prospecting. They do NOT apply to warm replies, partner emails, internal comms, or other non-cold writing. The Universal Writing Style section above always applies in addition to these.
+
+**Content bans (cold outbound specific):**
 - No competitor names in outreach.
 - No specific eval references (even anonymized).
 - No confidential customer names or active evaluations.
 - No ESL/Chat/Apex product references.
 - No Bryan McCann in prospect-facing copy.
-- No markdown formatting in email bodies (no bold, italic, headers, numbered lists). Plain text only.
-- No corporate suffixes ("Teradata" not "Teradata Corporation").
 
-**Banned AI-ism vocabulary:** utilize (use "use"), comprehensive, enhance (use "improve"), delve, embark, robust, streamline, strong signal. These instantly flag copy as AI-generated.
-
-**Banned openers:**
+**Banned openers (cold outbound specific):**
 - "I hope this email finds you well"
 - "I'm reaching out because..."
 - "I wanted to introduce myself"
@@ -123,15 +140,12 @@ These rules apply to ALL prospect-facing writing: emails, LinkedIn, docs, follow
 - "Just circling back"
 - "Per my last email"
 
-**Banned patterns:**
+**Banned patterns (cold outbound specific):**
 - Feature dumps (3+ capabilities in one paragraph)
 - Multiple value props in one email (one proof point per touch)
 - Stacking CTAs (never ask for more than one thing)
-- Self-centered openers (first sentence starts with "I," "We," "Our," or "At You.com")
 - Fake personalization ("Your company is doing impressive work")
 - Rhetorical question openers ("What if you could...")
-- Buzzword soup (synergy, leverage, paradigm shift, best-in-class, cutting-edge, game-changer, revolutionary)
-- AI glazing: referencing a prospect's initiative just to compliment it or characterize it, without connecting to a problem we solve. The personalization sentence must state what they did AND why it creates a problem or question relevant to us. One sentence, no gap between the two. If the personalization doesn't bridge to a problem, cut it. Never add evaluative praise that dead-ends ("strong signal," "that's rare," "impressive achievement," "no small feat," "big move," "notable shift"). BAD: "Zoom's agentic AI Companion expansion is a big infrastructure move." GOOD: "Zoom's AI Companion going agentic creates new demands on the real-time data layer."
 - Defaulting to product names or case studies: do not reflexively insert MCP server hooks, DuckDuckGo case studies, or product names into every email. Before adding a product name, case study, or MCP hook, ask: does this email work without it? If yes, leave it out. The best emails connect subject matter expertise to the prospect's problem without naming a single product.
 
 ---
