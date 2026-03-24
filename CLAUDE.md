@@ -131,7 +131,8 @@ These rules apply to ALL prospect-facing writing: emails, LinkedIn, docs, follow
 - Fake personalization ("Your company is doing impressive work")
 - Rhetorical question openers ("What if you could...")
 - Buzzword soup (synergy, leverage, paradigm shift, best-in-class, cutting-edge, game-changer, revolutionary)
-- AI glazing: referencing a prospect's initiative just to compliment it without connecting to a problem we solve. State what they did, tie it to relevance. Never compliment dead-ends ("strong signal," "that's rare," "impressive achievement," "no small feat").
+- AI glazing: referencing a prospect's initiative just to compliment it or characterize it, without connecting to a problem we solve. The personalization sentence must state what they did AND why it creates a problem or question relevant to us. One sentence, no gap between the two. If the personalization doesn't bridge to a problem, cut it. Never add evaluative praise that dead-ends ("strong signal," "that's rare," "impressive achievement," "no small feat," "big move," "notable shift"). BAD: "Zoom's agentic AI Companion expansion is a big infrastructure move." GOOD: "Zoom's AI Companion going agentic creates new demands on the real-time data layer."
+- Defaulting to product names or case studies: do not reflexively insert MCP server hooks, DuckDuckGo case studies, or product names into every email. Before adding a product name, case study, or MCP hook, ask: does this email work without it? If yes, leave it out. The best emails connect subject matter expertise to the prospect's problem without naming a single product.
 
 ---
 
@@ -171,10 +172,11 @@ Hi {{first_name}},
 
 Zero pitch. Zero CTA. Zero generic flattery. Under 250 characters. Almost entirely about them.
 
-**Formula: Recognition + Curiosity Hook + Connect**
-- Recognition: One specific detail about their company or initiative
-- Curiosity Hook: A genuine question about a problem they face. Optionally add a light domain signal in parentheses: "(be it with a web index or otherwise)"
-- Connect: "Would be great to connect"
+**Formula: Fact-to-Consequence + Curiosity Hook**
+- Fact-to-Consequence: State what they did AND what problem/question it creates, in one sentence. Never characterize the initiative ("big move," "notable shift," "signals serious work"). The personalization must bridge to a problem, not evaluate the initiative.
+- Curiosity Hook: End on a genuine question about how they're solving that problem. Optionally add a light domain signal in parentheses: "(be it with a web index or otherwise)". The question IS the close. No "Would be great to connect" or similar filler. The connect button is the CTA. The note doesn't need to ask for the connection.
+- BAD: "Zoom's agentic AI Companion expansion is a big infrastructure move. Curious how... Would be great to connect."
+- GOOD: "Zoom's AI Companion going agentic creates new demands on the real-time data layer. Curious how your team is thinking about that (be it with a web index or otherwise)."
 
 **Hard bans for LinkedIn notes:**
 - No product names (Search API, PRAG, Vertical Index, etc.)
@@ -183,6 +185,8 @@ Zero pitch. Zero CTA. Zero generic flattery. Under 250 characters. Almost entire
 - No starting with "I" or "We" or "At You.com"
 - No role claims ("I lead X," "I'm the VP of Y")
 - No compressed pitch
+- No glazing or characterizing initiatives ("big move," "notable shift," "impressive achievement")
+- No "Would be great to connect" close (the connect button handles this)
 
 Your LinkedIn profile handles identity. The email sequence carries the pitch. The connection note just opens the door.
 
