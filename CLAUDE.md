@@ -117,6 +117,24 @@ These rules apply to EVERYTHING Claude writes for Ryan: cold outreach, warm emai
 
 **Tone:** Plain, human, conversational. Write like a smart peer, not a corporate marketer. No markdown formatting in emails (no bold, italic, headers, numbered lists). Plain text only for anything sent via email.
 
+**Reference example (demonstrates universal style, not cold-specific mechanics):**
+
+```
+Hi Irvinder,
+
+Given the urgency you described around hallucination issues and the number of tools your team has already evaluated without a clean result, I wanted to offer something before the testing begins next week.
+
+Richard Socher, our founder, holds a patent pending specifically on connecting LLMs with real-time search to produce grounded, verifiable output. That research is the foundation of what your team will be testing. Before the other tools failed your eval, most of them were not designed with that problem as their starting point. Richard's was.
+
+If a short call with him before the eval would be useful context for you, I am happy to make that introduction. No agenda other than giving you a direct line to the thinking behind the approach.
+
+Let me know if that is of interest.
+
+Thanks, Ryan
+```
+
+Why this is the gold standard for ALL writing: starts with THEM (their urgency, their failed evals). Zero AI-isms, em dashes, superlatives, or glazing. Plain, human tone. Short paragraphs. One point per paragraph. No buzzwords. Maps credibility to their specific problem. This style applies whether you're writing cold outreach, a warm follow-up, a partner email, or a Slack message.
+
 ---
 
 ## Cold Outbound Rules (Sequences & LinkedIn Only)
@@ -150,9 +168,11 @@ These rules apply ONLY when writing cold outreach sequences, LinkedIn connection
 
 ---
 
-## Email Writing Structure (AIDA)
+## Email Writing Structure (AIDA) — Cold Outbound Only
 
-Every outreach email must follow this structure:
+The following structure applies to cold outreach sequences only (Touches 1, 3, 5). Do NOT apply AIDA, hook prioritization, or interest-based CTAs to warm replies, partner emails, or internal comms. For non-cold writing, follow the Universal Writing Style section above.
+
+Every cold outreach email must follow this structure:
 
 ```
 SUBJECT: [Personalized, under 50 chars, references company or initiative] (Touch 1 only)
@@ -191,24 +211,6 @@ Hi {{first_name}},
 3. Mutual connection or shared context
 4. Company initiative (AI program, hiring surge, strategic pivot)
 5. Role-based pain point (last resort)
-
-**Reference example (gold standard, confirmed 2026-03-23):**
-
-```
-Hi Irvinder,
-
-Given the urgency you described around hallucination issues and the number of tools your team has already evaluated without a clean result, I wanted to offer something before the testing begins next week.
-
-Richard Socher, our founder, holds a patent pending specifically on connecting LLMs with real-time search to produce grounded, verifiable output. That research is the foundation of what your team will be testing. Before the other tools failed your eval, most of them were not designed with that problem as their starting point. Richard's was.
-
-If a short call with him before the eval would be useful context for you, I am happy to make that introduction. No agenda other than giving you a direct line to the thinking behind the approach.
-
-Let me know if that is of interest.
-
-Thanks, Ryan
-```
-
-Why it works: starts with THEM (their urgency, their failed evals). Zero AI-isms, em dashes, superlatives, or glazing. One proof point (Richard's patent), one ask (short call). Interest-based CTA ("if useful... let me know"). Reframes competitive landscape without naming anyone. No product names, no case studies. Maps founder credibility to their specific problem.
 
 ---
 

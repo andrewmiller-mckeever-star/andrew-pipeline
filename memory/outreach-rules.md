@@ -1,5 +1,9 @@
 # Outreach Sequence Rules (Quick Reference)
 
+## Scope: Cold Outbound Only
+
+These rules apply to cold outreach sequences and LinkedIn connection requests. They do NOT apply to warm replies, partner emails, internal comms, or other non-cold writing. Universal writing style rules (no em dashes, no AI-isms, no glazing, short paragraphs, plain human tone) are defined in CLAUDE.md and apply to ALL writing regardless of context.
+
 ## Standardized 5-Touch Structure (All Sequences)
 
 Every sequence (A, B, C, D) uses the same structure:
