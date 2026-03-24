@@ -1,6 +1,8 @@
 # You.com Sales Knowledge Base
 
-Always-on context for Ryan Reed, API Sales at You.com. This loads every conversation regardless of task.
+Always-on context for You.com API Sales. This loads every conversation regardless of task.
+
+**AE Setup:** Read `ae-config.md` at the start of every pipeline session to load your name, email, and file paths. All identity and path values live there — nothing is hardcoded in the pipeline.
 
 ## Skill Architecture
 
@@ -190,13 +192,14 @@ Your LinkedIn profile handles identity. The email sequence carries the pitch. Th
 
 | Resource | Location |
 |----------|----------|
-| Sales Deck | ~/Downloads/You.com - AI Search Infra Pitch Deck - January 2026.pdf |
-| Product Knowledge | ~/.claude/projects/-Users-ryan-Desktop-YDC-Pipeline/memory/product-knowledge.md |
-| Memory Files | ~/.claude/projects/-Users-ryan-Desktop-YDC-Pipeline/memory/ |
+| AE Config | ae-config.md (in this repo root — your name, email, tokens, paths) |
+| Sales Deck | See `SALES_DECK_PATH` in ae-config.md |
+| Product Knowledge | {MEMORY_PATH}/product-knowledge.md |
+| Memory Files | {MEMORY_PATH}/ (auto-resolved by Claude Code based on project location) |
 | Pipeline Skills | ~/.claude/skills/ydc-pipeline/, ydc-research/, ydc-account-plan/, ydc-outreach/, ydc-prospects/, ydc-apollo-build/ |
 | Office Skills | ~/.claude/skills/claude-office-skills/ |
-| Apollo Sequence Builder | ~/Desktop/YDC Pipeline/apollo-sequence-builder/ |
-| Google Drive Folder | "Account Plans, Lists & Personalized Sequences/" (via rclone, remote: gdrive) |
+| Apollo Sequence Builder | See `APOLLO_BUILDER_PATH` in ae-config.md |
+| Google Drive Folder | See `GDRIVE_FOLDER` in ae-config.md (via rclone, remote per `RCLONE_REMOTE`) |
 
 ---
 

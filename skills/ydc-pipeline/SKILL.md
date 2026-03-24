@@ -17,7 +17,7 @@ STEP 1: Deep Company Research -> use ydc-research skill
 STEP 2: Account Plan Generation (.docx) -> use ydc-account-plan skill
   |
   v
-STEP 3: Prospect Discovery (Apollo primary, Apify fallback) -> use ydc-prospects skill
+STEP 3: Prospect Discovery (Apollo) -> use ydc-prospects skill
   |
   v
 STEP 4: Outreach Sequence Generation (in-memory) -> use ydc-outreach skill

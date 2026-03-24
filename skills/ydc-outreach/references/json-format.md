@@ -17,7 +17,7 @@ Write the completed sequence JSON to:
           "type": "automatic_email",
           "email_type": "new_thread",
           "subject": "Subject line here",
-          "body": "Hi {{first_name}},\n\nFirst paragraph.\n\nSecond paragraph.\n\nRyan Reed\nYou.com"
+          "body": "Hi {{first_name}},\n\nFirst paragraph.\n\nSecond paragraph.\n\n{AE_NAME}\nYou.com"
         },
         {
           "type": "linkedin_connect",
@@ -26,7 +26,7 @@ Write the completed sequence JSON to:
         {
           "type": "automatic_email",
           "email_type": "reply",
-          "body": "Hi {{first_name}},\n\nFollow-up paragraph.\n\nRyan"
+          "body": "Hi {{first_name}},\n\nFollow-up paragraph.\n\n{AE_FIRST_NAME}"
         },
         {
           "type": "phone_call",
@@ -35,13 +35,16 @@ Write the completed sequence JSON to:
         {
           "type": "automatic_email",
           "email_type": "reply",
-          "body": "Hi {{first_name}},\n\nBreakup paragraph.\n\nRyan"
+          "body": "Hi {{first_name}},\n\nBreakup paragraph.\n\n{AE_FIRST_NAME}"
         }
       ]
     }
   ]
 }
 ```
+
+> **Note:** `{AE_NAME}` and `{AE_FIRST_NAME}` are populated from `ae-config.md` at the root of the repo.
+> Before writing any sequence JSON, read ae-config.md and substitute the AE's actual name values.
 
 ## Step Types Supported
 

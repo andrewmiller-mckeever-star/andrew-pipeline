@@ -4,15 +4,15 @@
 You.com whale account sales pipeline. Automates research, account plans, prospect discovery (Apollo primary), outreach sequences, Google Drive upload, and Apollo.io sequence build with contact enrollment.
 
 ## Key Files
-- CLAUDE.md: /Users/ryan/Desktop/YDC Pipeline/CLAUDE.md (full pipeline instructions)
-- Sales Deck: ~/Downloads/You.com - AI Search Infra Pitch Deck - January 2026.pdf
-- product-knowledge.md: ~/.claude/projects/-Users-ryan-Desktop-YDC-Pipeline/memory/product-knowledge.md (deep product context from CS Team Site)
-- perplexity-cdp.md: ~/.claude/projects/-Users-ryan-Desktop-YDC-Pipeline/memory/perplexity-cdp.md (Perplexity Deep Research CDP automation patterns)
+- CLAUDE.md: {repo-root}/CLAUDE.md (full pipeline instructions)
+- ae-config.md: {repo-root}/ae-config.md (AE identity, file paths — edit this first)
+- Sales Deck: See `SALES_DECK_PATH` in ae-config.md
+- product-knowledge.md: {MEMORY_PATH}/product-knowledge.md (deep product context from CS Team Site)
+- perplexity-cdp.md: {MEMORY_PATH}/perplexity-cdp.md (Perplexity Deep Research CDP automation patterns)
 - Office skills: ~/.claude/skills/claude-office-skills/ (PPTX, DOCX, XLSX, PDF generation)
 - Chrome CDP skill: ~/.claude/skills/chrome-cdp/ (live Chrome browser interaction via CDP, replaces Claude in Chrome MCP)
-- Apollo Sequence Builder: ~/Desktop/YDC Pipeline/apollo-sequence-builder/ (Playwright script for Step 6A, runs outside Claude)
-- Deliverables output to: /Users/ryan/Desktop/YDC Pipeline/ (account plan .docx only; outreach copy goes directly to Apollo)
-- Google Drive folder: "Account Plans, Lists & Personalized Sequences/"
+- Apollo Sequence Builder: See `APOLLO_BUILDER_PATH` in ae-config.md (Playwright script for Step 6A, runs outside Claude)
+- Google Drive folder: See `GDRIVE_FOLDER` in ae-config.md
 
 ## Pending Test: Sonnet for Outreach Copy (Step 4)
 - **Status:** User wants to test Sonnet for outreach writing on the next pipeline run instead of Opus
@@ -31,8 +31,8 @@ You.com whale account sales pipeline. Automates research, account plans, prospec
 - **Supplemental:** Brave/WebSearch for gap-filling only (very recent news, specific URLs, LinkedIn signals)
 
 ## Document Generation (claude-office-skills)
-- **Location:** `/Users/ryan/.claude/skills/claude-office-skills/`
-- **Python venv:** `/Users/ryan/.claude/skills/claude-office-skills/venv/`
+- **Location:** `~/.claude/skills/claude-office-skills/`
+- **Python venv:** `~/.claude/skills/claude-office-skills/venv/`
 - **Capabilities:** Create, read, edit, convert PPTX, DOCX, XLSX, PDF files
 - **SKILL.md files:** `public/pptx/SKILL.md`, `public/docx/SKILL.md`, `public/xlsx/SKILL.md`, `public/pdf/SKILL.md`
 - **System deps (Homebrew):** Node.js v25.8.0, Poppler 26.03.0, Pandoc 3.9, LibreOffice 26.2.1
@@ -84,9 +84,9 @@ See: [outreach-rules.md](outreach-rules.md) for full details
 - **Checkr** (2026-03-02): Full pipeline (Steps 1-6). 4 sequences built in Apollo (INACTIVE). 11 contacts enrolled (4 Seq A, 2 Seq B, 3 Seq C, 2 Seq D). 1 skipped: Daniel Yanisse (CEO, warm intro only). Seq B: Ilan Frank (CPO) + Jennifer Yeh (CLO). Seq D: Gio Granato (Sr. Dir Data/ML/AI) + Anindita Dasgupta (Dir Platform Eng, fallback). 3 existing contacts reused (Cristian Brotto, Ilan Frank, Sandeep Thakur). Deliverables on Drive.
 
 ## Apollo.io Integration (Live)
-- **Account:** ryan.reed@you.com | ~498K lead credits | ~496K direct dial credits
+- **Account:** See `AE_EMAIL` in ae-config.md | ~498K lead credits | ~496K direct dial credits
 - **Status:** Connected via MCP. Fully integrated into pipeline (Steps 3 and 6).
-- **Step 3 (Prospect Discovery):** Apollo is PRIMARY tool. `apollo_mixed_people_api_search` for discovery, `apollo_people_bulk_match` for enrichment (batches of 10). Apify LinkedIn is fallback only (< 10 results or < 50% email coverage).
+- **Step 3 (Prospect Discovery):** Apollo is the sole tool. `apollo_mixed_people_api_search` for discovery, `apollo_people_bulk_match` for enrichment (batches of 10).
 - **Step 6 (Sequence Build):** Two phases:
   - Phase A: Playwright script (`~/Desktop/YDC Pipeline/apollo-sequence-builder/build-sequences.js`) creates sequences in Apollo UI. Claude writes JSON data file → alerts user to run script in terminal → user confirms → Claude proceeds to Phase B. Runs outside Claude so errors don't burn tokens.
   - Phase B: API creates contacts (`apollo_contacts_create` with `run_dedupe: true`) and enrolls them (`apollo_emailer_campaigns_add_contact_ids`)
@@ -119,7 +119,7 @@ Email (Day 1) > LinkedIn Connect (Day 2) > Email Reply (Day 5) > Call (Day 8) > 
 
 ## Chrome CDP Skill (Browser Automation)
 - **Location:** `~/.claude/skills/chrome-cdp/` (installed 2026-03-17)
-- **Script path:** `/Users/ryan/.claude/skills/chrome-cdp/skills/chrome-cdp/scripts/cdp.mjs`
+- **Script path:** `~/.claude/skills/chrome-cdp/skills/chrome-cdp/scripts/cdp.mjs`
 - **Replaces:** Claude in Chrome MCP. Far more token-efficient (no inline JPEG screenshots, `snap` returns compact accessibility tree).
 - **Prereqs:** Node.js 22+ (have v25.8.0), Chrome remote debugging enabled (`chrome://inspect/#remote-debugging`)
 - **Use for:** LinkedIn engagement, web research on authenticated pages, any live browser interaction
@@ -161,7 +161,7 @@ node cdp.mjs html <target> [selector]   # HTML (optionally scoped)
 
 ## Session Log
 - 2026-02-26: User reviewed updated CLAUDE.md. Confirmed writing discipline rules (13-14, hooks, AIDA, anti-patterns). Gave critical feedback: no KPMG naming in outreach, focus on Search API/VI/PRAG not AI Factory/ESL, be concise, reference sales deck, check Drive+Slack first. All changes applied to CLAUDE.md. Added Session Startup section. User confirmed Apollo MCP integration coming soon.
-- 2026-02-27: Apollo MCP connected and verified. Updated CLAUDE.md: Step 3 now uses Apollo as primary (Apify fallback), added Step 6 (Apollo sequence build via browser automation + contact enrollment via API), updated pipeline overview, batch workflow, quality checklist, renumbered optional steps. Key design decision: Apollo API cannot create sequences, so browser automation handles Phase A. Sequences always left INACTIVE.
+- 2026-02-27: Apollo MCP connected and verified. Updated CLAUDE.md: Step 3 uses Apollo exclusively, added Step 6 (Apollo sequence build via browser automation + contact enrollment via API), updated pipeline overview, batch workflow, quality checklist, renumbered optional steps. Key design decision: Apollo API cannot create sequences, so browser automation handles Phase A. Sequences always left INACTIVE.
 - 2026-02-27: Brex pipeline completed (Steps 1-6). Post-run audit found 4 blank email bodies caused by Quill editor race condition. Fixed via JS DOM injection. Updated CLAUDE.md Step 6 Phase A: body fields now use JS injection (not click+type), added mandatory verification protocol, added error handling table. Created browser-automation.md with full technical details.
 - 2026-03-02: Checkr pipeline completed (Steps 1-6). JS DOM injection used for all email bodies from the start (no race condition issues). All 4 sequences built cleanly. Phase B enrollment note: initial parallel API calls returned 500 errors but actually succeeded server-side (Seq A contacts showed as already enrolled on retry). Lesson: Apollo enrollment API may return 500 on parallel calls but still process them. Use sequential calls or handle `contacts_already_exists_in_current_campaign` as success.
 - 2026-03-02: User confirmed 4 new outreach guardrails. Applied to CLAUDE.md, outreach-rules.md, feedback.md, and MEMORY.md: (1) No specific eval references in outreach, even anonymized, (2) No competitor names in outreach, (3) Follow-up emails are replies to Touch 1 thread, (4) Standardized 5-touch sequence: Email > LinkedIn Connect > Email > Call > Email. Note: Brex and Checkr sequences in Apollo still use old cadence structure; new structure applies to future pipeline runs only.

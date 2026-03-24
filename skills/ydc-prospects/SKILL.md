@@ -1,6 +1,6 @@
 ---
 name: ydc-prospects
-description: Discovers and enriches Director+ prospects at target companies for You.com whale account pipeline. Uses Apollo.io as primary method: people search via apollo_mixed_people_api_search then bulk email enrichment via apollo_people_bulk_match in batches of 10. Falls back to Apify LinkedIn scraper if Apollo returns fewer than 10 Director+ results or less than 50% email coverage. Filters for Engineering, AI/ML, Data Science, Product, Strategy, DevRel, Security departments at Director, VP, C-suite seniority. Use when user says "find prospects at [company]", "prospect search for [company]", "discover contacts", "apollo search", "Step 3", or within a full pipeline run.
+description: Discovers and enriches Director+ prospects at target companies for You.com whale account pipeline. Uses Apollo.io exclusively: people search via apollo_mixed_people_api_search then bulk email enrichment via apollo_people_bulk_match in batches of 10. Filters for Engineering, AI/ML, Data Science, Product, Strategy, DevRel, Security departments at Director, VP, C-suite seniority. Use when user says "find prospects at [company]", "prospect search for [company]", "discover contacts", "apollo search", "Step 3", or within a full pipeline run.
 ---
 
 # YDC: Prospect Discovery (Step 3)
@@ -24,14 +24,6 @@ Use `apollo_people_bulk_match` in batches of 10:
 - Pass: first_name, last_name, organization_name, domain
 - Returns: verified emails, phone numbers, work history, LinkedIn URLs
 - Consumes ~1 credit per person (~498K credits available, effectively unlimited)
-
-## Fallback: Apify LinkedIn Scraper
-
-Trigger if: Apollo returns < 10 Director+ results OR email coverage < 50% OR Apollo unavailable.
-
-See references/apify-config.md for full API setup.
-
-**REQUIRED: Verify LinkedIn URL slug before running Apify** (see references/linkedin-verification.md).
 
 ## Prospect Filtering & Prioritization
 
