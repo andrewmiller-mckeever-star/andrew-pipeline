@@ -97,60 +97,55 @@ Match paths to the ICP contacts from step 2. Discard paths to non-ICP targets (i
 
 Show ALL strong paths, not just top 3. Each one is a potential warm intro opportunity.
 
-### 6. Draft Intro Request Emails
+### 6. Draft Ghost Intro Emails
 
-For each path with a named connector, draft an intro request email. The email goes to the CONNECTOR asking them to introduce Ryan to the TARGET.
+For each path with a named connector, draft a **ghost email written AS the connector** to the target. This is a ready-to-forward email that Ryan gives to the connector (via Slack, text, etc.) so they can send it directly or edit it. Ryan does NOT send this email himself.
 
-**Email structure:**
+The connector's ask happens informally ("Hey Richard, would you mind sending this to Rob?"). The skill only produces the ghost email.
+
+**Email structure (written in the connector's voice):**
 
 ```
-Subject: Quick intro to {Target First Name} at {Target Company}?
-
-Hi {Connector First Name},
-
-[1-2 sentences: relationship context. Use the overlapping_message to reference shared history.
-For co-workers: "We've been working together at You.com..." or reference specific shared context.
-For external contacts: reference how Ryan knows them (e.g., "through Norwest" or "from [event/company]").
-If overlapping_message has shared tenures, USE THEM: "I saw you and {Target} overlapped at {Company} for {duration}."
-If no shared context available: use a simple warm opener.]
-
-[1-2 sentences: who the target is and why Ryan wants to connect. Pull a specific
-business reason from the account plan if available. If no account plan context,
-use the target's title and company to infer relevance. Example: "{Target} is leading
-{Company}'s engineering org, and we work with teams like theirs on the search
-infrastructure layer that powers AI agents."]
-
-[1 sentence: what You.com does, framed simply. Example: "We provide the search
-API that powers AI agents at companies like DuckDuckGo and Harvey."]
-
-Would you be open to making an intro? I put together something below you can
-forward or edit however you'd like:
-
----
+Subject: Intro to Ryan Reed at You.com
 
 Hi {Target First Name},
 
-[2-3 sentence forwarding blurb. Introduces Ryan, explains relevance to target's
-work, ends with interest-based CTA.]
+[1-2 sentences: the connector explains how they know the target. Use the
+overlapping_message to reference shared history. If they overlapped at a company,
+say so: "We overlapped at {Company} for {duration}." If no shared context,
+use a simple warm opener appropriate to the connector's relationship.]
 
----
+[1-2 sentences: the connector introduces Ryan and explains why the target should
+talk to him. Frame around the target's likely problems, not Ryan's pitch. Pull a
+specific business reason from the account plan if available. Example: "My colleague
+Ryan Reed runs API sales at You.com. His team builds the search infrastructure
+layer that powers AI agents, and I think there could be overlap with what your
+team is building."]
 
-Thanks, Ryan
+[1 sentence: brief credibility. Example: "They power search for companies like
+DuckDuckGo and Harvey." or reference company traction.]
+
+[1 sentence: soft handoff. Example: "I'll let Ryan follow up from here if you're
+open to a quick conversation."]
+
+Best,
+{Connector First Name}
 ```
 
 **Writing rules:**
+- Write in the connector's voice, not Ryan's
 - No em dashes (use commas, colons, periods, semicolons, pipes)
 - No AI-isms (utilize, comprehensive, enhance, delve, robust, streamline)
 - No buzzwords (synergy, leverage, paradigm shift, best-in-class)
 - Plain text only (no markdown, no bold, no headers)
 - Short paragraphs, 2-3 sentences max
 - 5th-7th grade reading level
-- Intro request body: 80-130 words
-- Forwarding blurb: 40-60 words
+- Ghost email body: 80-130 words
 - Never name competitors
 - Never reference confidential evaluations
 - One proof point max (DuckDuckGo, Harvey, Windsurf, or Databricks)
 - Vary the proof point across drafts (don't use DuckDuckGo in every email)
+- Match the connector's likely tone: co-workers can be casual, external contacts should be slightly more formal
 
 ## Output Format
 
@@ -198,10 +193,10 @@ WHY THIS INTRO WORKS:
    If the path is 2nd degree, also include the user->connector edge context
    so Ryan understands the full chain.}
 
-DRAFT INTRO EMAIL:
-Subject: Quick intro to {Target First Name} at {Company}?
+GHOST EMAIL (written as {Connector First Name}, ready to forward):
+Subject: Intro to Ryan Reed at You.com
 
-{full draft email including forwarding blurb}
+{full ghost email in connector's voice}
 
 ================================================================
 PATH 2
@@ -226,9 +221,10 @@ target's ICP relevance. If a connector appears in multiple paths
 one intro request to that connector could open multiple doors.}
 
 NEXT STEPS:
-  1. Review and personalize the draft emails above
-  2. Send intro requests (prioritize connectors with strongest shared history)
-  3. If intros are made and you have active sequences for {Company},
+  1. Review and personalize the ghost emails above
+  2. Ask each connector to forward (Slack, text, or quick ask)
+  3. Prioritize connectors with strongest shared history
+  4. If intros are made and you have active sequences for {Company},
      swap cold hooks for warm hooks on those contacts
 ================================================================
 ```
