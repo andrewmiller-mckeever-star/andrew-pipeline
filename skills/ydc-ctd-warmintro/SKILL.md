@@ -22,7 +22,7 @@ description: >-
 All requests use these headers:
 ```
 ctd-api-key: uak_PKSMqLtz-sD_foOMHDJ5ONNHa0u9RhY3
-ctd-client-id: ryan@you.com
+ctd-client-id: ryan.reed@you.com
 ```
 
 See references/ctd-api.md for full endpoint documentation.
@@ -37,9 +37,9 @@ GET https://api.ctd.ai/user/atc-paths-api/public/v1/company?company_domain={doma
 
 Check response:
 - If 404 or no data: output "No CTD data for {Company}. Proceeding with cold outreach." and STOP.
-- If `ctd_score_label` is NOT "Strong Chance to Connect": output "CTD score: {label}. No strong warm paths. Proceeding with cold outreach." and STOP.
+- If `ctd_company_score_label` is NOT "strong": output "CTD score: {label}. No strong warm paths. Proceeding with cold outreach." and STOP.
 - If error code 50.11 (source account not found): output "CTD API error (source account issue). Proceeding with cold outreach." and STOP.
-- If "Strong Chance to Connect": proceed to 3.5.2.
+- If "strong": proceed to 3.5.2.
 
 ### 3.5.2: Find Reachable ICP Contacts
 
@@ -64,8 +64,10 @@ This is enrichment, not a filter. All "Strong Chance to Connect" ICP-type contac
 ### 3.5.4: Get Intro Paths for Top Contacts
 
 ```
-GET https://api.ctd.ai/user/atc-paths-api/public/v1/paths?company_domain={domain}&path_relationship_strength=strong&degree=first&degree=second&page_size=40
+GET https://api.ctd.ai/user/atc-paths-api/public/v1/paths?company_domain={domain}&path_relationship_strength=strong&path_relationship_strength=medium&degree=first&degree=second&page_size=40
 ```
+
+Note: `path_relationship_strength` requires array syntax (repeated param). Single value returns 400.
 
 For each matched contact, extract from the paths response:
 - Connector: name, title, company, LinkedIn ID (from path `nodes[]` where `connector_type` indicates the intermediary)

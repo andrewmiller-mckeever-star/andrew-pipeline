@@ -6,7 +6,7 @@ Every request requires two headers:
 
 ```
 ctd-api-key: uak_PKSMqLtz-sD_foOMHDJ5ONNHa0u9RhY3
-ctd-client-id: ryan@you.com
+ctd-client-id: ryan.reed@you.com
 ```
 
 ## Base URL
