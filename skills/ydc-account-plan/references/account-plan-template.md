@@ -14,9 +14,9 @@
 - Public Tech Stack (AI, Data, Infra) (with citations)
 - Recent Press Releases (with citations)
 - Public Initiatives Related to AI or Digital Transformation (with citations)
-- Existing Relationship Notes: [AE-ONLY, leave blank]
-- Renewal Details: [AE-ONLY, leave blank]
-- Internal Ownership: [AE-ONLY, leave blank]
+- Existing Relationship Notes: [Auto-populate from SFDC CRM Intelligence Brief if data exists: prospect replies, active conversations, prior engagement summary. Leave as AE-ONLY blank if no SFDC data.]
+- Renewal Details: [Auto-populate from SFDC if closed-won opps exist: product, amount, close date. Leave as AE-ONLY blank if no SFDC data.]
+- Internal Ownership: [Auto-populate from SFDC Account Owner. Leave as AE-ONLY blank if no SFDC data.]
 
 ## 2. Strategic Business Context
 - Corporate Strategy Summary (with citations)

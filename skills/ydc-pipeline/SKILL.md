@@ -17,7 +17,10 @@ STEP 1: Deep Company Research -> use ydc-research skill
 STEP 2: Account Plan Generation (.docx) -> use ydc-account-plan skill
   |
   v
-STEP 3: Prospect Discovery (Apollo) -> use ydc-prospects skill
+STEP 3: Prospect Discovery (Apollo primary, Apify fallback) -> use ydc-prospects skill
+  |
+  v
+STEP 3.5: Warm Intro Discovery (CTD API) -> use ydc-ctd-warmintro skill
   |
   v
 STEP 4: Outreach Sequence Generation (in-memory) -> use ydc-outreach skill
@@ -26,24 +29,35 @@ STEP 4: Outreach Sequence Generation (in-memory) -> use ydc-outreach skill
 STEP 5 + 6: Drive Upload + Apollo Build & Enrollment -> use ydc-apollo-build skill
   |
   v
-OUTPUT: Account plan on Drive, 4 INACTIVE Apollo sequences with enrolled contacts
+OUTPUT: Account plan on Drive, warm intro briefs, 4 INACTIVE Apollo sequences with enrolled contacts, warm reply summary in chat
 ```
 
 ## Model Routing
 
 - Opus (main thread): Steps 1, 2, 4 - research synthesis, account plan writing, outreach copy
-- Sonnet subagents: Steps 3, 5, 6 - Apollo API calls, Drive upload, contact enrollment
+- Sonnet subagents: Steps 1.2 (SFDC queries), 1.2b (Slack search), 3, 3.5, 5, 6 - Salesforce queries, Slack search, Apollo API calls, CTD API calls + intro drafts, Drive upload, contact enrollment
 - Haiku subagents: Session startup checks (Drive file existence, simple lookups)
 
 Never route Step 4 (outreach copy) to a subagent. Always stays on Opus main thread.
 
+## Step 3.5: Warm Intro Discovery (CTD API)
+
+After Step 3 produces the prospect list, run Step 3.5 as a Sonnet subagent:
+- Queries Connect The Dots API for warm intro paths into the target account
+- Cross-references CTD results with the ICP prospect list from Step 3
+- Only surfaces "Strong Chance to Connect" contacts (others are filtered out)
+- Outputs top 3 warm intro options with draft intro request emails
+- If no strong warm paths found, skips cleanly and pipeline proceeds cold
+- Warm intro brief is passed to Step 4 (outreach) for hook context and to Step 6B (Apollo labels)
+
 ## Session Startup (Required Before Any Pipeline Run)
 
 Before generating deliverables:
-1. Read memory files at ~/.claude/projects/-Users-ryan-Desktop-YDC-Pipeline/memory/ (MEMORY.md, feedback.md, outreach-rules.md, product-knowledge.md)
+1. Read memory files at ~/.claude/projects/-Users-ryan-Desktop-YDC-Pipeline/memory/ (MEMORY.md, feedback.md, outreach-rules.md, product-knowledge.md, salesforce.md)
 2. Check Google Drive for existing deliverables for the target account (Haiku subagent)
-3. Search Slack for prior relationship context (#api-gtm-team, #sales-team, #esl-api-sales, #competition, #enterprise-solutions)
-4. Read sales deck at ~/Downloads/You.com - AI Search Infra Pitch Deck - January 2026.pdf for pitch framing
+3. Query Salesforce for account intelligence via ydc-salesforce skill (Sonnet subagent, primary CRM source)
+4. Search Slack for supplemental context (#api-gtm-team, #sales-team, #esl-api-sales, #competition, #enterprise-solutions)
+5. Read sales deck at ~/Downloads/You.com - AI Search Infra Pitch Deck - January 2026.pdf for pitch framing
 
 ## Batch Processing
 

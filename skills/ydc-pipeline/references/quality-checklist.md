@@ -2,6 +2,11 @@
 
 Before delivering outputs for any account, verify:
 
+- [ ] SFDC account intelligence queried and CRM Intelligence Brief synthesized (Section 9)
+- [ ] SFDC active opp check passed (or noted in account plan)
+- [ ] SFDC contact dedup completed against Step 3 prospect list
+- [ ] Prior rejection products/contacts flagged in outreach strategy (if closed-lost opps exist)
+- [ ] Warm reply summary printed at pipeline end
 - [ ] Account plan covers all 9 sections with no sections skipped (including Outreach Strategy appendix)
 - [ ] All externally sourced claims have real citations (not fabricated URLs)
 - [ ] AE-only fields are left blank, not filled with assumptions

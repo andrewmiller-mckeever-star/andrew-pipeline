@@ -16,6 +16,16 @@ description: Generates 4 personalized outreach sequences (A: Engineering Leader,
 | Seq C: Product Leader | Dir of Product, VP Product, Head of Product | Product outcomes mapped to AI search infra or PRAG |
 | Seq D: AI/ML Leader | Head of AI/ML, VP Data Science, Dir of Data Science, ML Eng Directors | RAG pipelines, AI agent grounding, model infra, search layer |
 
+## SFDC-Informed Outreach Adjustments
+
+Before writing sequences, check the CRM Intelligence Brief (Section 9 of research output) for:
+
+1. **Closed-Lost Products:** If a product was previously pitched and lost, lead with a DIFFERENT product angle. Do not re-pitch the same product to the same persona unless 2+ years have passed.
+2. **Prior Contact Engagement:** If a prospect has activity history in SF, adjust from cold to warm tone. Reference the existing relationship ("following up on earlier conversations" etc.).
+3. **Prospect Replies ([Gong In]):** If a prospect replied positively, they should NOT receive cold sequence outreach. Route to direct warm follow-up instead.
+4. **Existing Customer:** If the account has closed-won opps, this is expansion outreach. Reference the existing partnership. Do not cold-pitch.
+5. **Databricks Partnership:** If the account is a Databricks customer, consider weaving in the Databricks/Unity Catalog integration as a proof point.
+
 **5-Touch Cadence (identical for all 4 sequences):**
 
 | Touch | Day | Channel | Type |
@@ -35,6 +45,14 @@ Touches 3 and 5 are replies to the original thread. Only Touch 1 gets a unique s
 - Seq A, C, D: remaining VPs first, then Directors, then 1-2 managers only as absolute last resort.
 - If a persona doesn't exist, fill with closest adjacent role not already assigned. Skip sequence only if no primary or adjacent roles exist.
 - Drop contacts without verified emails first when over the 5-contact cap.
+
+## Warm Intro Context (from Step 3.5)
+
+If a warm intro brief from Step 3.5 is available:
+- Check which contacts in the sequence assignments have `warm_intro=true`
+- For warm intro contacts: the Touch 1 email CAN reference the shared connection as the hook IF Ryan confirms the intro has been made. Do NOT assume the intro has happened.
+- Default behavior: write cold hooks for all contacts. Note in the output which contacts have warm paths available, so Ryan can swap in warm hooks after intros are made.
+- Warm intro hook (priority 0, above trigger events): "{Connector} mentioned you'd be the right person to talk to about {problem}." Only use when intro is confirmed.
 
 ## Critical Writing Rules
 

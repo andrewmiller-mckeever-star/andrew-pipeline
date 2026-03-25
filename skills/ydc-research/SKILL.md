@@ -1,6 +1,6 @@
 ---
 name: ydc-research
-description: Deep company research for You.com whale account pipeline. Checks Google Drive folder "Account Plans, Lists & Personalized Sequences/" for existing deliverables, searches Slack channels (#api-gtm-team, #sales-team, #esl-api-sales, #competition, #enterprise-solutions) for prior context, then ingests user-provided ARI deep research PDF as primary web research source. Use when user says "research [company]", "company overview for [company]", "check drive and slack for [company]", "Step 1", or at the start of any pipeline run before generating an account plan.
+description: Deep company research for You.com whale account pipeline. Checks Google Drive for existing deliverables, queries Salesforce for CRM intelligence (opportunities, contacts, replies, activity, Databricks partnership), searches Slack for supplemental context, then ingests user-provided ARI deep research PDF as primary web research source. Use when user says "research [company]", "company overview for [company]", "check drive and slack for [company]", "Step 1", or at the start of any pipeline run before generating an account plan.
 ---
 
 # YDC: Deep Company Research (Step 1)
@@ -15,16 +15,36 @@ description: Deep company research for You.com whale account pipeline. Checks Go
 6. Recent Press: funding rounds, product launches, partnerships, regulatory events, IPO signals
 7. Competitive Landscape: who they compete with in their own market (not You.com competitors)
 8. Data & Search Infrastructure: how they source, index, or retrieve external content for products or internal tools; web scraping, search APIs, content aggregation, news feeds, real-time data pipelines, third-party data providers; gaps in freshness, accuracy, or coverage
-9. Slack Context: internal relationship history and prior outreach
+9. CRM Intelligence & Prior Engagement: Salesforce account status, opportunity history (open + closed), prospect replies, contacts, activity timeline, outbound sequences already run, Databricks partnership signals, decision gates
 
 ## Research Order
 
 ### Step 1: Check Google Drive (Haiku subagent)
 Search "Account Plans, Lists & Personalized Sequences/" for any existing deliverables for this account. If prior work exists, build on it - do not start from scratch.
 
-### Step 2: Search Slack (Sonnet subagent, run in parallel with Drive check)
+### Step 2: Salesforce Account Intelligence (Sonnet subagent, run in parallel with Drive check)
+Invoke the ydc-salesforce skill. Runs 7 SOQL queries in parallel against the target account:
+- Account existence, ownership, type, Databricks partnership signals
+- Full opportunity history (open + closed, with product parsing)
+- Contacts already in SF (for dedup against Apollo in Step 3)
+- Prospect replies ([Gong In] prefix, with full thread propagation)
+- Activity timeline (last 12 months)
+- Outbound Apollo sequences already run
+- Ryan's current pipeline context
+
+Output: Structured CRM Intelligence Brief (Section 9 of research output) with 5 decision gates:
+1. Active Opportunity check
+2. Closed-Lost Intelligence (product/stage/contact to avoid)
+3. Contact Dedup list for Step 3
+4. Product Mix (net-new vs expansion)
+5. Databricks Co-Sell signal
+
+See ydc-salesforce/SKILL.md for full query specs, output format, and gate logic.
+
+### Step 2b: Search Slack (Sonnet subagent, supplemental, runs in parallel with Step 2)
 Search these channels for account name mentions: #api-gtm-team, #sales-team, #esl-api-sales, #competition, #enterprise-solutions, #marketing, #product
-Capture: prior outreach, deal notes, relationship context, competitive mentions.
+Capture: informal context, competitive mentions, anecdotal notes not captured in SF.
+Slack is supplemental to SFDC, not primary. SFDC has the structured data; Slack catches informal signals.
 
 ### Step 3: ARI Deep Research PDF (PRIMARY — user-provided)
 
@@ -77,12 +97,13 @@ Area 5 - DATA & SEARCH INFRASTRUCTURE: How does the company currently source, in
 ## Research Sources (Priority Order)
 
 1. Google Drive (existing deliverables)
-2. Slack (internal relationship context)
-3. ARI deep research PDF (primary web research — covers areas 1-8 in one pass)
-4. Brave/WebSearch (supplemental gap-filling only)
-5. LinkedIn (org chart, leadership via Apollo)
-6. YDC PAL skill (You.com product mapping)
-7. Sales deck: ~/Downloads/You.com - AI Search Infra Pitch Deck - January 2026.pdf
+2. Salesforce (primary CRM intelligence: opps, contacts, replies, activity, Databricks partnership)
+3. Slack (supplemental informal context)
+4. ARI deep research PDF (primary web research — covers areas 1-8 in one pass)
+5. Brave/WebSearch (supplemental gap-filling only)
+6. LinkedIn (org chart, leadership via Apollo)
+7. YDC PAL skill (You.com product mapping)
+8. Sales deck: ~/Downloads/You.com - AI Search Infra Pitch Deck - January 2026.pdf
 
 ## Output
 
