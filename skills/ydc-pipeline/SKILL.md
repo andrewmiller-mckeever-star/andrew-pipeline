@@ -20,16 +20,16 @@ STEP 2: Account Plan Generation (.docx) -> use ydc-account-plan skill
 STEP 3: Prospect Discovery (Apollo primary, Apify fallback) -> use ydc-prospects skill
   |
   v
-STEP 3.5: Warm Intro Discovery (CTD API) -> use ydc-ctd-warmintro skill
-  |
-  v
 STEP 4: Outreach Sequence Generation (in-memory) -> use ydc-outreach skill
   |
   v
 STEP 5 + 6: Drive Upload + Apollo Build & Enrollment -> use ydc-apollo-build skill
   |
   v
-OUTPUT: Account plan on Drive, warm intro briefs, 4 INACTIVE Apollo sequences with enrolled contacts, warm reply summary in chat
+OUTPUT: Account plan on Drive, 4 INACTIVE Apollo sequences with enrolled contacts, warm reply summary in chat
+  |
+  v
+POST-RUN: Ask user if they want to run CTD warm intro discovery -> use ydc-ctd-warmintro skill
 ```
 
 ## Model Routing
@@ -40,15 +40,15 @@ OUTPUT: Account plan on Drive, warm intro briefs, 4 INACTIVE Apollo sequences wi
 
 Never route Step 4 (outreach copy) to a subagent. Always stays on Opus main thread.
 
-## Step 3.5: Warm Intro Discovery (CTD API)
+## Post-Run: CTD Warm Intro Prompt
 
-After Step 3 produces the prospect list, run Step 3.5 as a Sonnet subagent:
-- Queries Connect The Dots API for warm intro paths into the target account
-- Cross-references CTD results with the ICP prospect list from Step 3
-- Only surfaces "Strong Chance to Connect" contacts (others are filtered out)
-- Outputs top 3 warm intro options with draft intro request emails
-- If no strong warm paths found, skips cleanly and pipeline proceeds cold
-- Warm intro brief is passed to Step 4 (outreach) for hook context and to Step 6B (Apollo labels)
+After the pipeline completes (warm reply summary printed), ask the user:
+
+> "Want me to run Connect The Dots to find warm intro paths into {Company}?"
+
+- If yes: invoke ydc-ctd-warmintro skill as a Sonnet subagent
+- If no: pipeline is done
+- CTD results are standalone output (draft intro emails printed in chat), not fed back into the sequences
 
 ## Session Startup (Required Before Any Pipeline Run)
 
