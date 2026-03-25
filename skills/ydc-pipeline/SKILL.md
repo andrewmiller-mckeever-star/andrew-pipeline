@@ -35,7 +35,7 @@ POST-RUN: Ask user if they want to run CTD warm intro discovery -> use ydc-ctd-w
 ## Model Routing
 
 - Opus (main thread): Steps 1, 2, 4 - research synthesis, account plan writing, outreach copy
-- Sonnet subagents: Steps 1.2 (SFDC queries), 1.2b (Slack search), 3, 3.5, 5, 6 - Salesforce queries, Slack search, Apollo API calls, CTD API calls + intro drafts, Drive upload, contact enrollment
+- Sonnet subagents: Steps 1.2 (SFDC queries), 1.2b (Slack search), 3, 5, 6 - Salesforce queries, Slack search, Apollo API calls, Drive upload, contact enrollment. Also CTD warm intro skill if user opts in post-run.
 - Haiku subagents: Session startup checks (Drive file existence, simple lookups)
 
 Never route Step 4 (outreach copy) to a subagent. Always stays on Opus main thread.
