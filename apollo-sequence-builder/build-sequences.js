@@ -172,49 +172,79 @@ async function createSequence(page, sequenceName) {
   await sleep(3000);
   await dismissApolloUI(page);
 
-  // Click "Create sequence"
+  // Click "Create sequence" button (top-right of sequences page)
   const created = await safeClickByText(page, 'button', 'Create sequence');
   if (!created) throw new Error('Could not find "Create sequence" button');
   await sleep(3000);
 
-  // We're now on the "Let's draft a sequence" page.
-  // First rename the title, THEN click "Do it manually" (which opens the step type menu).
-
-  // Rename: click the title button (contains "New Sequence") to reveal the input
+  // --- NEW UI (March 2026): Type picker modal ---
+  // Apollo now shows a "Create a sequence" modal with 4 options:
+  // AI-assisted, Templates, Clone, From scratch.
+  // We need "From scratch" to get a blank sequence.
+  // The cards are <button> elements containing <h4> with the option text.
   try {
-    const titleBtn = page.locator('button:has-text("New Sequence")').first();
-    if (await titleBtn.isVisible({ timeout: 3000 })) {
-      await titleBtn.click();
-      await sleep(500);
+    const fromScratch = page.locator('h4:text-is("From scratch")').first();
+    if (await fromScratch.isVisible({ timeout: 5000 })) {
+      log.info('Detected new "Create a sequence" type picker modal');
+      await fromScratch.click();
+      await sleep(2000);
 
-      // Now an input with placeholder "Sequence name" should appear
-      const titleInput = page.locator('input[placeholder="Sequence name"]');
-      if (await titleInput.isVisible({ timeout: 3000 })) {
-        await titleInput.fill(sequenceName);
-        await page.keyboard.press('Enter');
-        await sleep(500);
-        log.ok(`Renamed sequence to: ${sequenceName}`);
-      } else {
-        // Fallback: try triple-click + type on the button area
-        await titleBtn.click({ clickCount: 3 });
-        await sleep(200);
-        await page.keyboard.type(sequenceName, { delay: 15 });
-        await page.keyboard.press('Enter');
-        await sleep(500);
-        log.ok(`Renamed sequence (fallback) to: ${sequenceName}`);
+      // Now we're on the "New Sequence" modal with name input + Create button.
+      // Fill in the sequence name.
+      const nameInput = page.locator('input').filter({ hasText: '' }).first();
+      const nameInputByLabel = page.getByLabel('Sequence Name');
+      const nameInputByRole = page.getByRole('textbox');
+
+      let filled = false;
+      for (const input of [nameInputByLabel, nameInputByRole, nameInput]) {
+        try {
+          if (await input.isVisible({ timeout: 2000 })) {
+            await input.fill(sequenceName);
+            filled = true;
+            log.ok(`Filled sequence name: ${sequenceName}`);
+            break;
+          }
+        } catch (e) { /* try next */ }
       }
+      if (!filled) {
+        log.warn('Could not find name input in New Sequence modal. Trying fallback.');
+      }
+
+      // Click "Create" submit button in the New Sequence modal.
+      // Use getByRole with exact match to avoid hitting "Create sequence" in navbar.
+      await sleep(1000);
+      const createBtn = page.getByRole('button', { name: 'Create', exact: true });
+      await createBtn.click({ timeout: 10000 });
+      await sleep(3000);
+      log.ok('Clicked Create. Sequence created with new UI flow.');
     } else {
-      log.warn('Could not find title button. Will need manual rename.');
+      // --- FALLBACK: Old UI flow ---
+      // If the type picker modal doesn't appear, try the old flow:
+      // "Let's draft a sequence" page with title button + "Do it manually"
+      log.info('Type picker modal not detected. Trying old UI flow.');
+
+      const titleBtn = page.locator('button:has-text("New Sequence")').first();
+      if (await titleBtn.isVisible({ timeout: 3000 })) {
+        await titleBtn.click();
+        await sleep(500);
+        const titleInput = page.locator('input[placeholder="Sequence name"]');
+        if (await titleInput.isVisible({ timeout: 3000 })) {
+          await titleInput.fill(sequenceName);
+          await page.keyboard.press('Enter');
+          await sleep(500);
+          log.ok(`Renamed sequence to: ${sequenceName}`);
+        }
+      }
+
+      const manual = await safeClickByText(page, 'button', 'Do it manually');
+      if (!manual) throw new Error('Could not find "Do it manually" button');
+      await sleep(2000);
     }
   } catch (e) {
-    log.warn(`Title rename failed: ${e.message}. Continuing.`);
+    log.err(`Sequence creation flow failed: ${e.message}`);
+    throw e;
   }
 
-  // Click "Do it manually" to skip AI builder.
-  // This opens the step type picker menu. Touch 1's addStep() will pick from it.
-  const manual = await safeClickByText(page, 'button', 'Do it manually');
-  if (!manual) throw new Error('Could not find "Do it manually" button');
-  await sleep(2000);
   await dismissApolloUI(page);
 
   // Extract sequence ID from URL
@@ -229,6 +259,55 @@ async function createSequence(page, sequenceName) {
 // ---------------------------------------------------------------------------
 // Phase 2: Add steps to a sequence
 // ---------------------------------------------------------------------------
+
+/**
+ * Fill the NEW text input that appeared after a step was added.
+ * Uses before/after textarea and editor counts to target by index,
+ * so it only touches elements created by THIS step, never earlier ones.
+ */
+async function fillNewStepInput(page, content, beforeSnapshot) {
+  const after = await page.evaluate(() => ({
+    textareaCount: document.querySelectorAll('textarea').length,
+    editorCount: document.querySelectorAll('.ql-editor').length,
+  }));
+  log.debug(`After step: ${after.textareaCount} textareas (was ${beforeSnapshot.textareaCount}), ${after.editorCount} editors (was ${beforeSnapshot.editorCount})`);
+
+  // Try new textareas (by index, starting from where old ones ended)
+  if (after.textareaCount > beforeSnapshot.textareaCount) {
+    for (let i = beforeSnapshot.textareaCount; i < after.textareaCount; i++) {
+      const ta = page.locator('textarea').nth(i);
+      if (await ta.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await ta.click();
+        await ta.fill(content);
+        log.debug(`Filled new textarea at index ${i}`);
+        return true;
+      }
+    }
+    log.debug('New textareas found but none visible');
+  }
+
+  // Try new .ql-editor (by index)
+  if (after.editorCount > beforeSnapshot.editorCount) {
+    const idx = after.editorCount - 1;
+    const escaped = content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const html = escaped.split('\n').map(line => `<div>${line.trim() || '<br>'}</div>`).join('');
+    const result = await page.evaluate(({ html, idx }) => {
+      const editor = document.querySelectorAll('.ql-editor')[idx];
+      if (!editor) return { success: false };
+      editor.innerHTML = html;
+      editor.classList.remove('ql-blank');
+      editor.dispatchEvent(new Event('input', { bubbles: true }));
+      editor.dispatchEvent(new Event('change', { bubbles: true }));
+      return { success: true, charCount: editor.innerText.trim().length };
+    }, { html, idx });
+    if (result.success && result.charCount > 0) {
+      log.debug(`Filled new .ql-editor at index ${idx} (${result.charCount} chars)`);
+      return true;
+    }
+  }
+
+  return false;
+}
 
 // Step type menu text mapping
 const STEP_TYPE_LABELS = {
@@ -275,19 +354,27 @@ async function addStep(page, step, stepIndex, sequenceName) {
 
   log.step(sequenceName, touchNum, `Adding ${typeLabel}...`);
 
-  if (stepIndex === 0) {
-    // Touch 1: The step type menu is already open from "Do it manually".
-    // Just pick the type from the menu.
-    log.step(sequenceName, touchNum, 'Selecting type from menu (opened by "Do it manually")...');
-    await selectStepType(page, typeLabel);
-  } else {
-    // Touch 2+: Scroll down and click "+ Add a step" to open the menu, then pick type.
-    const addBtn = page.locator('text="Add a step"').last();
+  // Snapshot counts BEFORE adding the step so we can target NEW elements by index.
+  const beforeSnapshot = await page.evaluate(() => ({
+    textareaCount: document.querySelectorAll('textarea').length,
+    editorCount: document.querySelectorAll('.ql-editor').length,
+  }));
+  log.debug(`Before step: ${beforeSnapshot.textareaCount} textareas, ${beforeSnapshot.editorCount} editors`);
+
+  // All touches (including Touch 1): click "+ Add a step" to open the step type menu.
+  const addBtn = page.locator('text="Add a step"').last();
+  try {
     await addBtn.scrollIntoViewIfNeeded();
     await addBtn.click({ timeout: DEFAULT_TIMEOUT });
     await sleep(1500);
-    await selectStepType(page, typeLabel);
+  } catch (e) {
+    // Fallback: if "Add a step" text isn't found, try the + button icon
+    log.warn(`"Add a step" click failed: ${e.message}. Trying fallback.`);
+    const plusBtn = page.locator('button:has-text("+")').last();
+    await plusBtn.click({ timeout: DEFAULT_TIMEOUT });
+    await sleep(1500);
   }
+  await selectStepType(page, typeLabel);
 
   // Wait for the step editor to fully render
   await sleep(2000);
@@ -299,20 +386,73 @@ async function addStep(page, step, stepIndex, sequenceName) {
       await configureEmailStep(page, step, touchNum, sequenceName);
       break;
     case 'phone_call':
-      await configurePhoneStep(page, step, touchNum, sequenceName);
+      await configurePhoneStep(page, step, touchNum, sequenceName, beforeSnapshot);
       break;
     case 'linkedin_connect':
-      await configureLinkedInConnectStep(page, step, touchNum, sequenceName);
+      await configureLinkedInConnectStep(page, step, touchNum, sequenceName, beforeSnapshot);
       break;
     case 'linkedin_message':
-      await configureLinkedInMessageStep(page, step, touchNum, sequenceName);
+      await configureLinkedInMessageStep(page, step, touchNum, sequenceName, beforeSnapshot);
       break;
     case 'action_item':
-      await configureActionItemStep(page, step, touchNum, sequenceName);
+      await configureActionItemStep(page, step, touchNum, sequenceName, beforeSnapshot);
       break;
   }
 
+  // Post-fill verification for non-email steps (textarea-based)
+  if (step.type === 'linkedin_connect' || step.type === 'linkedin_message') {
+    const expectedContent = step.message;
+    if (expectedContent) {
+      await verifyStepContent(page, expectedContent, touchNum, sequenceName, 'LinkedIn note');
+    }
+  } else if (step.type === 'phone_call' || step.type === 'action_item') {
+    const expectedContent = step.task_note;
+    if (expectedContent) {
+      await verifyStepContent(page, expectedContent, touchNum, sequenceName, 'task note');
+    }
+  }
+
   log.ok(`Touch ${touchNum} (${typeLabel}) added successfully`);
+}
+
+/**
+ * Verify that the content just written to a step matches expectations.
+ * Checks both textareas and Quill editors for the expected content.
+ */
+async function verifyStepContent(page, expectedContent, touchNum, seqName, fieldName) {
+  const expectedStart = expectedContent.substring(0, 40);
+  try {
+    // Check textarea content
+    const textareas = page.locator('textarea');
+    const count = await textareas.count();
+    for (let i = count - 1; i >= 0; i--) {
+      const val = await textareas.nth(i).inputValue().catch(() => '');
+      if (val && val.startsWith(expectedStart)) {
+        log.debug(`Verified ${fieldName} content in textarea ${i}`);
+        return;
+      }
+    }
+
+    // Check Quill editors
+    const editorContent = await page.evaluate((prefix) => {
+      const editors = document.querySelectorAll('.ql-editor');
+      for (let i = editors.length - 1; i >= 0; i--) {
+        if (editors[i].innerText.trim().startsWith(prefix)) {
+          return { found: true, index: i };
+        }
+      }
+      return { found: false };
+    }, expectedStart);
+
+    if (editorContent.found) {
+      log.debug(`Verified ${fieldName} content in Quill editor ${editorContent.index}`);
+      return;
+    }
+
+    log.warn(`CONTENT VERIFICATION FAILED for Touch ${touchNum} ${fieldName}. Expected content starting with "${expectedStart}..." not found in any textarea or editor.`);
+  } catch (e) {
+    log.debug(`Content verification error: ${e.message}`);
+  }
 }
 
 async function configureEmailStep(page, step, touchNum, seqName) {
@@ -411,68 +551,56 @@ async function configureEmailStep(page, step, touchNum, seqName) {
   }
 }
 
-async function configurePhoneStep(page, step, touchNum, seqName) {
+async function configurePhoneStep(page, step, touchNum, seqName, beforeSnapshot) {
   if (step.task_note) {
     log.step(seqName, touchNum, 'Filling call script...');
-    try {
-      const noteArea = page.locator('textarea[placeholder*="Ask prospects" i], textarea[placeholder*="task" i]').last();
-      await noteArea.waitFor({ state: 'visible', timeout: 5000 });
-      await noteArea.click();
-      await noteArea.fill(step.task_note);
+
+    // Use index-based targeting to ONLY fill the input created by THIS step.
+    // This prevents overwriting the LinkedIn connect note from Touch 2.
+    const filled = await fillNewStepInput(page, step.task_note, beforeSnapshot);
+    if (filled) {
       log.step(seqName, touchNum, 'Call script filled');
-    } catch (e) {
-      log.warn(`Task note fill failed: ${e.message}. Trying alternative selector...`);
-      // Fallback: look for any visible textarea in the step
-      try {
-        const fallbackTextarea = page.locator('textarea').last();
-        await fallbackTextarea.fill(step.task_note);
-        log.step(seqName, touchNum, 'Call script filled (fallback)');
-      } catch (e2) {
-        log.err(`Call script completely failed: ${e2.message}`);
-      }
+    } else {
+      log.err(`Call script could not be filled for Touch ${touchNum}. No new input element found after this step was added.`);
     }
   }
 }
 
-async function configureLinkedInConnectStep(page, step, touchNum, seqName) {
+async function configureLinkedInConnectStep(page, step, touchNum, seqName, beforeSnapshot) {
   if (step.message) {
     log.step(seqName, touchNum, 'Filling LinkedIn connect note...');
-    try {
-      // LinkedIn connect note goes into a textarea
-      const textarea = page.locator('textarea').last();
-      await textarea.waitFor({ state: 'visible', timeout: 5000 });
-      await textarea.click();
-      await textarea.fill(step.message);
+
+    const filled = await fillNewStepInput(page, step.message, beforeSnapshot);
+    if (filled) {
       log.step(seqName, touchNum, `LinkedIn note filled (${step.message.length} chars)`);
-    } catch (e) {
-      log.warn(`LinkedIn note fill failed: ${e.message}`);
+    } else {
+      log.err(`LinkedIn note could not be filled for Touch ${touchNum}. No new visible input found.`);
     }
   }
 }
 
-async function configureLinkedInMessageStep(page, step, touchNum, seqName) {
-  // Same as connect but for InMail / message
+async function configureLinkedInMessageStep(page, step, touchNum, seqName, beforeSnapshot) {
   if (step.message) {
-    try {
-      const textarea = page.locator('textarea').last();
-      await textarea.waitFor({ state: 'visible', timeout: 5000 });
-      await textarea.click();
-      await textarea.fill(step.message);
+    log.step(seqName, touchNum, 'Filling LinkedIn message...');
+
+    const filled = await fillNewStepInput(page, step.message, beforeSnapshot);
+    if (filled) {
       log.step(seqName, touchNum, `LinkedIn message filled (${step.message.length} chars)`);
-    } catch (e) {
-      log.warn(`LinkedIn message fill failed: ${e.message}`);
+    } else {
+      log.err(`LinkedIn message could not be filled for Touch ${touchNum}. No new visible input found.`);
     }
   }
 }
 
-async function configureActionItemStep(page, step, touchNum, seqName) {
+async function configureActionItemStep(page, step, touchNum, seqName, beforeSnapshot) {
   if (step.task_note) {
-    try {
-      const textarea = page.locator('textarea').last();
-      await textarea.fill(step.task_note);
+    log.step(seqName, touchNum, 'Filling action item note...');
+
+    const filled = await fillNewStepInput(page, step.task_note, beforeSnapshot);
+    if (filled) {
       log.step(seqName, touchNum, 'Action item note filled');
-    } catch (e) {
-      log.warn(`Action item note failed: ${e.message}`);
+    } else {
+      log.err(`Action item note could not be filled for Touch ${touchNum}. No new visible input found.`);
     }
   }
 }

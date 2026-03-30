@@ -18,7 +18,7 @@ If you are writing a warm reply, partner email, internal message, or anything ot
 4. **Founder credibility in every sequence.** At least one touch in every sequence must reference Richard Socher's background. Only use Socher for prospect-facing founder credibility (Bryan McCann is internal context only). Vary the placement.
 5. **Include third-party validation proof.** At least one touch should reference named public case studies (DuckDuckGo, Harvey, Windsurf, Databricks), benchmark data, or generic traction stats (1B+ queries/month, 5K+ customers, 57% Fortune 500). NEVER reference specific evaluations (even anonymized) or name competitors. NEVER name confidential customers or active evaluations.
 7. **Subject lines only on Touch 1.** The first email gets a unique, specific subject line (reference company name, initiative, or provocative insight). All subsequent emails are replies to the original thread (no new subjects). Never use generic subjects like "Quick question" or "Following up."
-8. **Keep emails concise.** Opener emails should be 100-150 words max. Follow-ups should be 80-120 words. Breakup emails should be 80-120 words. Gong data from 300K+ emails shows 30-150 words is the optimal range; longer emails get deleted, ultra-short emails lack enough substance to compel a reply.
+8. **Keep emails concise.** Opener emails should be 80-120 words max. Follow-ups should be 80-120 words. Breakup emails should be 80-120 words. Gong data from 28M+ emails shows shorter wins; 50-80 words is the sweet spot but 80-120 gives AIDA room.
 9. **LinkedIn connect notes: no pitch, no CTA, no meeting ask, no role claims.** Use the Fact-to-Consequence + Curiosity Hook formula. State what they did, bridge to the problem it creates, end on a curiosity question. No "Would be great to connect" close. No glazing or characterizing initiatives. See references/linkedin-rules.md.
 10. **Each touch should have:** a labeled subject line, the full email body, and any special instructions (e.g., "Do Not Cold Outreach, Warm Intro Only" for CEOs).
 11. **Include a Founder Credibility Toolkit section** at the top of the document for quick reference.
@@ -35,7 +35,8 @@ If you are writing a warm reply, partner email, internal message, or anything ot
 
 When personalizing each touch, select the strongest available hook in this priority order. Always use the highest-ranked hook you have data for:
 
-1. **Trigger event** (funding round, product launch, leadership change, earnings call theme): Most timely, highest response rate
+0. **Warm intro reference** (connector has introduced you to the prospect): Only use when Ryan confirms the intro has been made via CTD. Highest response rate by far. Example: "{Connector} mentioned you'd be the right person to talk to about {problem}."
+1. **Trigger event** (funding round, product launch, leadership change, earnings call theme): Most timely, highest response rate for cold
 2. **Their content** (blog post, podcast appearance, conference talk, LinkedIn post): Shows genuine research depth
 3. **Mutual connection or shared context** (same investor, same conference, shared Slack mention): Social proof
 4. **Company initiative** (public AI program, hiring surge, strategic pivot): Relevant to their priorities
@@ -50,7 +51,7 @@ Do NOT default to #5 when better hooks exist in the research. If a trigger event
 Every individual email in every sequence must follow this structure. This is non-negotiable:
 
 ```
-SUBJECT: [Personalized, under 50 chars, references company or initiative]
+SUBJECT: [Personalized, under 6 words, references company or initiative]
 
 Hi {{first_name}},
 
@@ -65,7 +66,7 @@ Hi {{first_name}},
 [Signature]
 ```
 
-For follow-up emails (80-120 words), compress to: New hook + new proof point + CTA. No re-introduction needed. These are replies to the original thread (no new subject line).
+For follow-up emails (80-120 words), compress to: New hook + new proof point + CTA. No re-introduction needed. These are replies to the original thread (no new subject line). CRITICAL: each follow-up must add a genuinely NEW reason to respond (new proof point, new angle, new context). Never rephrase the same ask in different words. Gong data: repeating the same pitch kills sequences.
 For breakup emails (80-120 words): Acknowledge silence without guilt, offer one new angle, simple yes/no question. Also a reply to the original thread.
 
 ---

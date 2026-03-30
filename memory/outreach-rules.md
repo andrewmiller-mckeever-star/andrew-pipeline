@@ -36,12 +36,17 @@ Every sequence (A, B, C, D) uses the same structure:
 - **5th-7th grade reading level.** Short, punchy sentences. No compound-complex structures. If it needs a semicolon, split it into two sentences.
 - **Strip corporate suffixes.** Write "Teradata" not "Teradata Corporation." Write "Plaid" not "Plaid Inc."
 
-## Word Counts
-- Opener (Touch 1): 100-150 words
+## Word Counts (updated 2026-03-30 per Gong 28M email analysis)
+- Opener (Touch 1): 80-120 words (tightened from 100-150)
 - Follow-up (Touch 3): 80-120 words
 - Breakup (Touch 5): 80-120 words
 - LinkedIn connect notes: under 250 characters
-- Subject lines: under 50 characters, specific to company/initiative (Touch 1 only)
+- Subject lines: under 6 words, specific to company/initiative (Touch 1 only; tightened from under 50 chars)
+
+## Follow-Up Context Rule (added 2026-03-30)
+- Each follow-up (Touch 3, Touch 5) must add a NEW reason to respond
+- New proof point, new angle, new context. Never rephrase the original pitch.
+- Gong data: repeating the same ask in different words kills sequences.
 
 ## LinkedIn Connect Rules (Touch 2)
 

@@ -37,9 +37,10 @@ YDC | {Company} | Seq D: AI/ML Leader
 ```
 
 ### Contact Label Convention
-Every contact gets two labels:
+Every contact gets two labels (plus optional third):
 - "Whale Pipeline" (global tracking)
 - "{Company} - Seq {A|B|C|D}" (sequence assignment)
+- "Warm Intro" (only if contact was flagged by Step 3.5 CTD warm intro discovery)
 
 ### Phase A: Playwright Script (Runs Outside Claude)
 
@@ -66,7 +67,7 @@ Run pre-flight checks in parallel:
 Then:
 - 6.1: `apollo_accounts_create` (skip if account exists from 6.0C)
 - 6.2: `apollo_contacts_create` per prospect with verified email
-  - Include: label_names ["Whale Pipeline", "{Company} - Seq {A|B|C|D}"]
+  - Include: label_names ["Whale Pipeline", "{Company} - Seq {A|B|C|D}"] (add "Warm Intro" if contact has warm_intro=true from Step 3.5)
   - Set run_dedupe: true
 - 6.3: `apollo_emailer_campaigns_add_contact_ids` per sequence
   - sequence_same_company_in_same_campaign: true

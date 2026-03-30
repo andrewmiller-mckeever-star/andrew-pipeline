@@ -36,15 +36,13 @@ You.com delivers the search infrastructure that powers modern Generative AI. We 
 ## What We Sell (Priority Order)
 
 1. **Search API (APEX tier):** Primary lead in all outreach. High-accuracy retrieval for agents and LLMs. Long, rich snippets. Real-time freshness. One API, all of the data. Enterprise reliability with unified billing.
-2. **Vertical Index (aka Custom Index):** Domain-specific, real-time knowledge with citations. Purpose-built indexes by industry (retail, media, hospitality, finance, legal). Combines public web, partner data, and structured sources. Same product, different name. Supporting angle that shows depth.
-3. **PRAG (Private RAG):** Enterprise knowledge base grounding. Secure private knowledge engine over enterprise documents. Zero data retention. Audit-ready compliance.
-4. **MCP Server:** Zero-setup web search for AI agents (no API key, no signup for prototyping). 100 free searches/day. Good hook for technical personas.
-5. **AI Factory-As-A-Service:** Only mention when the account clearly lacks internal AI/engineering capacity. Not a default talking point.
+2. **Contents API:** Crawls and extracts clean, structured content from any URL or domain. Powers AI tools that need site-specific data without building their own crawler.
+3. **Research API:** Deep, multi-step research by way of an API. For tooling that needs thorough, cited answers to complex queries. Goes deeper than a single search call.
+4. **Vertical Index (aka Custom Index):** Domain-specific, real-time knowledge with citations. Purpose-built indexes by industry (retail, media, hospitality, finance, legal). Combines public web, partner data, and structured sources. Same product, different name. Supporting angle that shows depth.
+**Product tiers:** APEX (Search API, Contents API, Research API).
+**NEVER sell or reference in outreach:** PRAG, AI Factory, Chat, ESL, Apex products, MCP Server. These are excluded from all pipeline runs, account plans, and outreach sequences.
 
-**Product tiers:** APEX (Search API), E2E (end-to-end solutions), PRAG (publisher RAG), AI Factory.
-**Never reference in prospect-facing output:** ESL, Chat, Apex products.
-
-**The calibration:** Search API always leads. Vertical Index and PRAG add depth and optionality when account research signals the need. The goal: come across as a serious infrastructure company with range, not prescribe the biggest possible deal in the first email.
+**The calibration:** Search API always leads. Contents API and Research API are supporting angles for accounts that need crawled site data or deep research capabilities. Vertical Index adds depth when industry-specific signals warrant it. The goal: come across as a serious infrastructure company with range, not prescribe the biggest possible deal in the first email.
 
 ---
 
@@ -165,6 +163,7 @@ These rules apply ONLY when writing cold outreach sequences, LinkedIn connection
 - Fake personalization ("Your company is doing impressive work")
 - Rhetorical question openers ("What if you could...")
 - Defaulting to product names or case studies: do not reflexively insert MCP server hooks, DuckDuckGo case studies, or product names into every email. Before adding a product name, case study, or MCP hook, ask: does this email work without it? If yes, leave it out. The best emails connect subject matter expertise to the prospect's problem without naming a single product.
+- Rephrasing the same ask: each follow-up email (Touch 3, Touch 5) must add a NEW reason to respond. New proof point, new angle, new context. Never reword the original pitch. Gong data: repeating the same ask in different words kills sequences.
 
 ---
 
@@ -175,7 +174,7 @@ The following structure applies to cold outreach sequences only (Touches 1, 3, 5
 Every cold outreach email must follow this structure:
 
 ```
-SUBJECT: [Personalized, under 50 chars, references company or initiative] (Touch 1 only)
+SUBJECT: [Personalized, under 6 words, references company or initiative] (Touch 1 only)
 
 Hi {{first_name}},
 
@@ -200,7 +199,7 @@ Hi {{first_name}},
 
 **Threading:** Only Touch 1 gets a unique subject line. Touches 3 and 5 are replies to the original thread. In Apollo: use "reply to previous email" step type.
 **Contact cap:** 5 contacts per sequence (A, B, C, D). No duplicates across sequences. Priority: title relevance > verified email > use case alignment.
-**Word counts:** Opener 100-150 words. Follow-up 80-120 words. Breakup 80-120 words.
+**Word counts:** Opener 80-120 words. Follow-up 80-120 words. Breakup 80-120 words.
 **Reading level:** 5th-7th grade. Short, punchy sentences. No compound-complex structures.
 **Paragraphs:** 2-3 sentences max. White space makes emails scannable.
 **Greeting:** Every email opens with "Hi {{first_name}}," on its own line.

@@ -56,3 +56,4 @@ See `schema.example.json` for the full schema. Each sequence has a name and arra
 - **Chrome profile conflict**: Close all Chrome windows first, or set `CHROME_PROFILE_DIR=Profile\ 1` for an alternate profile
 - **Blank editors after save**: The script detects this and logs a warning. Check the `_results.json` for details on which step needs manual fix.
 - **Selector changes**: If Apollo updates their UI, the key selectors to update are in `addStep()` and `configureEmailStep()`.
+- **LinkedIn/phone/action notes in wrong step**: All non-email steps use `fillNewStepInput()` which snapshots textarea/editor counts before adding each step, then targets only NEW visible elements by index. NEVER use `page.locator('textarea').last()` for these steps — Apollo adds hidden textareas and `.last()` can hit the wrong one.

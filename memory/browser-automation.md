@@ -1,12 +1,44 @@
 # Browser Automation: Apollo Sequence Editor
 
+## Apollo Sequence Creation Flow (Updated 2026-03-30)
+
+"Create sequence" button now triggers a 4-option type picker modal (AI-assisted, Templates, Clone, From scratch). Click "From scratch" to get the "New Sequence" name/settings modal with a text input and "Create" button. After clicking "Create", you land on an empty sequence editor with "+ Add a step" button. The old "Do it manually" flow is gone. Playwright script updated with new flow + old fallback.
+
+**Critical Playwright selector lesson:** Never use CSS `:text-is()` or `:text()` pseudo-selectors for buttons when similar text exists elsewhere on the page (e.g., "Create" vs "Create sequence"). These fail silently or match the wrong element. Always use `page.getByRole('button', { name: 'Create', exact: true })` for exact button matching. This is Playwright's recommended pattern and handles visibility/accessibility correctly.
+
 ## Apollo UI Architecture (Sequence Editor)
 
 Apollo's sequence editor at `app.apollo.io/#/sequences/{id}` uses:
 - **Subject lines:** Standard `<input>` elements. Click + type works reliably.
 - **Email bodies:** Quill.js rich text editor. `contenteditable="true"` divs with class `.ql-editor`. Blank editors also have class `.ql-blank`.
-- **LinkedIn task notes:** Also Quill.js editors (same `.ql-editor` class).
+- **LinkedIn/phone/action item notes:** Textareas or Quill editors. Apollo may add hidden textareas alongside visible ones when a step is created.
 - **Steps expand/collapse:** Only expanded steps have their `.ql-editor` in the DOM. Must scroll to and expand a step before its editor is accessible.
+
+## Non-Email Step Targeting: Index-Based Snapshots (Fixed 2026-03-30)
+
+**NEVER use `page.locator('textarea').last()` for LinkedIn, phone, or action item steps.** Apollo's DOM can have multiple textareas from different steps visible simultaneously, and `.last()` may target a textarea from an earlier step, overwriting its content.
+
+**Required pattern (implemented in `fillNewStepInput()`):**
+1. BEFORE clicking "+ Add a step", snapshot the current textarea and editor counts
+2. After the step renders, count again
+3. Target only elements at indexes >= the pre-existing count
+4. Only interact with VISIBLE new elements (hidden textareas exist)
+
+```javascript
+// In addStep(), BEFORE creating the step:
+const beforeSnapshot = await page.evaluate(() => ({
+  textareaCount: document.querySelectorAll('textarea').length,
+  editorCount: document.querySelectorAll('.ql-editor').length,
+}));
+
+// After step renders, fillNewStepInput() targets only new elements:
+for (let i = beforeSnapshot.textareaCount; i < currentCount; i++) {
+  const ta = page.locator('textarea').nth(i);
+  if (await ta.isVisible(...)) { await ta.fill(content); }
+}
+```
+
+This applies to ALL non-email step types: `linkedin_connect`, `linkedin_message`, `phone_call`, `action_item`. Email steps use Quill DOM injection which is index-safe already.
 
 ## The Race Condition Problem
 

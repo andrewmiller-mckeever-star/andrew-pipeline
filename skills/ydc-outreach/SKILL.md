@@ -61,7 +61,7 @@ See references/writing-rules.md for full detail. Non-negotiables:
 - Plain text only in email bodies. No markdown (no bold, italic, headers, numbered lists).
 - AIDA structure required for every email touch (see references/writing-rules.md).
 - Every opener starts with THEM, never "I," "We," "Our," or "At You.com."
-- Word counts: Touch 1 email 100-150 words, Touch 3 and 5 emails 80-120 words.
+- Word counts: Touch 1 email 80-120 words, Touch 3 and 5 emails 80-120 words.
 - Interest-based CTAs only. No time-based asks ("15 minutes," "quick call this week").
 - One proof point per email, one CTA per email. Never stack.
 - 5th-7th grade reading level. Short sentences, no compound-complex structures.
