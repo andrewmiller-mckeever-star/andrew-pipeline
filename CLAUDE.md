@@ -62,10 +62,18 @@ You.com delivers the search infrastructure that powers modern Generative AI. We 
 
 ## Named Case Studies (Safe for Outreach)
 
-- **DuckDuckGo:** Replaced legacy search API. 2x faster. 10M+ daily queries.
-- **Windsurf:** Replaced legacy search for coding agent documentation.
-- **Harvey:** Chose You.com over incumbent search API providers for legal search.
-- **Databricks:** Unity Catalog integration.
+**Guardrail: always reference the case study CLOSEST to the prospect's use case.** Don't default to DuckDuckGo. Match the proof point to the problem.
+
+| Case Study | Use When Prospect Needs | Proof Point |
+|---|---|---|
+| **Harvey** | AI agent accuracy, citations, regulated industries, legal/compliance | Chose You.com over incumbent search providers. Their legal AI agents needed cited, accurate retrieval during investigation workflows. |
+| **Windsurf** | AI coding agents, developer tooling, documentation retrieval | Replaced legacy search for their AI coding agent. Higher-accuracy documentation retrieval improved agent task completion. |
+| **Salesforce** | Enterprise AI platforms, agentic tooling, internal + web data grounding | Embedded You.com across Slackbot AI globally. Uses our APIs in Prompt Builder to ground agentic tooling in factual responses from the public web combined with internal data. |
+| **Strauss** | Retail, consumer products, e-commerce | Retail use case for AI-powered search and product intelligence. |
+| **DuckDuckGo** | Real-time freshness, high-volume consumer search, migration from legacy | Replaced legacy search API. Better freshness and real-time updates. 10M+ daily queries. We win freshness evals because of how they plugged us in. |
+| **Databricks** | Data platforms, partnerships, Unity Catalog customers | Unity Catalog integration. Use as co-sell angle when prospect is a Databricks customer. |
+
+**The specific metrics don't matter.** What matters is the outcome: better freshness, accuracy, latency, and relevance because our APIs are built for how agents consume data, not how humans browse.
 
 NOTE: Do not name competitors in outreach. Use "legacy search API," "incumbent providers," etc.
 

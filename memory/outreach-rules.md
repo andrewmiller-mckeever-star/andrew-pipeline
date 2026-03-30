@@ -87,8 +87,13 @@ The connection request opens the door. The email sequence carries the pitch. Nev
 
 ## Proof Points (Safe to Use in Outreach)
 - Founder credibility (Socher ONLY in outreach: 4th most cited AI researcher, former Chief Scientist at Salesforce, Stanford professor. Do NOT reference Bryan McCann in prospect-facing copy.)
-- Named public case studies: DuckDuckGo, Windsurf, Harvey, Databricks
-- Benchmark data: accuracy, freshness, latency superiority
+- **Case study matching rule: always pick the case study CLOSEST to the prospect's use case.** Don't default to DuckDuckGo.
+  - **Harvey / Windsurf:** AI agents needing accuracy, citations, grounded retrieval
+  - **Salesforce:** Enterprise AI platforms, agentic tooling, grounding internal + web data (Slackbot AI globally, Prompt Builder)
+  - **Strauss:** Retail, consumer products, e-commerce
+  - **DuckDuckGo:** Real-time freshness, high-volume search, legacy migration
+  - **Databricks:** Data platform customers, Unity Catalog co-sell angle
+- The specific metrics don't matter. Lead with the outcome: better freshness, accuracy, latency, relevance because our APIs are built for how agents consume data.
 - Scale stats: 1B+ queries/month, 5K+ API customers, 57% Fortune 500 penetration
 
 ## Proof Points (NEVER Use in Outreach)

@@ -146,6 +146,20 @@ Updated in: CLAUDE.md, outreach-rules.md, MEMORY.md
 ### Reference Example Saved
 - Gold standard warm deal email saved to outreach-rules.md (WBG exec alignment note to Irvinder Singh, 2026-03-23). Use as calibration when writing any non-cold outreach: exec alignment, warm intros, deal progression, partnership notes.
 
+## 2026-03-30 Session
+
+### Case Study Matching Rule
+- **Always pick the case study CLOSEST to the prospect's use case.** Stop over-indexing on DuckDuckGo.
+- **Why:** DDG has the most quotable numbers so it gets reached for by default, but it's only the right reference when freshness is the angle. Using DDG for an AI agent accuracy use case is a mismatch.
+- **How to apply:** Match the proof point to the prospect's problem:
+  - **Harvey / Windsurf:** AI agents needing accuracy, citations, grounded retrieval
+  - **Salesforce:** Enterprise AI platforms, agentic tooling, grounding internal + web data (Slackbot AI globally, Prompt Builder)
+  - **Strauss:** Retail, consumer products, e-commerce
+  - **DuckDuckGo:** Real-time freshness, high-volume search, legacy migration
+  - **Databricks:** Data platform customers, Unity Catalog co-sell
+- **The specific metrics don't matter.** Lead with the outcome: better freshness, accuracy, latency, relevance because our APIs are built for how agents consume data.
+- Updated in: CLAUDE.md, outreach-rules.md, feedback.md
+
 ### Personalization Must Bridge to Problem, Never Characterize
 - **Stop evaluating or characterizing prospect initiatives in the personalization sentence.** Phrases like "big move," "notable shift," "signals serious work," "significant infrastructure push" are glazing disguised as personalization. They don't add value. They just compliment the initiative before getting to the point.
 - **Why:** The personalization sentence exists to connect what they did to why we might be useful. If it evaluates the initiative instead of bridging to a consequence, it's wasted space and reads as AI slop.
