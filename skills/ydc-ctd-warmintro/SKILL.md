@@ -42,9 +42,8 @@ GET https://api.ctd.ai/user/atc-paths-api/public/v1/company?company_domain={doma
 
 Check response:
 - If 404 or no data: output "No CTD data for {Company}." and STOP.
-- If `ctd_company_score_label` is NOT "strong": output "CTD score: {label}. No strong warm paths into {Company}." and STOP.
 - If error code 50.11: output "CTD API error (source account issue). Contact jelena@ctd.ai." and STOP.
-- If "strong": proceed.
+- Log `ctd_company_score_label` for context (e.g., "strong", "familiar", "weak") but ALWAYS proceed to Step 2 regardless of company score.
 
 ### 2. Find Reachable ICP Contacts
 
@@ -54,7 +53,7 @@ GET https://api.ctd.ai/user/atc-paths-api/public/v1/people?company_domain={domai
 
 From the response, filter to ONLY contacts where `ctd_score_label` = "Strong Chance to Connect".
 
-If zero results pass the filter: output "Company is reachable but no individual Strong Chance contacts found." and STOP.
+If zero ICP contacts pass the filter: note this but proceed to Step 4 (paths) anyway. Strong paths to non-ICP targets (board members, investors, executives in other functions) are still valuable.
 
 ### 3. Enrich with Apollo Data (If Available)
 
@@ -83,7 +82,7 @@ For each qualifying path, extract:
 - **Relationship type:** `relationship_type` array from `edges[]` (e.g., "overlapped", "coworker", "linkedin connected", "email connected")
 - **Degree:** 1st (Ryan knows the connector directly) or 2nd (Ryan reaches the connector through someone)
 
-Match paths to the ICP contacts from step 2. Discard paths to non-ICP targets (investors, board members, non-relevant titles) unless no ICP paths exist.
+Match paths to the ICP contacts from Step 2. Tag each target as ICP or non-ICP but keep ALL strong paths. Non-ICP targets (board members, investors, executives in other functions) are surfaced alongside ICP targets.
 
 ### 5. Rank and Structure Output
 
@@ -91,11 +90,11 @@ Match paths to the ICP contacts from step 2. Discard paths to non-ICP targets (i
 1. Strong path relationship strength only (medium paths already filtered out in step 4)
 2. Connector is someone Ryan actually knows: co-worker at You.com, or has direct email/LinkedIn connection (check `connector_type` and user-to-connector edge `relationship_type`)
 3. Rich `overlapping_message` context (shared company tenures, mutual connections) over sparse paths with no shared history
-4. Target is ICP-relevant (VP/C-suite in Eng/Product/IT over Director)
+4. Target is ICP-relevant (VP/C-suite in Eng/Product/IT ranks above non-ICP targets like board members or investors)
 5. 1st degree over 2nd degree (tiebreaker, not primary sort)
 6. Also in Apollo prospect list (bonus)
 
-Show ALL strong paths, not just top 3. Each one is a potential warm intro opportunity.
+Show ALL strong paths, not just top 3. Each one is a potential warm intro opportunity. Tag non-ICP targets clearly but still show them. At the end of the output, highlight the single most actionable path: prefer ICP targets, but if none exist, highlight the strongest non-ICP path (especially if the connector is a You.com co-worker).
 
 ### 6. Draft Ghost Intro Emails
 
@@ -237,7 +236,7 @@ NEXT STEPS:
 - 500 server error: retry once, then stop gracefully
 - Empty results at any step: clear message about what was found vs. what wasn't
 - Zero 1st-degree paths: skip that section entirely, show 2nd-degree only
-- Zero ICP-relevant targets but paths exist to non-ICP people: note this and show the non-ICP paths anyway with a caveat
+- Zero ICP-relevant targets but paths exist to non-ICP people: show all strong paths, tag non-ICP targets, highlight the most actionable one
 
 ## Model Routing
 
