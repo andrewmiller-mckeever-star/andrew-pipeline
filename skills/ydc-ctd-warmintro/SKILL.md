@@ -26,8 +26,8 @@ This is a standalone skill, not a pipeline step. It can be invoked:
 
 All requests use these headers:
 ```
-ctd-api-key: uak_PKSMqLtz-sD_foOMHDJ5ONNHa0u9RhY3
-ctd-client-id: ryan.reed@you.com
+ctd-api-key: uak_E4WNasx-S6CH2r3XMR8mrhkeHRmkXU76
+ctd-client-id: nick.opderbeck@you.com
 ```
 
 See references/ctd-api.md for full endpoint documentation.

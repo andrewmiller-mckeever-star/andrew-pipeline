@@ -41,3 +41,14 @@ SALES_DECK_PATH:
 ```
 
 > Claude reads this file at the start of each pipeline run for pitch framing and positioning.
+
+---
+
+## ConnectTheDots (CTD)
+
+```
+CTD_API_KEY: uak_E4WNasx-S6CH2r3XMR8mrhkeHRmkXU76
+CTD_CLIENT_ID: nick.opderbeck@you.com
+```
+
+> Used by the ydc-ctd-warmintro skill to find warm intro paths. Get your key from jelena@ctd.ai if it expires.
