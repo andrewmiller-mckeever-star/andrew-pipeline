@@ -39,8 +39,8 @@ def write_config(updates: dict):
     text = CONFIG_PATH.read_text()
     for key, value in updates.items():
         text = re.sub(
-            r'^(' + re.escape(key) + r':)(\s+).*$',
-            lambda m, v=value: m.group(1) + m.group(2) + v,
+            r'^(' + re.escape(key) + r':)\s*.*$',
+            lambda m, v=value: m.group(1) + (' ' + v if v else ''),
             text, flags=re.MULTILINE
         )
     CONFIG_PATH.write_text(text)
@@ -1552,8 +1552,8 @@ async function runTest(svc) {
   // Save current step's fields first so the server uses the latest values
   const stepForSvc = { rclone_install: 3, rclone_remote: 3, node: 2, apollo_builder: 2, playwright: 2, sales_deck: 4, apollo_mcp: 5, slack_mcp: 5 };
   const step = stepForSvc[svc];
+  const data = {};
   if (step) {
-    const data = {};
     (STEP_FIELDS[step] || []).forEach(k => {
       const el = document.getElementById(k);
       if (el) data[k] = el.value.trim();
@@ -1566,7 +1566,11 @@ async function runTest(svc) {
   }
 
   try {
-    const res = await fetch('/api/test/' + SVC_ENDPOINT[svc], { method: 'POST' });
+    const res = await fetch('/api/test/' + SVC_ENDPOINT[svc], {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
     const r   = await res.json();
     testResults[svc] = r;           // store first so checkStep2Deps sees it
     setResult(svc, r.ok, r.msg);
@@ -2197,6 +2201,7 @@ class Handler(BaseHTTPRequestHandler):
         elif self.path.startswith('/api/test/'):
             svc = self.path.split('/')[-1]
             cfg = parse_config()
+            cfg.update(self.read_body())   # live values from client override saved config
             dispatch = {
                 'rclone-install': test_rclone_install,
                 'rclone-remote':  lambda: test_rclone_remote(cfg.get('RCLONE_REMOTE', 'gdrive')),
