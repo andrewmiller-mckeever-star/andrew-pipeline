@@ -52,14 +52,30 @@ def parse_config() -> dict:
 
 
 def write_config(updates: dict):
-    text = CONFIG_PATH.read_text()
-    for key, value in updates.items():
-        text = re.sub(
-            r'^(' + re.escape(key) + r':)\s*.*$',
-            lambda m, v=value: m.group(1) + (' ' + v if v else ''),
-            text, flags=re.MULTILINE
-        )
-    CONFIG_PATH.write_text(text)
+    """Write key/value pairs into ae-config.md.
+
+    Only modifies lines that are inside ```...``` code blocks AND match a
+    known key. Lines outside code blocks (descriptions, headers, separators)
+    are never touched, so closing fences and comments stay intact.
+    """
+    lines    = CONFIG_PATH.read_text().splitlines(keepends=True)
+    in_block = False
+    result   = []
+    for line in lines:
+        stripped = line.rstrip('\r\n')
+        if stripped.strip() == '```':
+            in_block = not in_block
+            result.append(line)
+            continue
+        if in_block:
+            m = re.match(r'^(\w+):\s*(.*)', stripped)
+            if m and m.group(1) in updates:
+                val = updates[m.group(1)]
+                eol = '\n'
+                result.append(f'{m.group(1)}: {val}{eol}' if val else f'{m.group(1)}:{eol}')
+                continue
+        result.append(line)
+    CONFIG_PATH.write_text(''.join(result))
 
 
 # ── Connection tests ──────────────────────────────────────────────────────────
