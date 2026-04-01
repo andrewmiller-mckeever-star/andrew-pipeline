@@ -11,6 +11,7 @@ Zero dependencies beyond Python stdlib.
 """
 
 import json
+import os
 import re
 import subprocess
 from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -21,6 +22,20 @@ CONFIG_PATH   = BASE_DIR / "ae-config.md"
 DOWNLOADS_DIR = BASE_DIR / "downloads"
 DOWNLOADS_DIR.mkdir(exist_ok=True)
 PORT        = 8002
+
+def brew_env() -> dict:
+    """Return an env dict with Homebrew bin paths prepended to PATH.
+
+    The wizard server inherits whatever PATH was active when it launched.
+    Homebrew installs binaries to /opt/homebrew/bin (Apple Silicon) or
+    /usr/local/bin (Intel) — neither is guaranteed to be in that PATH.
+    Passing this env to subprocess.run() ensures node, rclone, etc. are
+    found even when the server was started from a shell without brew in PATH.
+    """
+    env  = os.environ.copy()
+    brew_paths = '/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/local/sbin'
+    env['PATH'] = brew_paths + ':' + env.get('PATH', '')
+    return env
 
 # ── Config I/O ────────────────────────────────────────────────────────────────
 
@@ -60,7 +75,7 @@ def resolve_drive_folder_url(remote: str, folder_url: str) -> dict:
     folder_id = m.group(1)
     try:
         # First check whether the remote is configured at all
-        remotes_r = subprocess.run(['rclone', 'listremotes'], capture_output=True, text=True, timeout=6)
+        remotes_r = subprocess.run(['rclone', 'listremotes'], capture_output=True, text=True, timeout=6, env=brew_env())
         stderr_lower = remotes_r.stderr.lower()
         if 'config file' in stderr_lower and 'not found' in stderr_lower:
             return {'ok': False, 'msg': 'not_configured',
@@ -73,7 +88,7 @@ def resolve_drive_folder_url(remote: str, folder_url: str) -> dict:
 
         r = subprocess.run(
             ['rclone', 'lsjson', f'{remote}:', '--dirs-only', '--no-modtime'],
-            capture_output=True, text=True, timeout=20
+            capture_output=True, text=True, timeout=20, env=brew_env()
         )
         if r.returncode != 0:
             err_lines = [l for l in r.stderr.strip().splitlines() if 'ERROR' in l or 'Failed' in l]
@@ -100,7 +115,7 @@ def test_rclone_remote(remote: str) -> dict:
     """Verify the remote exists in config then do a live connection test via rclone lsd."""
     try:
         # Step 1 — remote in config?
-        r = subprocess.run(['rclone', 'listremotes'], capture_output=True, text=True, timeout=6)
+        r = subprocess.run(['rclone', 'listremotes'], capture_output=True, text=True, timeout=6, env=brew_env())
         stderr_lower = r.stderr.lower()
         if 'config file' in stderr_lower and 'not found' in stderr_lower:
             return {'ok': False, 'msg': 'rclone has not been configured yet — run rclone config to set up your Google Drive remote'}
@@ -111,7 +126,7 @@ def test_rclone_remote(remote: str) -> dict:
         # Step 2 — live connection test: list Drive root directories
         r2 = subprocess.run(
             ['rclone', 'lsd', f'{remote}:', '--max-depth', '1'],
-            capture_output=True, text=True, timeout=15
+            capture_output=True, text=True, timeout=15, env=brew_env()
         )
         if r2.returncode == 0:
             return {'ok': True, 'msg': f'Remote "{remote}" connected — Google Drive authenticated'}
@@ -128,7 +143,7 @@ def test_rclone_remote(remote: str) -> dict:
 
 def test_rclone_install() -> dict:
     try:
-        r = subprocess.run(['rclone', '--version'], capture_output=True, text=True, timeout=6)
+        r = subprocess.run(['rclone', '--version'], capture_output=True, text=True, timeout=6, env=brew_env())
         version = r.stdout.splitlines()[0] if r.stdout else 'rclone'
         return {'ok': True, 'msg': f'{version} installed'}
     except FileNotFoundError:
@@ -138,12 +153,12 @@ def test_rclone_install() -> dict:
 
 def test_rclone(remote: str, folder: str) -> dict:
     try:
-        r1 = subprocess.run(['rclone', 'listremotes'], capture_output=True, text=True, timeout=6)
+        r1 = subprocess.run(['rclone', 'listremotes'], capture_output=True, text=True, timeout=6, env=brew_env())
         if f'{remote}:' not in r1.stdout.splitlines():
             avail = ', '.join(r1.stdout.strip().splitlines()) or 'none'
             return {'ok': False, 'msg': f'Remote "{remote}" not found. Available: {avail}'}
         r2 = subprocess.run(['rclone', 'ls', f'{remote}:{folder}/'],
-                            capture_output=True, text=True, timeout=10)
+                            capture_output=True, text=True, timeout=10, env=brew_env())
         if r2.returncode == 0:
             return {'ok': True, 'msg': f'"{remote}:" connected — folder accessible'}
         return {'ok': False, 'msg': f'Folder "{folder}" not found — create it in Drive first'}
@@ -156,7 +171,7 @@ def test_rclone(remote: str, folder: str) -> dict:
 
 def test_brew() -> dict:
     try:
-        r = subprocess.run(['brew', '--version'], capture_output=True, text=True, timeout=5)
+        r = subprocess.run(['brew', '--version'], capture_output=True, text=True, timeout=5, env=brew_env())
         version = r.stdout.splitlines()[0] if r.stdout else 'Homebrew'
         return {'ok': r.returncode == 0, 'msg': f'{version} installed' if r.returncode == 0 else 'brew --version failed'}
     except FileNotFoundError:
@@ -166,7 +181,7 @@ def test_brew() -> dict:
 
 def test_node() -> dict:
     try:
-        r = subprocess.run(['node', '--version'], capture_output=True, text=True, timeout=5)
+        r = subprocess.run(['node', '--version'], capture_output=True, text=True, timeout=5, env=brew_env())
         return {'ok': r.returncode == 0, 'msg': f'Node.js {r.stdout.strip()} installed' if r.returncode == 0 else 'node --version failed'}
     except FileNotFoundError:
         return {'ok': False, 'msg': 'Node.js not installed'}
@@ -201,9 +216,9 @@ def _drive_api_token(remote: str) -> str:
     import configparser as _cp, json as _json, os as _os
     # Touch Drive to let rclone refresh the token file if it has expired
     subprocess.run(['rclone', 'about', f'{remote}:', '--json'],
-                   capture_output=True, timeout=15)
+                   capture_output=True, timeout=15, env=brew_env())
     cfg_path = subprocess.run(['rclone', 'config', 'file'],
-                              capture_output=True, text=True).stdout.strip()
+                              capture_output=True, text=True, env=brew_env()).stdout.strip()
     # 'rclone config file' prints e.g. "Configuration file is stored at:\n/path/rclone.conf\n"
     for line in cfg_path.splitlines():
         line = line.strip()
@@ -993,10 +1008,10 @@ code.inline {
           <div class="fix-block" id="fix-playwright">
             <div class="fix-label">Install dependencies in the script directory:</div>
             <code id="fix-playwright-path">cd ...</code>
-            <code>npm install</code>
+            <code>eval "$(/opt/homebrew/bin/brew shellenv)" &amp;&amp; npm install</code>
             <div class="fix-btns">
-              <button class="copy-btn" onclick="copyText(this, 'cd ' + document.getElementById('APOLLO_BUILDER_PATH').value.trim() + ' && npm install')">Copy</button>
-              <button class="terminal-btn" onclick="openInTerminal(this, 'cd ' + document.getElementById('APOLLO_BUILDER_PATH').value.trim() + ' && npm install')">&#x2318; Open in Terminal</button>
+              <button class="copy-btn" onclick="copyText(this, 'eval &quot;$(/opt/homebrew/bin/brew shellenv)&quot; && cd ' + document.getElementById('APOLLO_BUILDER_PATH').value.trim() + ' && npm install')">Copy</button>
+              <button class="terminal-btn" onclick="openInTerminal(this, 'eval &quot;$(/opt/homebrew/bin/brew shellenv)&quot; && cd ' + document.getElementById('APOLLO_BUILDER_PATH').value.trim() + ' && npm install')">&#x2318; Open in Terminal</button>
             </div>
           </div>
         </div>
