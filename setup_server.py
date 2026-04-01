@@ -154,6 +154,16 @@ def test_rclone(remote: str, folder: str) -> dict:
     except Exception as e:
         return {'ok': False, 'msg': str(e)}
 
+def test_brew() -> dict:
+    try:
+        r = subprocess.run(['brew', '--version'], capture_output=True, text=True, timeout=5)
+        version = r.stdout.splitlines()[0] if r.stdout else 'Homebrew'
+        return {'ok': r.returncode == 0, 'msg': f'{version} installed' if r.returncode == 0 else 'brew --version failed'}
+    except FileNotFoundError:
+        return {'ok': False, 'msg': 'Homebrew not installed'}
+    except Exception as e:
+        return {'ok': False, 'msg': str(e)}
+
 def test_node() -> dict:
     try:
         r = subprocess.run(['node', '--version'], capture_output=True, text=True, timeout=5)
@@ -888,6 +898,28 @@ code.inline {
         </div>
       </div>
       <div class="card-body">
+
+        <!-- Homebrew prerequisite check -->
+        <div class="test-block">
+          <div class="test-row">
+            <div class="test-dot" id="dot-brew"></div>
+            <span class="test-name">Homebrew</span>
+            <span class="test-msg" id="msg-brew">Checking&hellip;</span>
+            <button class="test-btn" onclick="runTest('brew')">Check</button>
+          </div>
+          <div class="fix-block" id="fix-brew">
+            <div class="fix-label">Install Homebrew (required for Node.js and rclone):</div>
+            <code>/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</code>
+            <div class="fix-btns">
+              <button class="copy-btn" onclick="copyText(this,'/bin/bash -c &quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)&quot;')">Copy</button>
+              <button class="terminal-btn" onclick="openInTerminal(this,'/bin/bash -c &quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)&quot;')">&#x2318; Open in Terminal</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rest of Step 2: hidden until Homebrew passes -->
+        <div id="step2-tools" style="display:none">
+
         <div class="field" style="margin-bottom:20px; position:relative;">
           <label>Script Directory <span class="req">*</span></label>
           <div class="browse-wrap">
@@ -968,6 +1000,8 @@ code.inline {
             </div>
           </div>
         </div>
+
+        </div><!-- /step2-tools -->
 
       </div>
       <div class="card-footer">
@@ -1330,6 +1364,7 @@ const STEP_FIELDS = {
 
 // Map service key → API endpoint suffix
 const SVC_ENDPOINT = {
+  brew:           'brew',
   rclone_install: 'rclone-install',
   rclone_remote:  'rclone-remote',
   rclone:         'rclone',
@@ -1435,6 +1470,15 @@ function goTo(n) {
   updateStepper();
   saveState();
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Auto-run Homebrew check the first time Step 2 is reached
+  if (n === 2 && !testResults['brew']) {
+    setTimeout(() => runTest('brew'), 400);
+  }
+  // If brew already passed (returning to step 2), ensure tools section is visible
+  if (n === 2 && testResults['brew'] && testResults['brew'].ok) {
+    const t = document.getElementById('step2-tools');
+    if (t) t.style.display = 'block';
+  }
   // Auto-run rclone CLI check the first time Step 3 is reached
   if (n === 3 && !testResults['rclone_install']) {
     setTimeout(() => runTest('rclone_install'), 400);
@@ -1550,7 +1594,7 @@ function checkStep1() {
 async function runTest(svc) {
   setChecking(svc);
   // Save current step's fields first so the server uses the latest values
-  const stepForSvc = { rclone_install: 3, rclone_remote: 3, node: 2, apollo_builder: 2, playwright: 2, sales_deck: 4, apollo_mcp: 5, slack_mcp: 5 };
+  const stepForSvc = { brew: 2, rclone_install: 3, rclone_remote: 3, node: 2, apollo_builder: 2, playwright: 2, sales_deck: 4, apollo_mcp: 5, slack_mcp: 5 };
   const step = stepForSvc[svc];
   const data = {};
   if (step) {
@@ -1606,12 +1650,17 @@ function setResult(svc, ok, text) {
   if (svc === 'rclone_install' && ok && !testResults['rclone_remote']) {
     setTimeout(() => runTest('rclone_remote'), 300);
   }
+  // Brew: reveal or hide the rest of Step 2 based on result
+  if (svc === 'brew') {
+    const t = document.getElementById('step2-tools');
+    if (t) t.style.display = ok ? 'block' : 'none';
+  }
   checkStep2Deps();
   checkStep3Deps();
 }
 
 function checkStep2Deps() {
-  const required = ['apollo_builder', 'node', 'playwright'];
+  const required = ['brew', 'apollo_builder', 'node', 'playwright'];
   const allPass  = required.every(s => testResults[s] && testResults[s].ok);
   const btn      = document.getElementById('btn-continue-2');
   if (btn) btn.disabled = !allPass;
@@ -2203,6 +2252,7 @@ class Handler(BaseHTTPRequestHandler):
             cfg = parse_config()
             cfg.update(self.read_body())   # live values from client override saved config
             dispatch = {
+                'brew':           test_brew,
                 'rclone-install': test_rclone_install,
                 'rclone-remote':  lambda: test_rclone_remote(cfg.get('RCLONE_REMOTE', 'gdrive')),
                 'rclone':         lambda: test_rclone(cfg.get('RCLONE_REMOTE', 'gdrive'), cfg.get('GDRIVE_FOLDER', '')),
