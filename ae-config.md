@@ -19,9 +19,7 @@ AE_EMAIL: nick.opderbeck@you.com
 ## Apollo Sequence Builder (Local Playwright Script)
 
 ```
-APOLLO_BUILDER_PATH: /Users/nick/ydc-sales-pipeline/apollo-sequence-builder
-
-> This is where the Node.js Playwright script lives locally. If you placed it
+APOLLO_BUILDER_PATH:
 > somewhere else, update this path. The pipeline will reference this when
 > prompting you to run build-sequences.js.
 
@@ -38,7 +36,6 @@ RCLONE_REMOTE: gdrive
 
 ```
 SALES_DECK_PATH:
-```
 
 > Claude reads this file at the start of each pipeline run for pitch framing and positioning.
 
