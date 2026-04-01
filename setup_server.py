@@ -990,10 +990,10 @@ code.inline {
           </div>
           <div class="fix-block" id="fix-node">
             <div class="fix-label">Install Node.js via Homebrew:</div>
-            <code>brew install node</code>
+            <code>eval "$(/opt/homebrew/bin/brew shellenv)" &amp;&amp; brew install node</code>
             <div class="fix-btns">
-              <button class="copy-btn" onclick="copyText(this,'brew install node')">Copy</button>
-              <button class="terminal-btn" onclick="openInTerminal(this,'brew install node')">&#x2318; Open in Terminal</button>
+              <button class="copy-btn" onclick="copyText(this,'eval &quot;$(/opt/homebrew/bin/brew shellenv)&quot; && brew install node')">Copy</button>
+              <button class="terminal-btn" onclick="openInTerminal(this,'eval &quot;$(/opt/homebrew/bin/brew shellenv)&quot; && brew install node')">&#x2318; Open in Terminal</button>
             </div>
           </div>
         </div>
@@ -1059,10 +1059,10 @@ code.inline {
           </div>
           <div class="fix-block" id="fix-rclone_install">
             <div class="fix-label">Install rclone via Homebrew, then re-check:</div>
-            <code>brew install rclone</code>
+            <code>eval "$(/opt/homebrew/bin/brew shellenv)" &amp;&amp; brew install rclone</code>
             <div class="fix-btns">
-              <button class="copy-btn" onclick="copyText(this,'brew install rclone')">Copy</button>
-              <button class="terminal-btn" onclick="openInTerminal(this,'brew install rclone')">&#x2318; Open in Terminal</button>
+              <button class="copy-btn" onclick="copyText(this,'eval &quot;$(/opt/homebrew/bin/brew shellenv)&quot; && brew install rclone')">Copy</button>
+              <button class="terminal-btn" onclick="openInTerminal(this,'eval &quot;$(/opt/homebrew/bin/brew shellenv)&quot; && brew install rclone')">&#x2318; Open in Terminal</button>
             </div>
           </div>
         </div>
@@ -1080,7 +1080,7 @@ code.inline {
                 <div style="display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap">
                   <span class="test-msg" id="msg-rclone_remote">Checking&hellip;</span>
                   <button class="terminal-btn" id="btn-rclone-terminal" style="display:none;flex-shrink:0"
-                          onclick="openInTerminal(this,'rclone config delete gdrive; rclone config')">&#x2318; Open in Terminal</button>
+                          onclick="openInTerminal(this,'eval &quot;$(/opt/homebrew/bin/brew shellenv)&quot; && rclone config delete gdrive && rclone config')">&#x2318; Open in Terminal</button>
                   <button class="test-btn" id="btn-rclone-recheck" style="display:none;flex-shrink:0"
                           onclick="runTest('rclone_remote')">Check again</button>
                   <button class="btn btn-ghost" id="btn-rclone-delete" style="display:none;flex-shrink:0;font-size:12px;padding:4px 10px;color:var(--red);border-color:var(--red)"
@@ -1719,7 +1719,7 @@ function updateRcloneRemoteBtn(ok) {
 }
 
 function deleteRcloneConfig() {
-  openInTerminal(null, 'rclone config delete gdrive');
+  openInTerminal(null, 'eval "$(/opt/homebrew/bin/brew shellenv)" && rclone config delete gdrive');
   // Reset the check state so the user re-verifies after deletion
   delete testResults['rclone_remote'];
   const dot = document.getElementById('dot-rclone_remote');
@@ -2147,6 +2147,7 @@ async function openInTerminal(btn, cmd) {
       body: JSON.stringify({ command: cmd })
     });
     const r = await res.json();
+    if (!btn) return;
     if (r.ok) {
       const orig = btn.innerHTML;
       btn.textContent = '\\u2713 Launched!';
@@ -2155,7 +2156,7 @@ async function openInTerminal(btn, cmd) {
     } else {
       btn.textContent = 'Failed';
     }
-  } catch (e) { btn.textContent = 'Failed'; }
+  } catch (e) { if (btn) btn.textContent = 'Failed'; }
 }
 </script>
 </body>
