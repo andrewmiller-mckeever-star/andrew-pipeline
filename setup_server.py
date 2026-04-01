@@ -13,6 +13,7 @@ Zero dependencies beyond Python stdlib.
 import json
 import os
 import re
+import shutil
 import subprocess
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
@@ -1305,6 +1306,12 @@ code.inline {
           <div id="done-mcp-warn-text"></div>
         </div>
 
+        <!-- Skills install status -->
+        <div id="skills-install-row" style="display:flex;align-items:center;gap:10px;margin-top:16px;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:13px;">
+          <div id="skills-install-dot" class="test-dot spin"></div>
+          <span id="skills-install-msg" style="color:var(--muted)">Installing pipeline skills to ~/.claude/skills/&hellip;</span>
+        </div>
+
         <!-- Launch instructions -->
         <div style="margin-top:20px; padding-top:20px; border-top:1px solid var(--border);">
           <p style="font-size:14px; font-weight:600; color:var(--text); margin:0 0 14px 0;">How to run the pipeline</p>
@@ -1959,6 +1966,24 @@ async function buildSummary() {
   } else {
     warnBox.style.display = 'none';
   }
+
+  // Auto-install skills into ~/.claude/skills/
+  const dot = document.getElementById('skills-install-dot');
+  const msg = document.getElementById('skills-install-msg');
+  try {
+    const r = await fetch('/api/install-skills', { method: 'POST' });
+    const j = await r.json();
+    if (dot) dot.className = 'test-dot ' + (j.ok ? 'ok' : 'err');
+    if (msg) {
+      msg.style.color = j.ok ? 'var(--green)' : 'var(--red)';
+      msg.textContent = j.ok
+        ? `${j.msg} available in Claude via /`
+        : `Skills install failed: ${j.msg}`;
+    }
+  } catch (e) {
+    if (dot) dot.className = 'test-dot err';
+    if (msg) { msg.style.color = 'var(--red)'; msg.textContent = 'Skills install failed: network error'; }
+  }
 }
 
 // ── Folder picker ─────────────────────────────────────────────────────────────
@@ -2165,6 +2190,35 @@ async function openInTerminal(btn, cmd) {
 
 # ── HTTP Handler ──────────────────────────────────────────────────────────────
 
+def install_skills() -> dict:
+    """Copy all skills/ydc-* directories from the repo into ~/.claude/skills/.
+
+    Uses copytree with dirs_exist_ok=True so re-running the wizard updates
+    existing installs rather than failing. Returns the list of installed skill names.
+    """
+    src_root  = BASE_DIR / 'skills'
+    dest_root = Path.home() / '.claude' / 'skills'
+    if not src_root.exists():
+        return {'ok': False, 'msg': f'skills/ directory not found at {src_root}'}
+    dest_root.mkdir(parents=True, exist_ok=True)
+    installed = []
+    errors    = []
+    for skill_dir in sorted(src_root.iterdir()):
+        if not skill_dir.is_dir():
+            continue
+        dest = dest_root / skill_dir.name
+        try:
+            shutil.copytree(skill_dir, dest, dirs_exist_ok=True)
+            installed.append(skill_dir.name)
+        except Exception as e:
+            errors.append(f'{skill_dir.name}: {e}')
+    if errors:
+        return {'ok': False, 'msg': f'Errors: {"; ".join(errors)}', 'installed': installed}
+    count = len(installed)
+    names = ', '.join(installed)
+    return {'ok': True, 'msg': f'{count} skill{"s" if count != 1 else ""} installed', 'installed': installed, 'names': names}
+
+
 class Handler(BaseHTTPRequestHandler):
 
     def log_message(self, format, *args): pass
@@ -2262,6 +2316,9 @@ class Handler(BaseHTTPRequestHandler):
             r = subprocess.run(['osascript', '-e', script], capture_output=True)
             subprocess.run(['osascript', '-e', 'tell application "Terminal" to activate'])
             self.send_json({'ok': r.returncode == 0})
+
+        elif self.path == '/api/install-skills':
+            self.send_json(install_skills())
 
         elif self.path.startswith('/api/test/'):
             svc = self.path.split('/')[-1]
