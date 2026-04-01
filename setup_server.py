@@ -337,6 +337,34 @@ def test_slack_mcp() -> dict:
         return {'ok': True, 'msg': 'Slack tools enabled for this project'}
     return {'ok': False, 'msg': 'Slack permissions missing from project settings.json'}
 
+def test_ctd(api_key: str, client_id: str) -> dict:
+    """Verify CTD credentials by calling the company reachability endpoint."""
+    import urllib.request as _req
+    import urllib.error  as _err
+    if not api_key:
+        return {'ok': False, 'msg': 'API key is required'}
+    if not client_id:
+        return {'ok': False, 'msg': 'Client ID (your You.com email) is required'}
+    try:
+        url = 'https://api.ctd.ai/user/atc-paths-api/public/v1/company?company_domain=salesforce.com'
+        request = _req.Request(url, headers={
+            'ctd-api-key':    api_key,
+            'ctd-client-id':  client_id,
+        })
+        with _req.urlopen(request, timeout=10) as resp:
+            body = json.loads(resp.read())
+        if 'company' in body:
+            return {'ok': True, 'msg': 'Connected — CTD API verified'}
+        return {'ok': False, 'msg': f'Unexpected response: {str(body)[:120]}'}
+    except _err.HTTPError as e:
+        if e.code == 401:
+            return {'ok': False, 'msg': 'Invalid API key — check the key in your CTD dashboard'}
+        if e.code == 403:
+            return {'ok': False, 'msg': 'API key revoked or expired — contact jelena@ctd.ai'}
+        return {'ok': False, 'msg': f'CTD API error {e.code}: {e.reason}'}
+    except Exception as e:
+        return {'ok': False, 'msg': str(e)}
+
 def run_all_tests(cfg: dict) -> dict:
     return {
         'rclone_install': test_rclone_install(),
@@ -844,7 +872,12 @@ code.inline {
     </div>
     <div class="st-line" id="sl-5"></div>
     <div class="st-item" id="st-6" onclick="jumpTo(6)">
-      <div class="st-circle" id="sc-6">&#10003;</div>
+      <div class="st-circle" id="sc-6">6</div>
+      <span class="st-label">CTD</span>
+    </div>
+    <div class="st-line" id="sl-6"></div>
+    <div class="st-item" id="st-7" onclick="jumpTo(7)">
+      <div class="st-circle" id="sc-7">&#10003;</div>
       <span class="st-label">Done</span>
     </div>
   </div>
@@ -1228,7 +1261,7 @@ code.inline {
   <div class="step-panel" id="panel-5">
     <div class="card">
       <div class="card-header">
-        <div class="step-eyebrow">Step 5 of 5</div>
+        <div class="step-eyebrow">Step 5 of 6</div>
         <div class="card-title">MCP Connections</div>
         <div class="card-sub">
           Apollo and Slack are built-in capabilities of Claude Code — no separate installation needed.
@@ -1284,8 +1317,58 @@ code.inline {
     </div>
   </div>
 
-  <!-- ═══════════════════ STEP 6: DONE ═══════════════════ -->
+  <!-- ═══════════════════ STEP 6: CTD ═══════════════════ -->
   <div class="step-panel" id="panel-6">
+    <div class="card">
+      <div class="card-header">
+        <div class="step-eyebrow">Step 6 of 6</div>
+        <div class="card-title">ConnectTheDots (CTD)</div>
+        <div class="card-sub">
+          CTD finds warm intro paths into target accounts. Optional — you can skip this and add your key later in ae-config.md.
+          Get a key from <a href="https://connectthedots.ai" target="_blank" style="color:var(--blue)">connectthedots.ai</a> or contact jelena@ctd.ai.
+        </div>
+      </div>
+      <div class="card-body">
+
+        <div class="field">
+          <label>CTD API Key <span style="font-size:11px;font-weight:400;color:var(--muted)">(optional)</span></label>
+          <input type="password" id="CTD_API_KEY" placeholder="uak_..." autocomplete="off">
+          <div class="field-hint">Starts with <code class="inline">uak_</code> — paste from your CTD dashboard</div>
+        </div>
+
+        <div class="field">
+          <label>CTD Client ID <span style="font-size:11px;font-weight:400;color:var(--muted)">(optional)</span></label>
+          <input type="text" id="CTD_CLIENT_ID" placeholder="you@you.com" autocomplete="off">
+          <div class="field-hint">Your You.com email — used as the CTD identity for relationship lookups</div>
+        </div>
+
+        <div class="test-block" style="margin-top:4px">
+          <div class="test-row">
+            <div class="test-dot" id="dot-ctd"></div>
+            <span class="test-name">API connection</span>
+            <span class="test-msg" id="msg-ctd">Not tested</span>
+            <button class="test-btn" onclick="runTest('ctd')">Check</button>
+          </div>
+          <div class="fix-block" id="fix-ctd">
+            <div class="fix-label">Verify the key and client ID are correct. If the key is missing or expired, contact jelena@ctd.ai.</div>
+          </div>
+        </div>
+
+      </div>
+      <div class="card-footer">
+        <div class="footer-left">
+          <button class="btn btn-ghost" onclick="goTo(5)">&larr; Back</button>
+        </div>
+        <div class="footer-right">
+          <button class="btn-link" onclick="saveAndNext(6, true)">Skip for now</button>
+          <button class="btn btn-primary" onclick="saveAndNext(6)">Finish &rarr;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ STEP 7: DONE ═══════════════════ -->
+  <div class="step-panel" id="panel-7">
     <div class="card">
       <div class="card-body">
 
@@ -1374,7 +1457,7 @@ code.inline {
 <script>
 // ── State ─────────────────────────────────────────────────────────────────────
 let current = 1;
-const TOTAL  = 5;
+const TOTAL  = 6;
 
 // Fields saved on each step
 const STEP_FIELDS = {
@@ -1382,6 +1465,7 @@ const STEP_FIELDS = {
   2: ['APOLLO_BUILDER_PATH'],
   3: ['RCLONE_REMOTE','GDRIVE_FOLDER','GDRIVE_FOLDER_URL'],
   4: ['SALES_DECK_PATH','SALES_DECK_URL'],
+  6: ['CTD_API_KEY','CTD_CLIENT_ID'],
 };
 
 // Map service key → API endpoint suffix
@@ -1396,6 +1480,7 @@ const SVC_ENDPOINT = {
   sales_deck:     'sales-deck',
   apollo_mcp:     'apollo-mcp',
   slack_mcp:      'slack-mcp',
+  ctd:            'ctd',
 };
 
 // Track test results for summary
@@ -1416,7 +1501,8 @@ async function loadAllFields() {
     const cfg = await (await fetch('/api/config')).json();
     const ALL_FIELDS = ['AE_NAME','AE_FIRST_NAME','AE_EMAIL','AE_TITLE',
                         'APOLLO_BUILDER_PATH','SALES_DECK_PATH','SALES_DECK_URL',
-                        'RCLONE_REMOTE','GDRIVE_FOLDER','GDRIVE_FOLDER_URL'];
+                        'RCLONE_REMOTE','GDRIVE_FOLDER','GDRIVE_FOLDER_URL',
+                        'CTD_API_KEY','CTD_CLIENT_ID'];
     ALL_FIELDS.forEach(k => {
       const el = document.getElementById(k);
       if (!el) return;
@@ -1540,14 +1626,14 @@ async function saveAndNext(step, skip = false) {
   // If this is the last step, show done screen with summary
   if (step >= TOTAL) {
     await buildSummary();
-    goTo(6);
+    goTo(7);
   } else {
     goTo(step + 1);
   }
 }
 
 function updateStepper() {
-  for (let i = 1; i <= 6; i++) {
+  for (let i = 1; i <= 7; i++) {
     const item   = document.getElementById('st-' + i);
     const circle = document.getElementById('sc-' + i);
     if (!item) continue;
@@ -1557,7 +1643,7 @@ function updateStepper() {
     } else if (circle && circle.dataset.done === 'true') {
       item.classList.add('done');
     }
-    if (i < 6) {
+    if (i < 7) {
       const line = document.getElementById('sl-' + i);
       if (line) {
         line.classList.toggle('done', circle && circle.dataset.done === 'true');
@@ -1916,6 +2002,7 @@ async function buildSummary() {
     { label: 'Sales Deck',       val: null,                   svc: 'sales_deck' },
     { label: 'Apollo',           val: null,                   svc: 'apollo_mcp' },
     { label: 'Slack',            val: null,                   svc: 'slack_mcp' },
+    { label: 'CTD',              val: null,                   svc: 'ctd',  opt: true },
   ];
 
   const list = document.getElementById('summaryList');
@@ -2335,6 +2422,7 @@ class Handler(BaseHTTPRequestHandler):
                 'sales-deck':     lambda: test_sales_deck(cfg.get('SALES_DECK_PATH', '')),
                 'apollo-mcp':     test_apollo_mcp,
                 'slack-mcp':      test_slack_mcp,
+                'ctd':            lambda: test_ctd(cfg.get('CTD_API_KEY', ''), cfg.get('CTD_CLIENT_ID', '')),
             }
             fn = dispatch.get(svc)
             self.send_json(fn() if fn else {'ok': False, 'msg': f'Unknown: {svc}'})
