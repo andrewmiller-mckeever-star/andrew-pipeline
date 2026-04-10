@@ -10,7 +10,7 @@ The pipeline takes a target company name and produces a complete, ready-to-run o
 
 | Step | What happens |
 |------|-------------|
-| 1 | Deep company research (Drive, Slack, ARI PDFs, web) |
+| 1 | Deep company research (Drive, Slack, You.com Research API, web) |
 | 2 | 9-section account plan generated as a .docx |
 | 3 | Prospect discovery via Apollo.io (Director+ contacts) |
 | 4 | 4 personalized outreach sequences (20 contacts, 5 touches each) |
@@ -120,7 +120,7 @@ Research Palantir for the pipeline
 Run Step 1 research for Cloudflare and summarize what you find
 ```
 
-Searches Google Drive and Slack for prior context, ingests any ARI deep research PDF, pulls supplemental web research. Outputs a research brief.
+Searches Google Drive and Slack for prior context, fires 5 parallel You.com Research API calls across AI initiatives, leadership, competitive pressures, recent news, and data infrastructure. Outputs a structured research brief with 20+ citations.
 
 ---
 

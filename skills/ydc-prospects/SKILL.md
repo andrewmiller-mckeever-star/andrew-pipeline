@@ -33,9 +33,56 @@ Before enriching prospects, cross-reference the Apollo search results against th
 - If the prospect appeared in a [Gong In] reply (from CRM Intelligence Brief "Prospect Replies" section): FLAG as warm path. This prospect should NOT receive cold outreach. Route to warm follow-up instead.
 - If the prospect was touched by an Apollo sequence (from "Outbound Sequences Already Run" section): FLAG as already sequenced. Avoid re-enrolling in the same or similar sequence.
 
-## Fallback: Apify LinkedIn Scraper
+## CTD Warm Path Cross-Reference (Pre-Step 3.2, runs alongside SFDC dedup)
 
-Trigger if: Apollo returns < 10 Director+ results OR email coverage < 50% OR Apollo unavailable.
+The Step 1 research brief (Section 9, "Warm Intro Paths (CTD)") contains a warm intro table from Connect The Dots. Cross-reference every Apollo result against this table before finalizing the prospect list.
+
+**Matching logic:** Match by LinkedIn URL first (`linkedin_id` from CTD vs LinkedIn URL from Apollo). Fallback: name + company fuzzy match.
+
+**Three tiers of CTD impact:**
+
+**Tier 1 — You.com Employee Connector (highest priority):**
+If the research brief flags a prospect as reachable via a You.com employee (`YDC Employee: Yes`), that person is ALWAYS included in the prospect list regardless of title, department, or ICP fit. Tag them:
+```
+warm_intro: true
+connector_name: {You.com employee name}
+ctd_path_strength: strong
+sequence_note: "WARM INTRO ONLY — do not cold enroll. Ask {connector_name} for intro via Slack before activating any sequence."
+```
+Assign them to the most relevant sequence but mark the contact as paused. The AE requests the intro first, then activates.
+
+**Tier 2 — Strong CTD path, external connector:**
+If the research brief shows a strong path via an external connector (non-You.com), elevate that prospect's rank by one position in the priority order. Flag:
+```
+warm_intro: true
+connector_name: {connector name}
+ctd_path_strength: strong
+sequence_note: "Warm intro available via {connector_name} — consider requesting intro before Touch 1."
+```
+
+**Tier 3 — In CTD but no strong path:**
+No weighting change. Note in output for AE awareness only.
+
+**If research brief has no CTD data (CTD returned no results for this company):** skip this cross-reference entirely and proceed with standard Apollo-only prioritization.
+
+## Fallback 1: Sumble FindPeople (intermediate, before Apify)
+
+Trigger if: Apollo returns < 10 Director+ results OR email coverage < 50%.
+
+Use `FindPeople` with the target company domain and job functions matching the 4 sequence personas:
+- AI Engineer, Machine Learning, Software Engineer (Seq A + D)
+- Product Manager (Seq C)
+- Engineering & R&D, Information Technology (Seq B)
+
+Merge Sumble results with Apollo results — deduplicate by name + company. Use Apollo for email enrichment: run `apollo_people_bulk_match` against any Sumble-only contacts to get verified emails.
+
+**Email gap-filler:** If a high-priority contact (Tier 1 CTD or title-critical) has no verified email from Apollo bulk match, use `EnrichPerson` with their name and company as a secondary attempt before dropping them from the list.
+
+Sumble FindPeople does not consume Apollo credits but uses Sumble credits. Use sparingly — Apollo coverage is primary.
+
+## Fallback 2: Apify LinkedIn Scraper
+
+Trigger if: Apollo + Sumble combined returns < 10 Director+ results OR email coverage still < 50% after Sumble enrichment OR both unavailable.
 
 See references/apify-config.md for full API setup.
 
@@ -47,8 +94,8 @@ After enrichment, select and prioritize for sequence assignment:
 - Primary: VP and Director level in Engineering, AI/ML, Product, Strategy, DevRel, Security
 - Secondary: 1-2 manager-level only as last resort when VP/Director exhausted
 - Contact cap: 5 per sequence (20 total across 4 sequences)
-- Priority order: (1) title relevance, (2) verified email, (3) direct use case alignment
-- Drop contacts without verified emails first when over cap
+- Priority order: (1) You.com employee connector (always include, see CTD Tier 1 above), (2) CTD strong path — external connector (elevate one rank), (3) title relevance, (4) verified email, (5) direct use case alignment
+- Drop contacts without verified emails first when over cap (exception: Tier 1 CTD contacts are never dropped for missing email — find it manually)
 
 ## Output
 
@@ -56,10 +103,9 @@ Deliver a prospect list with:
 - Name, Title, Email (verified/unverified flag), LinkedIn URL, Seniority, Department
 - Proposed sequence assignment (A/B/C/D) based on title/department
 - Flag no-email contacts for manual LinkedIn outreach
-- `warm_intro` (boolean): set to true by Step 3.5 if this contact has a "Strong Chance to Connect" path in CTD
-- `connector_name` (string): populated by Step 3.5 with the name of the person who can make the intro
-- `ctd_path_strength` (string): "strong" or null, populated by Step 3.5
-
-Note: warm_intro fields are populated AFTER Step 3 by Step 3.5 (CTD warm intro discovery). Contacts flagged as warm_intro=true get priority consideration in sequence assignment.
+- `warm_intro` (boolean): true if contact has a CTD warm path (populated from Step 1 research brief)
+- `connector_name` (string): name of the connector who can make the intro
+- `ctd_path_strength` (string): "strong" or null
+- `sequence_note` (string): special handling instructions (e.g., "WARM INTRO ONLY — do not cold enroll")
 
 Sequence assignment maps to: Seq A = Engineering, Seq B = Exec/CTO/CIO, Seq C = Product, Seq D = AI/ML.

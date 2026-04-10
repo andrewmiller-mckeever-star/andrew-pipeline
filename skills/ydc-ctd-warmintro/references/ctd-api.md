@@ -5,8 +5,8 @@
 Every request requires two headers:
 
 ```
-ctd-api-key: uak_PKSMqLtz-sD_foOMHDJ5ONNHa0u9RhY3
-ctd-client-id: ryan.reed@you.com
+ctd-api-key: uak_ySiouuC1pGh2RwfauOrjEssAp5V8-W4p
+ctd-client-id: andrew.miller-mckeever@you.com
 ```
 
 ## Base URL

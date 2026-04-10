@@ -2,6 +2,18 @@ node_modules/
 *.json.bak
 *_results.json
 *_sequences.json
+*-sequences.json
 *_linkedin_raw.json
 .DS_Store
 *.log
+
+# API keys and personal config — never publish
+ae-config.md
+
+# Customer account data — never publish
+*.docx
+*_Account_Plan*
+*_brief.md
+
+# Memory files — internal deal notes
+memory/

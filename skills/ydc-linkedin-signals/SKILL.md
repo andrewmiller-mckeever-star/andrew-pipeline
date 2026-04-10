@@ -28,7 +28,7 @@ The skill needs a list of prospect names + LinkedIn URLs. Sources (in priority o
 
 All browser automation uses the chrome-cdp skill at:
 ```
-/Users/ryan/.claude/skills/chrome-cdp/skills/chrome-cdp/scripts/cdp.mjs
+/Users/andrew/.claude/skills/chrome-cdp/skills/chrome-cdp/scripts/cdp.mjs
 ```
 
 Alias for readability in this doc: `CDP`

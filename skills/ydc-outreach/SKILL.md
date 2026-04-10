@@ -1,6 +1,6 @@
 ---
 name: ydc-outreach
-description: Generates 4 personalized outreach sequences (A: Engineering Leader, B: Executive Sponsor, C: Product Leader, D: AI/ML Leader) for You.com whale account pipeline. Each sequence has 5 touches: Email Day 1 (new thread), LinkedIn Connect Day 2, Email reply Day 5, Phone call Day 8, Email reply/breakup Day 14. Outputs in-memory JSON for Apollo injection — no .docx file created. Includes mandatory self-review gate before producing JSON. Use when user says "draft outreach for [company]", "write sequences for [company]", "outreach sequences", "generate outreach copy", or "Step 4" in the pipeline.
+description: Generates 4 personalized outreach sequences (A: Engineering Leader, B: Executive Sponsor, C: Product Leader, D: AI/ML Leader) for You.com whale account pipeline. Each sequence has 7 touches: Email Day 1 (new thread), LinkedIn Connect Day 2, Email reply Day 5, Phone call Day 8, LinkedIn profile view action item Day 11, Email reply/breakup Day 14, LinkedIn direct message Day 17. Outputs in-memory JSON for Apollo injection — no .docx file created. Includes mandatory self-review gate before producing JSON. Use when user says "draft outreach for [company]", "write sequences for [company]", "outreach sequences", "generate outreach copy", or "Step 4" in the pipeline.
 ---
 
 # YDC: Outreach Sequence Generation (Step 4)
@@ -26,7 +26,7 @@ Before writing sequences, check the CRM Intelligence Brief (Section 9 of researc
 4. **Existing Customer:** If the account has closed-won opps, this is expansion outreach. Reference the existing partnership. Do not cold-pitch.
 5. **Databricks Partnership:** If the account is a Databricks customer, consider weaving in the Databricks/Unity Catalog integration as a proof point.
 
-**5-Touch Cadence (identical for all 4 sequences):**
+**7-Touch Cadence (identical for all 4 sequences):**
 
 | Touch | Day | Channel | Type |
 |-------|-----|---------|------|
@@ -34,9 +34,27 @@ Before writing sequences, check the CRM Intelligence Brief (Section 9 of researc
 | 2 | Day 2 | LinkedIn | No-pitch connection request |
 | 3 | Day 5 | Email | Reply to Touch 1 thread |
 | 4 | Day 8 | Call | Phone task |
-| 5 | Day 14 | Email | Reply to Touch 1 thread (breakup) |
+| 5 | Day 11 | LinkedIn | Action item: view profile + engage with recent content |
+| 6 | Day 14 | Email | Reply to Touch 1 thread (breakup) |
+| 7 | Day 17 | LinkedIn | Direct message — completely different hook from breakup email |
 
-Touches 3 and 5 are replies to the original thread. Only Touch 1 gets a unique subject line. In Apollo, Touches 3 and 5 use "reply to previous email" step type.
+Touches 3 and 6 are replies to the original thread. Only Touch 1 gets a unique subject line. In Apollo, Touches 3 and 6 use "reply to previous email" step type.
+
+**Touch 5 — LinkedIn Profile View (action_item):**
+Task note instructs the AE to: view the prospect's LinkedIn profile (triggers a "profile view" notification), like or comment on a recent post if one exists, and note any new content for use in Touch 7.
+
+**Touch 7 — LinkedIn Direct Message (Option B):**
+Completely different angle from the breakup email. Uses the LinkedIn channel to say something that would feel out of place in a cold email: casual, peer-to-peer, referencing something specific they posted, a career milestone, a conference talk, or a shared professional interest visible on their profile. No pitch. No CTA for a meeting. One sentence observation, one open question. Keep under 300 characters.
+
+Touch 7 rules:
+- Do NOT repeat or rephrase the email sequence angle
+- Do NOT mention You.com, the Search API, or any product by name
+- DO reference something visible on their LinkedIn (a post they wrote, a project they announced, a recent job anniversary, a conference they spoke at)
+- DO end on a genuine, low-stakes question — not "open to connecting?" or "would love to chat"
+- Tone: like a message from someone they met once at a conference, not a salesperson
+
+Example Touch 7 (illustrative only, do not copy):
+"Saw your post on RAG evaluation frameworks last week — the point about recall vs. answer quality tradeoffs was something I've been thinking about too. Are you writing more on that or was that a one-off?"
 
 ## Contact Assignment Rules
 
@@ -46,13 +64,14 @@ Touches 3 and 5 are replies to the original thread. Only Touch 1 gets a unique s
 - If a persona doesn't exist, fill with closest adjacent role not already assigned. Skip sequence only if no primary or adjacent roles exist.
 - Drop contacts without verified emails first when over the 5-contact cap.
 
-## Warm Intro Context (from Step 3.5)
+## Warm Intro Context (from Step 1 CTD Research)
 
-If a warm intro brief from Step 3.5 is available:
+If the Step 1 research brief (Section 9, Warm Intro Paths) flagged any contacts with `warm_intro=true`:
 - Check which contacts in the sequence assignments have `warm_intro=true`
-- For warm intro contacts: the Touch 1 email CAN reference the shared connection as the hook IF Ryan confirms the intro has been made. Do NOT assume the intro has happened.
-- Default behavior: write cold hooks for all contacts. Note in the output which contacts have warm paths available, so Ryan can swap in warm hooks after intros are made.
+- For warm intro contacts: the Touch 1 email CAN reference the shared connection as the hook IF the AE confirms the intro has been made. Do NOT assume the intro has happened.
+- Default behavior: write cold hooks for all contacts. Note in the output which contacts have warm paths available, so the AE can swap in warm hooks after intros are made.
 - Warm intro hook (priority 0, above trigger events): "{Connector} mentioned you'd be the right person to talk to about {problem}." Only use when intro is confirmed.
+- Contacts tagged `sequence_note: "WARM INTRO ONLY"` must not be cold-enrolled. Leave a placeholder in the JSON and note clearly that enrollment is blocked until intro is confirmed.
 
 ## Critical Writing Rules
 
@@ -91,8 +110,10 @@ After generating all 4 sequences but BEFORE writing the JSON file, explicitly ch
 | No banned openers | Check against 8 banned openers in references/writing-rules.md. |
 | Socher credibility present | At least one touch per sequence references Socher (not McCann). |
 | Public proof point present | At least one touch per sequence uses named case study or traction stats. |
-| Word counts | Touch 1: 100-150 words. Touches 3 and 5: 80-120 words. LinkedIn: under 250 chars. |
-| LinkedIn note: zero pitch | No product names, no CTA, no flattery, no role claim. |
+| Word counts | Touch 1: 100-150 words. Touches 3 and 6: 80-120 words. LinkedIn connect (Touch 2): under 250 chars. LinkedIn DM (Touch 7): under 300 chars. |
+| LinkedIn connect: zero pitch | Touch 2: No product names, no CTA, no flattery, no role claim. |
+| Action item task note | Touch 5: instructs AE to view profile, engage with recent post, note content for Touch 7. |
+| LinkedIn DM: different hook | Touch 7: references something from their LinkedIn (post, milestone, talk). Zero product mention. Zero meeting CTA. |
 | Short paragraphs | 2-3 sentences max per paragraph. |
 | Plain text only | No markdown formatting in email bodies. |
 | No corporate suffixes | "Plaid" not "Plaid Inc." |
@@ -118,12 +139,14 @@ The Playwright script ONLY accepts these exact step type values:
 NEVER use: `reply_to_previous_email`, `manual_call`, or any other invented type names.
 NEVER use `note` as the field name for LinkedIn connect text. The script reads `message`.
 
-Quick reference for the 5-touch cadence:
+Quick reference for the 7-touch cadence:
 - Touch 1: `{"type": "automatic_email", "email_type": "new_thread", "subject": "...", "body": "..."}`
 - Touch 2: `{"type": "linkedin_connect", "message": "..."}`
 - Touch 3: `{"type": "automatic_email", "email_type": "reply", "body": "..."}`
 - Touch 4: `{"type": "phone_call", "task_note": "..."}`
-- Touch 5: `{"type": "automatic_email", "email_type": "reply", "body": "..."}`
+- Touch 5: `{"type": "action_item", "task_note": "View [First] [Last]'s LinkedIn profile. Like or comment on a recent post if one exists in the last 2 weeks. Note any post topics or career updates to use in Touch 7."}`
+- Touch 6: `{"type": "automatic_email", "email_type": "reply", "body": "..."}`
+- Touch 7: `{"type": "linkedin_message", "message": "..."}`
 
 Then alert the user to run:
 ```

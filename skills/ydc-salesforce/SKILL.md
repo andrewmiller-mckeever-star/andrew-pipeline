@@ -12,8 +12,8 @@ Primary source of prior account context for the whale pipeline. Replaces Slack k
 ## Connection Details
 
 - **Org:** ydc.my.salesforce.com
-- **User:** ryan.reed@you.com (User ID: `005Vq00000CQghSIAT`)
-- **MCP Tool:** `run_soql_query` (usernameOrAlias: `ryan.reed@you.com`, directory: `/Users/ryan/Desktop/YDC Pipeline`)
+- **User:** andrew.miller-mckeever@you.com (User ID: `005Vq000009j4ezIAA`)
+- **MCP Tool:** `run_soql_query` (usernameOrAlias: `andrew.miller-mckeever@you.com`, directory: `/Users/andrew/Downloads/Claud Code folder /YDCpipeline`)
 - **Opportunity Stages:** 1-Discovery > 2-Qualification > 3-Workshop > 4-Proof of Value > 5-Agreement > Closed Won / Closed Lost
 - **Opp Naming Convention:** `{Account} | {New/Renewal} | ${Amount} | {Product(s)}`
 
@@ -22,7 +22,7 @@ Primary source of prior account context for the whale pipeline. Replaces Slack k
 ### Model Routing
 
 - **Sonnet subagent:** Fires all 7 SOQL queries in parallel. Returns raw JSON results.
-- **Opus main thread:** Receives raw results. Synthesizes into CRM Intelligence Brief. Evaluates decision gates. Merges with ARI research and Slack context for final Step 1 output.
+- **Opus main thread:** Receives raw results. Synthesizes into CRM Intelligence Brief. Evaluates decision gates. Merges with Research API output and Slack context for final Step 1 output.
 
 ### When Invoked by ydc-research (Step 1.2)
 
@@ -59,6 +59,7 @@ FROM Account WHERE Name LIKE '%{Company}%'
 ```sql
 SELECT Id, Name, StageName, Amount, CloseDate, OwnerId, Owner.Name, CreatedDate, IsClosed, IsWon
 FROM Opportunity WHERE Account.Name LIKE '%{Company}%' ORDER BY CloseDate DESC
+
 ```
 
 **What it tells you:**
@@ -136,7 +137,7 @@ ORDER BY ActivityDate DESC LIMIT 20
 
 ```sql
 SELECT Id, Name, StageName, Amount, CloseDate, Account.Name
-FROM Opportunity WHERE OwnerId = '005Vq00000CQghSIAT' AND IsClosed = false ORDER BY CloseDate ASC
+FROM Opportunity WHERE OwnerId = '005Vq000009j4ezIAA' AND IsClosed = false ORDER BY CloseDate ASC
 ```
 
 **What it tells you:**

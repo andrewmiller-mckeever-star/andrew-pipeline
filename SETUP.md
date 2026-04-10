@@ -119,7 +119,7 @@ Run pipeline for [Company Name]
 ```
 
 Watch for:
-- ✅ Research step completes (ARI PDF ingested or web search fallback)
+- ✅ Research step completes (You.com Research API calls fire automatically, supplemental web search fills gaps)
 - ✅ Account plan .docx generated and uploaded to Drive
 - ✅ Apollo returns 20+ Director+ contacts
 - ✅ 4 sequences written with your name in signatures

@@ -53,11 +53,11 @@ After the pipeline completes (warm reply summary printed), ask the user:
 ## Session Startup (Required Before Any Pipeline Run)
 
 Before generating deliverables:
-1. Read memory files at ~/.claude/projects/-Users-ryan-Desktop-YDC-Pipeline/memory/ (MEMORY.md, feedback.md, outreach-rules.md, product-knowledge.md, salesforce.md)
+1. Read memory files at ~/.claude/projects/-Users-andrew-Downloads-Claud-Code-folder--YDCpipeline/memory/ (MEMORY.md, feedback.md, outreach-rules.md, product-knowledge.md, salesforce.md)
 2. Check Google Drive for existing deliverables for the target account (Haiku subagent)
 3. Query Salesforce for account intelligence via ydc-salesforce skill (Sonnet subagent, primary CRM source)
 4. Search Slack for supplemental context (#api-gtm-team, #sales-team, #esl-api-sales, #competition, #enterprise-solutions)
-5. Read sales deck at ~/Downloads/You.com - AI Search Infra Pitch Deck - January 2026.pdf for pitch framing
+5. Read sales deck at path specified by SALES_DECK_PATH in ae-config.md for pitch framing
 
 ## Batch Processing
 

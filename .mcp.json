@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "apollo": {
+      "type": "http",
+      "url": "https://mcp.apollo.io/mcp"
+    },
+    "Salesforce DX": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@salesforce/mcp",
+        "--orgs", "andrew.miller-mckeever@you.com",
+        "--toolsets", "orgs,metadata,data,users"
+      ]
+    },
+    "sumble": {
+      "type": "http",
+      "url": "https://mcp.sumble.com"
+    }
+  }
+}

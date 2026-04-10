@@ -1,6 +1,6 @@
 ---
 name: ydc-account-plan
-description: Generates a comprehensive 8-section You.com account plan as a .docx file for a target company. Covers account overview, strategic business context, buying center map, customer pain and business impact, solution mapping, competitive analysis, ROI justification, and outreach strategy appendix (Section 8). Use when user says "generate account plan for [company]", "write account plan for [company]", "account plan for [company]", "Step 2", or after company research is complete in the pipeline. Requires company research context. Output file: {Company}_Account_Plan.docx saved to /Users/ryan/Desktop/YDC Pipeline/.
+description: Generates a comprehensive 8-section You.com account plan as a .docx file for a target company. Covers account overview, strategic business context, buying center map, customer pain and business impact, solution mapping, competitive analysis, ROI justification, and outreach strategy appendix (Section 8). Use when user says "generate account plan for [company]", "write account plan for [company]", "account plan for [company]", "Step 2", or after company research is complete in the pipeline. Requires company research context. Output file: {Company}_Account_Plan.docx saved to /Users/andrew/Downloads/Claud Code folder /YDCpipeline/.
 ---
 
 # YDC: Account Plan Generation (Step 2)
@@ -45,7 +45,7 @@ Use the docx skill to generate the .docx file with these formatting standards:
 - AE-only fields: Gray underscored blanks
 - Hypothesized fields: Italic with "(To Be Validated by AE)" suffix
 
-Save output to: /Users/ryan/Desktop/YDC Pipeline/{Company}_Account_Plan.docx
+Save output to: /Users/andrew/Downloads/Claud Code folder /YDCpipeline/{Company}_Account_Plan.docx
 
 ## Full Template
 

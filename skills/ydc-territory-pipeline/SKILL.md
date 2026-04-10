@@ -13,7 +13,7 @@ description: >-
 
 ## Overview
 
-Optimized outbound pipeline for 150 Tier 2.A accounts. Uses pre-mapped use cases from the territory workbook instead of deep ARI research. 2 sequences instead of 4. ~15 min per account.
+Optimized outbound pipeline for 150 Tier 2.A accounts. Uses pre-mapped use cases from the territory workbook instead of full deep research. 2 sequences instead of 4. ~15 min per account.
 
 ## Invocation
 
@@ -31,7 +31,7 @@ Read this file at session start to determine what's been processed. Update after
 ## Workbook Reference
 
 `~/Downloads/Copy of Territory_Workbook_Q2_2026.xlsx`
-- Sheet: "Ryan Reed"
+- Sheet: "Andrew Miller-Mckeever"
 - Header row: row 2 (0-indexed)
 - Columns: #, SF ID, Company, Score, Tier, Vertical, State, Country, Website, Employees, Annual Revenue, UC1 Category, UC1 Product, UC1 Case Name, UC1 Description, UC1 Personas, UC2 Category, UC2 Product, UC2 Case Name, UC2 Description, UC2 Personas, UC3 Category, UC3 Product, UC3 Case Name, UC3 Description, UC3 Personas
 - Filter: Tier = "2.A"
@@ -105,16 +105,32 @@ Query: company name. Surface any relevant context.
 
 Check if existing deliverables exist for this account in "Account Plans, Lists & Personalized Sequences/" via rclone.
 
-#### 1d. Web Validation + UC Selection (Opus main thread)
+#### 1d. Sumble Intelligence + Web Validation + UC Selection (Opus main thread)
 
 Receives SFDC/Slack/Drive results from subagents. Then:
-1. Read the 3 use cases from the workbook row
-2. Quick web search to validate: Is the product/initiative in UC1-3 still current? Any trigger events in last 30 days?
-3. Pick the best use case based on:
-   - Recency of the initiative
+
+**1. Sumble signals (run before UC selection — 2 calls):**
+
+- `EnrichOrganization` on the target domain. Flag:
+  - Competitor tech (Exa, Tavily): displacement angle
+  - Legacy scraping (BeautifulSoup, Scrapy, Selenium): migration angle
+  - RAG/LLM stack (LangChain, LlamaIndex, Pinecone): grounding angle
+  - Databricks/Snowflake: co-sell angle
+- `FindJobs` capped at 5 results. Filter to: search, AI, ML, RAG, LLM, data infrastructure, NLP. Job postings = real-time validation that the UC initiative is active.
+
+If Sumble returns no results: continue, skip signals block in brief.
+Credit cost: ~45 credits per account (EnrichOrganization ~20 + FindJobs 5 results × ~5).
+
+**2. Web validation:**
+Quick web search to confirm: Is the product/initiative in UC1-3 still current? Any trigger events in last 30 days?
+
+**3. UC selection (informed by Sumble + web):**
+Pick the best use case based on:
+   - Recency of the initiative (validated by web + job posting dates)
    - Alignment with Search API / Contents API / Research API (our products)
    - Specificity (named product > vague initiative)
    - Trigger event availability for hook
+   - Sumble signal alignment: prefer UC that matches detected tech stack (e.g. if LangChain detected, lean into RAG grounding UC)
 4. Note the selected UC and rationale
 
 ### PHASE 2: ACCOUNT BRIEF (.md file, ~2 min)
@@ -137,6 +153,14 @@ Structure:
 {UC case name}
 
 Why this angle: {rationale for selecting this UC over the other 2}
+
+## Tech Stack & Hiring Signals (Sumble)
+- Competitor tech: {Exa / Tavily / none detected}
+- Legacy scraping: {BeautifulSoup / Scrapy / Selenium / none}
+- RAG/LLM stack: {LangChain / LlamaIndex / Pinecone / none}
+- Co-sell signal: {Databricks / Snowflake / none}
+- Top hiring signal: {most relevant job title + 1-sentence description, or "none"}
+- Hook implication: {1 sentence: how signals shape Touch 1 angle}
 
 ## Supplemental Research
 - Trigger events: {any recent news, launches, hires found in web validation}
@@ -318,6 +342,7 @@ Update the progress file:
   "contacts_enrolled": 10,
   "reactivation_targets": 0,
   "ctd_hits": 0,
+  "sumble_signals": "LangChain, hiring Search Platform Engineer",
   "skipped_reason": null,
   "use_case_selected": "UC1: AGENT_TOOL_USE"
 }
@@ -348,7 +373,7 @@ If the file doesn't exist, generate it from the workbook:
 import pandas as pd, json
 from datetime import datetime
 
-df = pd.read_excel('~/Downloads/Copy of Territory_Workbook_Q2_2026.xlsx', sheet_name='Ryan Reed', header=None)
+df = pd.read_excel('~/Downloads/Copy of Territory_Workbook_Q2_2026.xlsx', sheet_name='Andrew Miller-Mckeever', header=None)
 data = df.iloc[3:]
 data.columns = df.iloc[2]
 tier_2a = data[data['Tier'] == '2.A']
@@ -378,6 +403,19 @@ with open('territory-progress.json', 'w') as f:
 
 ---
 
+## Sumble: Net-New Territory Sourcing
+
+Outside of per-account pipeline runs, `FindOrganizations` can surface net-new accounts not yet in the territory workbook. Use when user says "find new accounts using [tech]", "who's using LangChain", "companies building RAG", or "sumble prospecting".
+
+Useful queries for YDC territory sourcing:
+- Technology: `langchain`, `llamaindex`, `exa`, `tavily`, `beautiful-soup`, `scrapy`
+- Category: `gen-ai`, `oss-data-science`, `vector-database`, `ml-training`
+- Advanced: `technology IN (langchain, llamaindex) AND technology_category EQ gen-ai`
+
+Return company name + website. Add promising accounts to the territory workbook manually — do not auto-add.
+
+---
+
 ## Global Rules
 
 All rules from CLAUDE.md apply. Critical reminders:
@@ -388,4 +426,4 @@ All rules from CLAUDE.md apply. Critical reminders:
 - NEVER reference PRAG/AI Factory/Chat/ESL/Apex in prospect-facing output
 - Sequences ALWAYS left INACTIVE
 - Interest-based CTAs only in cold outreach
-- Product knowledge: ~/.claude/projects/-Users-ryan-Desktop-YDC-Pipeline/memory/product-knowledge.md
+- Product knowledge: ~/.claude/projects/-Users-andrew-Downloads-Claud-Code-folder--YDCpipeline/memory/product-knowledge.md
