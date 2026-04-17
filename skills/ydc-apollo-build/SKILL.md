@@ -42,19 +42,27 @@ Every contact gets two labels (plus optional third):
 - "{Company} - Seq {A|B|C|D}" (sequence assignment)
 - "Warm Intro" (only if contact was flagged in Step 1 CTD research brief with `warm_intro=true`)
 
-### Phase A: Playwright Script (Runs Outside Claude)
+### Phase A: Playwright Script (Claude runs via Bash)
 
-1. Verify outreach JSON was written by ydc-outreach skill to:
-   ~/Desktop/YDC Pipeline/apollo-sequence-builder/{account}_sequences.json
+1. Verify outreach JSON exists at:
+   `{APOLLO_BUILDER_PATH}/{account}_sequences.json`
 
-2. Alert user to run (user must close Chrome first):
+2. Attempt graceful Chrome quit:
+```bash
+osascript -e 'quit app "Google Chrome"' 2>&1
+sleep 2
 ```
-cd ~/Desktop/YDC\ Pipeline/apollo-sequence-builder && HEADED=true node build-sequences.js {account}_sequences.json
+   - If exit code 0: Chrome closed, proceed.
+   - If Chrome is not running: proceed.
+   - If Chrome fails to quit (e.g. user has unsaved work / many tabs): STOP and ask the user to close Chrome manually. Do not force-kill. Do not proceed until user confirms Chrome is closed.
+
+3. Run the script headlessly via Bash:
+```bash
+cd "{APOLLO_BUILDER_PATH}" && node build-sequences.js {account}_sequences.json 2>&1
 ```
+   (No HEADED=true — headless is reliable and doesn't require a visible browser window.)
 
-3. Wait for user to confirm completion (paste output or say "done")
-
-4. Read results file: ~/Desktop/YDC Pipeline/apollo-sequence-builder/{account}_sequences_results.json
+4. Read results file: `{APOLLO_BUILDER_PATH}/{account}_sequences_results.json`
    Extract sequence IDs for Phase B.
 
 ### Phase B: Contact Creation & Enrollment (Sonnet subagent)

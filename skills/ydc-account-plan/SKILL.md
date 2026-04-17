@@ -31,9 +31,36 @@ Section 8 is added to every account plan. It contains:
 - Founder Credibility Placement: which sequence/touch gets which proof point (avoid repetition)
 - Notes: account-specific sequencing decisions
 
+**CTD Warm Intro Integration (when CTD data exists in research brief Section 9):**
+- Add a "Warm Intro" column to the Contact Assignments table: connector name + note that ghost email is ready
+- Add a "Warm Intro Request Actions" subsection listing each intro to pursue, the connector to ask, and which sequence the target is assigned to
+- Contacts tagged WARM INTRO ONLY (You.com employee connector, outside standard ICP): note in the table and exclude from cold Apollo enrollment
+
 ## Document Generation
 
-Use the docx skill to generate the .docx file with these formatting standards:
+Step 2 reads the three artifact files from Step 1, populates a structured JSON data file, then calls the static `generate-account-plan.js` script to render the .docx. Do NOT use the docx skill or write docx-js from scratch.
+
+### Step 2.1: Populate plan_data.json
+
+Read these three files produced by Step 1:
+- `/Users/andrew/Downloads/Claud Code folder /YDCpipeline/{company}_facts.md`
+- `/Users/andrew/Downloads/Claud Code folder /YDCpipeline/{company}_usecases.md`
+- `/Users/andrew/Downloads/Claud Code folder /YDCpipeline/{company}_hooks.md` (for CTD warm intro data, SF flags for Section 8)
+
+Write structured JSON to:
+`/Users/andrew/Downloads/Claud Code folder /YDCpipeline/{company}_plan_data.json`
+
+See references/account-plan-template.md for the full JSON schema that maps to the 8-section template. Use null for AE-only fields (renders as gray `___________` placeholder). Append `(To Be Validated by AE)` suffix for hybrid/hypothesized fields.
+
+### Step 2.2: Render the .docx
+
+```bash
+NODE_PATH=$(npm root -g) node "/Users/andrew/Downloads/Claud Code folder /YDCpipeline/generate-account-plan.js" "/Users/andrew/Downloads/Claud Code folder /YDCpipeline/{company}_plan_data.json"
+```
+
+The script handles all formatting (Arial, US Letter, blue headers, table styles, title page, headers/footers). Output path is set inside plan_data.json as `output_path`.
+
+**Formatting standards (encoded in generate-account-plan.js — do not re-implement):**
 - Font: Arial throughout
 - Title page: Company name + "Account Plan" + date + "Prepared by You.com Sales Team"
 - Header: "CONFIDENTIAL | You.com Account Plan" (right-aligned, gray, italic)
@@ -42,10 +69,8 @@ Use the docx skill to generate the .docx file with these formatting standards:
 - Sub-headings: Bold, blue (#1A5276), 12pt
 - Body text: 10pt
 - Tables: Blue header rows (#1A5276 background, white text), light gray alternating rows
-- AE-only fields: Gray underscored blanks
-- Hypothesized fields: Italic with "(To Be Validated by AE)" suffix
 
-Save output to: /Users/andrew/Downloads/Claud Code folder /YDCpipeline/{Company}_Account_Plan.docx
+Save output to: `/Users/andrew/Downloads/Claud Code folder /YDCpipeline/{Company}_Account_Plan.docx`
 
 ## Full Template
 

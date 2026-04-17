@@ -12,52 +12,46 @@ INPUT: Account Name + Website URL (single or batch from CSV)
   |
   v
 STEP 1: Deep Company Research -> use ydc-research skill
+  Outputs: {company}_facts.md, {company}_usecases.md, {company}_hooks.md
+  |
+  v (both launch immediately after Step 1 artifacts are written — run in parallel)
+  |
+  +---> STEP 2: Account Plan Generation (.docx) -> use ydc-account-plan skill (Sonnet subagent)
+  |     Reads: _facts.md + _usecases.md + _hooks.md -> writes plan_data.json -> runs generate-account-plan.js
+  |
+  +---> STEP 3: Prospect Discovery (Apollo primary, Apify fallback) -> use ydc-prospects skill (Sonnet subagent)
+        Reads: _facts.md Leadership Directory for LinkedIn URL enrichment prep
+  |
+  v (wait for both Step 2 and Step 3 to complete)
   |
   v
-STEP 2: Account Plan Generation (.docx) -> use ydc-account-plan skill
-  |
-  v
-STEP 3: Prospect Discovery (Apollo primary, Apify fallback) -> use ydc-prospects skill
-  |
-  v
-STEP 4: Outreach Sequence Generation (in-memory) -> use ydc-outreach skill
+STEP 4: Outreach Sequence Generation (in-memory, Opus main thread) -> use ydc-outreach skill
   |
   v
 STEP 5 + 6: Drive Upload + Apollo Build & Enrollment -> use ydc-apollo-build skill
   |
   v
 OUTPUT: Account plan on Drive, 4 INACTIVE Apollo sequences with enrolled contacts, warm reply summary in chat
-  |
-  v
-POST-RUN: Ask user if they want to run CTD warm intro discovery -> use ydc-ctd-warmintro skill
 ```
 
 ## Model Routing
 
-- Opus (main thread): Steps 1, 2, 4 - research synthesis, account plan writing, outreach copy
-- Sonnet subagents: Steps 1.2 (SFDC queries), 1.2b (Slack search), 3, 5, 6 - Salesforce queries, Slack search, Apollo API calls, Drive upload, contact enrollment. Also CTD warm intro skill if user opts in post-run.
+- Opus (main thread): Steps 1, 4 — research synthesis, outreach copy
+- Sonnet subagents: Step 1.2 (SFDC queries), Step 1.2b (Slack search), Step 1.2c (CTD warm intros), Step 1.2d (Sumble), Step 2 (account plan — template-filling from artifact files, not creative synthesis), Step 3 (prospect discovery), Steps 5+6 (Drive upload, Apollo build, contact enrollment)
 - Haiku subagents: Session startup checks (Drive file existence, simple lookups)
 
+**Steps 2 and 3 run as concurrent Sonnet subagents** immediately after Step 1 artifact files are written. Do not wait for Step 2 before starting Step 3.
+
 Never route Step 4 (outreach copy) to a subagent. Always stays on Opus main thread.
-
-## Post-Run: CTD Warm Intro Prompt
-
-After the pipeline completes (warm reply summary printed), ask the user:
-
-> "Want me to run Connect The Dots to find warm intro paths into {Company}?"
-
-- If yes: invoke ydc-ctd-warmintro skill as a Sonnet subagent
-- If no: pipeline is done
-- CTD results are standalone output (draft intro emails printed in chat), not fed back into the sequences
 
 ## Session Startup (Required Before Any Pipeline Run)
 
 Before generating deliverables:
 1. Read memory files at ~/.claude/projects/-Users-andrew-Downloads-Claud-Code-folder--YDCpipeline/memory/ (MEMORY.md, feedback.md, outreach-rules.md, product-knowledge.md, salesforce.md)
-2. Check Google Drive for existing deliverables for the target account (Haiku subagent)
-3. Query Salesforce for account intelligence via ydc-salesforce skill (Sonnet subagent, primary CRM source)
-4. Search Slack for supplemental context (#api-gtm-team, #sales-team, #esl-api-sales, #competition, #enterprise-solutions)
-5. Read sales deck at path specified by SALES_DECK_PATH in ae-config.md for pitch framing
+2. Check Google Drive AND local YDCpipeline folder for existing artifact files (`{company}_facts.md`, `{company}_usecases.md`, `{company}_hooks.md`) — if they exist, Step 1 has already run; do not re-run unless explicitly asked (Haiku subagent)
+3. If no existing artifacts: run Step 1 (ydc-research skill) to generate them
+4. After artifacts exist: launch Steps 2 and 3 as concurrent Sonnet subagents (see Pipeline Flow above)
+5. Read sales deck at path specified by SALES_DECK_PATH in ae-config.md for pitch framing (Opus main thread, before Step 4)
 
 ## Batch Processing
 
