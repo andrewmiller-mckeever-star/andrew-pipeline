@@ -17,3 +17,22 @@ ae-config.md
 
 # Memory files — internal deal notes
 memory/
+
+# Apollo session — contains live auth tokens
+apollo-sequence-builder/apollo_session.json
+
+# Territory and contact data — never publish
+active-accounts.json
+usage-outreach-*.json
+steno-demo-data.json
+ydc_account_rankings.csv
+
+# Operational state files
+apollo-sequence-builder/daily-pending.json
+apollo-sequence-builder/daily-scan-state.json
+
+# Sequence data files with Apollo IDs
+apollo-sequence-builder/CTD_Investor_Referral_sequence.json
+apollo-sequence-builder/usage_seq_*.json
+apollo-sequence-builder/usage_seqs_*.json
+apollo-sequence-builder/usage_sequences_*.json

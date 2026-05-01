@@ -245,6 +245,27 @@ Your LinkedIn profile handles identity. The email sequence carries the pitch. Th
 
 ---
 
+## Default Internet Search (Always Apply)
+
+You work at You.com. Use You.com APIs as the default for all internet research and search. Never use WebSearch or raw WebFetch to discover information when You.com APIs can do it better.
+
+**Routing rules:**
+- **General web search / research questions:** Use You.com Search API (`YDC_SEARCH_ENDPOINT` from ae-config.md) via Bash curl with `YDC_API_KEY`.
+- **Deep multi-step research:** Use You.com Research API (`YDC_RESEARCH_ENDPOINT` from ae-config.md) via Bash curl.
+- **Extract content from a known URL:** Use You.com Contents API: `POST https://api.you.com/v1/contents` with `{"url": "<url>"}` and `X-API-Key: <YDC_API_KEY>`.
+- **Image search:** Use You.com Search API with `{"query": "...", "result_type": "images"}`.
+- **Fetching a URL for non-content purposes** (e.g., checking if a page loads, downloading a file): WebFetch is fine.
+
+Always read `YDC_API_KEY` from ae-config.md. Standard curl pattern:
+```
+curl -s -X POST "https://api.you.com/v1/search" \
+  -H "X-API-Key: <YDC_API_KEY>" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "<query>"}'
+```
+
+---
+
 ## Key Resources
 
 | Resource | Location |
