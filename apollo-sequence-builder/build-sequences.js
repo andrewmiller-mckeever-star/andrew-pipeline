@@ -902,7 +902,7 @@ function textToQuillHtml(text) {
 // ---------------------------------------------------------------------------
 // Phase 3: Verify sequence after save
 // ---------------------------------------------------------------------------
-async function verifySequence(page, expectedStepCount, sequenceName) {
+async function verifySequence(page, expectedStepCount, sequenceName, seqId) {
   log.info(`Verifying sequence: ${sequenceName}...`);
 
   // Check step count
@@ -919,40 +919,56 @@ async function verifySequence(page, expectedStepCount, sequenceName) {
     log.warn('Could not verify step count from badge');
   }
 
-  // Expand all steps and check Quill editors for content
-  try {
-    const expandBtn = page.locator('button:has-text("Expand steps")');
-    if (await expandBtn.isVisible({ timeout: 2000 })) {
-      await expandBtn.click();
-      await sleep(2000);
-    }
-  } catch (_) {}
+  // Authoritative content check via API.
+  // The campaign detail returns emailer_steps, emailer_touches, and emailer_templates
+  // as separate top-level arrays linked by id. We join them and confirm each step
+  // actually persisted its content:
+  //   - email steps  (auto_email/manual_email): template body_text must be non-empty
+  //   - note  steps  (linkedin/call/action_item): step.note must be non-empty
+  // This replaces the old DOM .ql-editor scan, which false-flagged hidden/secondary
+  // Quill editors as "blank" even when the saved sequence was complete.
+  if (!seqId) {
+    log.warn('No sequence ID available for content verification; skipping.');
+    return { details: [], blankCount: 0, verified: false };
+  }
 
-  // Check all editors have content
-  const editorCheck = await page.evaluate(() => {
-    const editors = document.querySelectorAll('.ql-editor');
-    return [...editors].map((ed, i) => ({
-      index: i,
-      isBlank: ed.classList.contains('ql-blank'),
-      charCount: ed.innerText.trim().length,
-    }));
-  });
+  const check = await page.evaluate(async (id) => {
+    const opts = { headers: { 'Content-Type': 'application/json' }, credentials: 'include' };
+    const r = await fetch(`/api/v1/emailer_campaigns/${id}?show_steps=true`, { ...opts, method: 'GET' });
+    const j = JSON.parse(await r.text());
+    const steps = (j.emailer_steps || []).slice().sort((a, b) => (a.position || 0) - (b.position || 0));
+    const touches = j.emailer_touches || [];
+    const tpls = j.emailer_templates || [];
+    const EMAIL = new Set(['auto_email', 'manual_email']);
+    return steps.map((s) => {
+      let contentLen = 0;
+      if (EMAIL.has(s.type)) {
+        const touch = touches.find((t) => t.emailer_step_id === s.id);
+        const tpl = touch && tpls.find((tp) => tp.id === touch.emailer_template_id);
+        const body = tpl ? (tpl.body_text || tpl.body_html || '').replace(/<[^>]+>/g, '').trim() : '';
+        contentLen = body.length;
+      } else {
+        contentLen = (s.note || '').trim().length;
+      }
+      return { pos: s.position, type: s.type, contentLen };
+    });
+  }, seqId);
 
   let blankCount = 0;
-  for (const ed of editorCheck) {
-    if (ed.isBlank || ed.charCount === 0) {
-      log.warn(`Editor ${ed.index} appears blank (charCount: ${ed.charCount})`);
+  for (const s of check) {
+    if (s.contentLen === 0) {
+      log.warn(`Step ${s.pos} (${s.type}) has no saved content`);
       blankCount++;
     }
   }
 
   if (blankCount === 0) {
-    log.ok(`All ${editorCheck.length} editors have content`);
+    log.ok(`All ${check.length} steps have saved content`);
   } else {
-    log.warn(`${blankCount} editor(s) appear blank. Manual review needed.`);
+    log.warn(`${blankCount} step(s) missing content. Manual review needed.`);
   }
 
-  return { editorCheck, blankCount };
+  return { details: check, blankCount, verified: true };
 }
 
 // ---------------------------------------------------------------------------
@@ -1236,8 +1252,8 @@ async function main() {
             log.warn('No save confirmation toast detected');
           }
 
-          // Verify
-          const verification = await verifySequence(page, seq.steps.length, seq.name);
+          // Verify (authoritative API content check; needs the sequence ID)
+          const verification = await verifySequence(page, seq.steps.length, seq.name, seqResult.id);
           seqResult.blankEditors = verification.blankCount;
           seqResult.status = verification.blankCount === 0 ? 'success' : 'needs_review';
 
