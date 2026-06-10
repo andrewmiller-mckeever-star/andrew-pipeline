@@ -2,8 +2,8 @@
 name: ydc-territory-pipeline
 description: >-
   Territory-scale outbound pipeline for You.com Q2 2026. Processes Tier 2.A accounts
-  from the territory workbook using pre-mapped use cases. 2 sequences per account
-  (Technical Evaluator + Business Sponsor), 5 contacts each. Tracks progress in
+  from the territory workbook using pre-mapped use cases. 4 sequences per account
+  (Engineering Leader, Executive Sponsor, Product Leader, AI/ML Leader), 5 contacts each. Tracks progress in
   territory-progress.json for cross-session resumability. Use when user says
   "run territory pipeline", "territory pipeline for [company]", "territory pipeline status",
   "next batch", or "process tier 2 accounts".
@@ -13,7 +13,7 @@ description: >-
 
 ## Overview
 
-Optimized outbound pipeline for 150 Tier 2.A accounts. Uses pre-mapped use cases from the territory workbook instead of full deep research. 2 sequences instead of 4. ~15 min per account.
+Optimized outbound pipeline for 150 Tier 2.A accounts. Uses pre-mapped use cases from the territory workbook instead of full deep research. 4 sequences (A/B/C/D), 7 touches each. ~15 min per account.
 
 ## Invocation
 
@@ -24,7 +24,7 @@ Optimized outbound pipeline for 150 Tier 2.A accounts. Uses pre-mapped use cases
 
 ## State File
 
-`~/Desktop/YDC Pipeline/territory-progress.json`
+**Authoritative copy (nightly automation):** `territory-progress.json` on Google Drive, folder ID `1EVcyF2Jk3ee-ejGQ7xlHU_giQJDfhFnv` ("Account Plans, Lists & Personalized Sequences"). The `ydc-territory-nightly` scheduled task reads and overwrites this Drive copy each run. When run manually, use the Drive copy too so state stays in sync.
 
 Read this file at session start to determine what's been processed. Update after each account completes. See references/progress-schema.md for format.
 
@@ -36,14 +36,16 @@ Read this file at session start to determine what's been processed. Update after
 - Columns: #, SF ID, Company, Score, Tier, Vertical, State, Country, Website, Employees, Annual Revenue, UC1 Category, UC1 Product, UC1 Case Name, UC1 Description, UC1 Personas, UC2 Category, UC2 Product, UC2 Case Name, UC2 Description, UC2 Personas, UC3 Category, UC3 Product, UC3 Case Name, UC3 Description, UC3 Personas
 - Filter: Tier = "2.A"
 
-## 2-Sequence Model
+## 4-Sequence Model
 
 | Sequence | Name Pattern | Persona Pool | Outreach Angle |
 |----------|-------------|-------------|----------------|
-| Seq 1: Technical Evaluator | YDC \| {Company} \| Seq 1: Technical Evaluator | VP/Dir Engineering, VP/Dir AI/ML, Head of Data Science, Staff+ ML Engineers, Platform Leads | Technical: how their product benefits from search API infra. Benchmarks, latency, accuracy. |
-| Seq 2: Business Sponsor | YDC \| {Company} \| Seq 2: Business Sponsor | CTO, CPTO, CDO, CAO, VP Product, Head of AI Strategy | Business: reduce build cost, improve AI quality, time-to-market. Socher credibility. |
+| Seq A: Engineering Leader | YDC \| {Company} \| Seq A: Engineering Leader | VP/Dir Engineering, Head of Infrastructure/Platform, Staff+ Engineers | Technical: how their product benefits from search API infra. Benchmarks, latency, accuracy. |
+| Seq B: Executive Sponsor | YDC \| {Company} \| Seq B: Executive Sponsor | CEO, COO, CRO, CTO, CDO, VP-level business owners | Business: reduce build cost, improve AI quality, time-to-market. Socher credibility. |
+| Seq C: Product Leader | YDC \| {Company} \| Seq C: Product Leader | CPO, VP/Dir Product, Product Managers owning AI features | Product: external retrieval quality, provenance/citations, roadmap fit. |
+| Seq D: AI/ML Leader | YDC \| {Company} \| Seq D: AI/ML Leader | Head of AI/ML, AI GTM, Dev Advocacy (AI), ML/Applied-AI leads | AI/agents: retrieval tooling for agents and MCP servers, task completion, freshness. |
 
-5 contacts per sequence = 10 contacts per account.
+Up to 5 contacts per sequence = up to 20 contacts per account. Thin accounts may fill fewer; that is expected, not a failure. Each sequence runs the same 7-touch cadence (see Phase 4).
 
 ## Model Routing
 
@@ -192,10 +194,12 @@ Why this angle: {rationale for selecting this UC over the other 2}
    - `per_page`: 100
 3. Use `apollo_people_bulk_match` in batches of 10 for enrichment
 4. Dedup against SFDC contacts (from Phase 1)
-5. Split into 2 sequences:
-   - Seq 1 (Technical): VP/Dir Eng, AI/ML, Data Science, Platform, ML Engineer leads
-   - Seq 2 (Business): CTO, CPTO, CDO, CAO, VP Product, AI Strategy, Head of AI
-6. 5 contacts per sequence. Priority: title relevance > verified email > seniority
+5. Split into 4 sequences (assign each contact to the best-fit persona):
+   - Seq A (Engineering Leader): VP/Dir Eng, Head of Infrastructure/Platform, Staff+ Engineers
+   - Seq B (Executive Sponsor): CEO, COO, CRO, CTO, CDO, VP-level business owners
+   - Seq C (Product Leader): CPO, VP/Dir Product, AI-feature PMs
+   - Seq D (AI/ML Leader): Head of AI/ML, AI GTM, Dev Advocacy (AI), ML/Applied-AI leads
+6. Up to 5 contacts per sequence (≤20 total). Priority: title relevance > verified email > seniority. Fewer is fine if the account is thin.
 7. Include reactivation targets in appropriate sequence (flagged for warm tone)
 8. Drop contacts without verified emails first when over cap
 
@@ -205,15 +209,19 @@ Why this angle: {rationale for selecting this UC over the other 2}
 
 Uses account brief from Phase 2 as context. Uses prospect list from Phase 3.
 
-Generate 2 sequences, each with 5 touches:
+Generate 4 sequences, each with 7 touches:
 
 | Touch | Day | Type | JSON step_type | Notes |
 |-------|-----|------|----------------|-------|
 | 1 | Day 1 | Email | `automatic_email`, `email_type: "new_thread"` | Unique subject, AIDA structure |
-| 2 | Day 2 | LinkedIn | `linkedin_connect` | Fact-to-Consequence + Curiosity Hook, under 250 chars |
+| 2 | Day 3 | LinkedIn connect | `linkedin_connect` | Fact-to-Consequence + Curiosity Hook, under 250 chars |
 | 3 | Day 5 | Email reply | `automatic_email`, `email_type: "reply"` | New context, not rephrase |
 | 4 | Day 8 | Call | `phone_call` | Call script in `task_note` |
-| 5 | Day 14 | Email reply | `automatic_email`, `email_type: "reply"` | Breakup, new angle |
+| 5 | Day 10 | Action item | `action_item` | Manual task in `task_note` (e.g., LinkedIn engage / research) |
+| 6 | Day 14 | Email reply | `automatic_email`, `email_type: "reply"` | Breakup, new angle |
+| 7 | Day 17 | LinkedIn DM | `linkedin_message` | `message` field, no pitch |
+
+(Step wait times are set automatically by build-sequences.js; days above are the target cadence.)
 
 #### Writing Rules (ALL apply)
 
@@ -238,7 +246,7 @@ Full rules in ydc-outreach/references/writing-rules.md. Key updates for territor
 If a contact is flagged as a reactivation target from Phase 1:
 - Touch 1 references prior conversation/eval instead of cold opener
 - Warmer tone throughout: "following up on earlier conversations" etc.
-- Same 5-touch structure, different framing
+- Same 7-touch structure, different framing
 
 #### Self-Review Gate
 
@@ -272,19 +280,20 @@ JSON format (from ydc-outreach/references/json-format.md):
   "domain": "company.com",
   "sequences": [
     {
-      "name": "YDC | Company | Seq 1: Technical Evaluator",
+      "name": "YDC | Company | Seq A: Engineering Leader",
       "steps": [
         { "type": "automatic_email", "email_type": "new_thread", "subject": "...", "body": "..." },
         { "type": "linkedin_connect", "message": "..." },
         { "type": "automatic_email", "email_type": "reply", "body": "..." },
         { "type": "phone_call", "task_note": "..." },
-        { "type": "automatic_email", "email_type": "reply", "body": "..." }
+        { "type": "action_item", "task_note": "..." },
+        { "type": "automatic_email", "email_type": "reply", "body": "..." },
+        { "type": "linkedin_message", "message": "..." }
       ]
     },
-    {
-      "name": "YDC | Company | Seq 2: Business Sponsor",
-      "steps": [ ... ]
-    }
+    { "name": "YDC | Company | Seq B: Executive Sponsor", "steps": [ "...7 steps..." ] },
+    { "name": "YDC | Company | Seq C: Product Leader", "steps": [ "...7 steps..." ] },
+    { "name": "YDC | Company | Seq D: AI/ML Leader", "steps": [ "...7 steps..." ] }
   ]
 }
 ```
@@ -348,8 +357,8 @@ Update the progress file:
   "company": "...",
   "status": "completed",
   "date": "2026-03-30",
-  "sequences": ["YDC | Company | Seq 1: Technical Evaluator", "YDC | Company | Seq 2: Business Sponsor"],
-  "contacts_enrolled": 10,
+  "sequences": ["YDC | Company | Seq A: Engineering Leader", "YDC | Company | Seq B: Executive Sponsor", "YDC | Company | Seq C: Product Leader", "YDC | Company | Seq D: AI/ML Leader"],
+  "contacts_enrolled": 20,
   "reactivation_targets": 0,
   "ctd_hits": 0,
   "sumble_signals": "LangChain, hiring Search Platform Engineer",

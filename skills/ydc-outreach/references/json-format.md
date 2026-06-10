@@ -33,9 +33,17 @@ Write the completed sequence JSON to:
           "task_note": "Call script text goes here."
         },
         {
+          "type": "action_item",
+          "task_note": "Manual task note (e.g., engage on LinkedIn / research before the breakup email)."
+        },
+        {
           "type": "automatic_email",
           "email_type": "reply",
           "body": "Hi {{first_name}},\n\nBreakup paragraph.\n\n{AE_FIRST_NAME}"
+        },
+        {
+          "type": "linkedin_message",
+          "message": "LinkedIn DM under 250 chars. No pitch."
         }
       ]
     }
@@ -55,12 +63,14 @@ Write the completed sequence JSON to:
 | Touch | Day | Step Type | Notes |
 |-------|-----|-----------|-------|
 | 1 | Day 1 | Automatic email | New thread, unique subject |
-| 2 | Day 2 | LinkedIn - connect | No-pitch connection request |
+| 2 | Day 3 | LinkedIn - connect | No-pitch connection request |
 | 3 | Day 5 | Automatic email | Reply to Touch 1 thread |
 | 4 | Day 8 | Phone call | Manual call task |
-| 5 | Day 14 | Automatic email | Reply to Touch 1 thread (breakup) |
+| 5 | Day 10 | Action item | Manual task (e.g., LinkedIn engage / research) |
+| 6 | Day 14 | Automatic email | Reply to Touch 1 thread (breakup) |
+| 7 | Day 17 | LinkedIn - message | LinkedIn DM, no pitch |
 
-All 4 sequences (A, B, C, D) use this identical 5-touch structure. Touches 3 and 5 use "reply to previous email" step type in Apollo (not "new thread").
+All 4 sequences (A, B, C, D) use this identical 7-touch structure. Touches 3 and 6 use "reply to previous email" step type in Apollo (not "new thread").
 
 ## Apollo Sequence Naming Convention
 
@@ -75,18 +85,22 @@ YDC | {Company} | Seq D: AI/ML Leader
 
 After writing the JSON file, alert the user to run:
 
-```bash
-# Headed (recommended — watch the browser)
-cd ~/Desktop/YDC\ Pipeline/apollo-sequence-builder && HEADED=true node build-sequences.js {account}_sequences.json
+The script lives in the repo; the sequence JSON lives on the Desktop. Use full paths:
 
-# Headless (fast, no browser window)
-cd ~/Desktop/YDC\ Pipeline/apollo-sequence-builder
-node build-sequences.js {account}_sequences.json
+```bash
+REPO="/Users/andrew/Downloads/Claud_Code_folder/YDCpipeline/apollo-sequence-builder"
+JSON="$HOME/Desktop/YDC Pipeline/apollo-sequence-builder/{account}_sequences.json"
+
+# Headless (default, reliable, no window)
+cd "$REPO" && node build-sequences.js "$JSON"
+
+# Headed (watch the browser)
+cd "$REPO" && HEADED=true node build-sequences.js "$JSON"
 
 # Debug mode (verbose logging + slow motion)
-DEBUG=true HEADED=true node build-sequences.js {account}_sequences.json
+cd "$REPO" && DEBUG=true HEADED=true node build-sequences.js "$JSON"
 ```
 
-Important: The user must close all Chrome windows before running. The script uses the existing Chrome profile for Apollo login persistence.
+Chrome does NOT need to be closed. build-sequences.js uses its own dedicated profile (`~/.apollo-playwright-profile`) via `launchPersistentContext`, separate from your everyday Chrome. (The "quit Chrome" rule applies only to the LinkedIn task script, which uses a different profile.)
 
 After the script completes, read the `_results.json` file to extract sequence IDs (needed for Phase B contact enrollment) and confirm all sequences were created successfully.

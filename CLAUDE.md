@@ -177,7 +177,7 @@ These rules apply ONLY when writing cold outreach sequences, LinkedIn connection
 
 ## Email Writing Structure (AIDA) — Cold Outbound Only
 
-The following structure applies to cold outreach sequences only (Touches 1, 3, 5). Do NOT apply AIDA, hook prioritization, or interest-based CTAs to warm replies, partner emails, or internal comms. For non-cold writing, follow the Universal Writing Style section above.
+The following structure applies to cold outreach sequences only (the email touches: 1, 3, 6). Do NOT apply AIDA, hook prioritization, or interest-based CTAs to warm replies, partner emails, or internal comms. For non-cold writing, follow the Universal Writing Style section above.
 
 Every cold outreach email must follow this structure:
 
@@ -195,17 +195,19 @@ Hi {{first_name}},
 [A - Action: Interest-based CTA only. One ask. Never time-based ("15 minutes," "quick call this week"). Use: "Is this something you're evaluating?" / "Worth a conversation?" / "Are you open to exploring this?"]
 ```
 
-**Standardized 5-touch cadence (all sequences, non-negotiable):**
+**Standardized 7-touch cadence (all sequences, non-negotiable):**
 
 | Touch | Day | Channel | Type |
 |-------|-----|---------|------|
 | 1 | Day 1 | Email | New thread, unique subject |
-| 2 | Day 2 | LinkedIn Connect | No-pitch connection request |
+| 2 | Day 3 | LinkedIn Connect | No-pitch connection request |
 | 3 | Day 5 | Email | Reply to Touch 1 thread |
 | 4 | Day 8 | Call | Phone task |
-| 5 | Day 14 | Email | Reply to Touch 1 thread (breakup) |
+| 5 | Day 10 | Action item | Manual task (e.g., LinkedIn engage / research) |
+| 6 | Day 14 | Email | Reply to Touch 1 thread (breakup) |
+| 7 | Day 17 | LinkedIn DM | Direct message, no pitch |
 
-**Threading:** Only Touch 1 gets a unique subject line. Touches 3 and 5 are replies to the original thread. In Apollo: use "reply to previous email" step type.
+**Threading:** Only Touch 1 gets a unique subject line. Touches 3 and 6 are replies to the original thread. In Apollo: use "reply to previous email" step type.
 **Contact cap:** 5 contacts per sequence (A, B, C, D). No duplicates across sequences. Priority: title relevance > verified email > use case alignment.
 **Word counts:** Opener 80-120 words. Follow-up 80-120 words. Breakup 80-120 words.
 **Reading level:** 5th-7th grade. Short, punchy sentences. No compound-complex structures.

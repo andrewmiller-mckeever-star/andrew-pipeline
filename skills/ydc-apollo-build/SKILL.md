@@ -47,7 +47,7 @@ Every contact gets two labels (plus optional third):
 1. Verify outreach JSON was written by ydc-outreach skill to:
    ~/Desktop/YDC Pipeline/apollo-sequence-builder/{account}_sequences.json
 
-2. Alert user to run (user must close Chrome first):
+2. Run (Chrome does NOT need to be closed — build-sequences.js uses its own `~/.apollo-playwright-profile`, separate from everyday Chrome):
 ```
 cd "/Users/andrew/Downloads/Claud_Code_folder/YDCpipeline/apollo-sequence-builder" && HEADED=true node build-sequences.js ~/Desktop/YDC\ Pipeline/apollo-sequence-builder/{account}_sequences.json
 ```
