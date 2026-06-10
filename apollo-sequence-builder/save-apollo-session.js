@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 /**
- * Apollo session setup — only needed if Apollo logs you out.
+ * save-apollo-session.js
  *
- * First checks if the LinkedIn session file already has a valid Apollo token
- * (it usually does — the LinkedIn save-session captures Apollo too).
- * If found and valid, copies it over. No browser needed.
- *
- * Falls back to opening a browser for manual login only if needed.
+ * One-time setup: opens a browser window for you to log into Apollo.
+ * Session is saved to ~/.apollo-playwright-profile using launchPersistentContext.
+ * Subsequent runs of fill-sequence-content.js and build-sequences.js reuse
+ * this profile automatically — no re-login needed.
  *
  * Chrome does NOT need to be closed.
  *
@@ -15,85 +14,82 @@
 
 const { chromium } = require('playwright');
 const path = require('path');
-const fs   = require('fs');
+const os = require('os');
 
-const STATE_FILE        = path.join(__dirname, 'apollo_session.json');
-const LINKEDIN_STATE    = path.join(process.env.HOME, 'Desktop/YDC Pipeline/apollo-linkedin-connect/storageState.json');
-const CHROME_EXECUTABLE = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-const APOLLO_BASE       = 'https://app.apollo.io';
-
-function isTokenValid(stateFile) {
-  try {
-    const d = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
-    const tok = (d.cookies || []).find(c => c.domain === 'app.apollo.io' && c.name === 'app_token');
-    if (!tok) return false;
-    if (tok.expires <= 0) return true; // session cookie, assume valid
-    return tok.expires > (Date.now() / 1000) + 3600; // valid for at least 1 more hour
-  } catch (e) {
-    return false;
-  }
-}
+const PROFILE_DIR = path.join(os.homedir(), '.apollo-playwright-profile');
+const CHROMIUM_BIN = path.join(os.homedir(),
+  'Library/Caches/ms-playwright/chromium-1217/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing');
 
 async function main() {
-  // Fast path: LinkedIn session already has a valid Apollo token
-  if (fs.existsSync(LINKEDIN_STATE) && isTokenValid(LINKEDIN_STATE)) {
-    fs.copyFileSync(LINKEDIN_STATE, STATE_FILE);
-    console.log('[OK] Copied valid Apollo session from LinkedIn state file.');
-    console.log(`[OK] Session saved to: ${STATE_FILE}`);
-    console.log('[INFO] app_token valid — no login needed.');
-    return;
-  }
-
-  // Slow path: need manual login
-  console.log('[INFO] No valid Apollo session found in LinkedIn state. Opening browser...');
-  console.log('[INFO] Chrome does NOT need to be closed — this opens its own window.');
-  console.log('[INFO] Log into Apollo. Session saves automatically when detected.');
+  console.log('[INFO] Opening browser for Apollo login...');
+  console.log('[INFO] Chrome does NOT need to be closed.');
+  console.log('[INFO] Profile:', PROFILE_DIR);
+  console.log('');
+  console.log('[ACTION] Log into Apollo in the browser window.');
+  console.log('[ACTION] The browser will close automatically once login is detected.');
   console.log('');
 
-  const browser = await chromium.launch({
-    executablePath: CHROME_EXECUTABLE,
+  const context = await chromium.launchPersistentContext(PROFILE_DIR, {
+    executablePath: CHROMIUM_BIN,
     headless: false,
-    args: ['--no-first-run', '--no-default-browser-check', '--disable-blink-features=AutomationControlled'],
+    args: [
+      '--no-first-run',
+      '--no-default-browser-check',
+      '--disable-popup-blocking',
+      '--window-size=1440,900',
+    ],
+    ignoreDefaultArgs: ['--enable-automation'],
   });
 
-  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
-  const page    = await context.newPage();
+  // Allow OAuth popups
+  context.on('page', (popup) => {
+    console.log('[INFO] New window opened (OAuth flow):', popup.url().slice(0, 60));
+  });
+
+  const page = await context.newPage();
   page.setDefaultTimeout(0);
+  await page.goto('https://app.apollo.io/#/login', { waitUntil: 'domcontentloaded', timeout: 30000 });
 
-  await page.goto(`${APOLLO_BASE}/#/sequences`, { waitUntil: 'domcontentloaded', timeout: 60000 });
-
-  console.log('[INFO] Waiting for login...');
+  console.log('[WAITING] Polling for login via Apollo sequences API...');
+  process.stdout.write('[WAITING] ');
 
   let email = null;
-  while (!email) {
-    await page.waitForTimeout(2500);
+  for (let i = 0; i < 200; i++) {
+    await page.waitForTimeout(3000);
     try {
-      const result = await page.evaluate(async () => {
-        try {
-          const resp = await fetch('/api/v1/users/me', { credentials: 'include' });
-          if (resp.status === 200) {
-            const d = await resp.json();
-            return d?.user?.email || d?.email || 'authenticated';
-          }
+      const pages = context.pages();
+      const apolloPage = pages.find(p => p.url().includes('apollo.io') && !p.url().includes('google'));
+      if (apolloPage) {
+        const result = await apolloPage.evaluate(async () => {
+          try {
+            const r = await fetch('/api/v1/emailer_campaigns/search', {
+              method: 'POST',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ per_page: 1 }),
+            });
+            if (r.ok) return 'authenticated';
+          } catch {}
           return null;
-        } catch { return null; }
-      });
-      if (result) {
-        email = result;
-      } else {
-        process.stdout.write('.');
+        }).catch(() => null);
+        if (result) { email = result; break; }
       }
-    } catch { /* page navigating, keep polling */ }
+    } catch {}
+    process.stdout.write('.');
   }
 
-  console.log(`\n[OK] Logged in as: ${email}`);
-  await page.waitForTimeout(2000);
-  await context.storageState({ path: STATE_FILE });
-
-  console.log(`[OK] Session saved to: ${STATE_FILE}`);
-  console.log('[OK] build-sequences.js and prefill-touch1.js will now run with Chrome open.');
-
-  await browser.close();
+  console.log('');
+  if (email) {
+    console.log('[✓] Apollo login confirmed.');
+    await page.waitForTimeout(2000);
+    await context.close();
+    console.log('[✓] Profile saved to:', PROFILE_DIR);
+    console.log('[✓] fill-sequence-content.js will now run without re-login.');
+  } else {
+    console.log('[✗] Timed out waiting for login.');
+    await context.close();
+    process.exit(1);
+  }
 }
 
 main().catch(e => {

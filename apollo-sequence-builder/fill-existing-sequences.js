@@ -106,14 +106,20 @@ function textToQuillHtml(text) {
 }
 
 // ---------------------------------------------------------------------------
-// Fill a newly-appeared textarea (for LinkedIn/Phone/Action steps)
+// Fill a newly-appeared input for non-email steps (textarea or Quill editor).
+// Action items use textarea; phone calls use Quill in new_cc UI.
+// Tries textarea first, falls back to new Quill editor by index.
 // ---------------------------------------------------------------------------
-async function fillNewTextarea(page, content, beforeCount) {
-  // Wait for a new textarea to appear
-  await sleep(500);
-  const afterCount = await page.evaluate(() => document.querySelectorAll('textarea').length);
-  if (afterCount > beforeCount) {
-    for (let i = beforeCount; i < afterCount; i++) {
+async function fillNewInput(page, content, beforeSnapshot) {
+  await sleep(800);
+  const after = await page.evaluate(() => ({
+    textareaCount: document.querySelectorAll('textarea').length,
+    editorCount:   document.querySelectorAll('.ql-editor').length,
+  }));
+
+  // Strategy 1: new textarea by index
+  if (after.textareaCount > beforeSnapshot.textareaCount) {
+    for (let i = beforeSnapshot.textareaCount; i < after.textareaCount; i++) {
       const ta = page.locator('textarea').nth(i);
       if (await ta.isVisible({ timeout: 3000 }).catch(() => false)) {
         await ta.click();
@@ -123,7 +129,33 @@ async function fillNewTextarea(page, content, beforeCount) {
       }
     }
   }
-  // Fallback: try the last visible textarea
+
+  // Strategy 2: new Quill editor by index (phone_call in new_cc UI)
+  if (after.editorCount > beforeSnapshot.editorCount) {
+    const idx = after.editorCount - 1;
+    const html = textToQuillHtml(content);
+    try {
+      await page.locator('.ql-editor').nth(idx).click({ timeout: 2000 });
+      await page.keyboard.press('Meta+a');
+      await page.keyboard.press('Delete');
+      await sleep(200);
+    } catch (_) {}
+    const result = await page.evaluate(({ html, idx }) => {
+      const ed = document.querySelectorAll('.ql-editor')[idx];
+      if (!ed) return { success: false };
+      ed.innerHTML = html;
+      ed.classList.remove('ql-blank');
+      ed.dispatchEvent(new Event('input', { bubbles: true }));
+      ed.dispatchEvent(new Event('change', { bubbles: true }));
+      return { success: true, charCount: ed.innerText.trim().length };
+    }, { html, idx });
+    if (result.success && result.charCount > 0) {
+      log.debug(`Filled Quill editor at index ${idx} (${result.charCount} chars)`);
+      return true;
+    }
+  }
+
+  // Strategy 3: last visible textarea (fallback)
   try {
     const ta = page.locator('textarea').last();
     if (await ta.isVisible({ timeout: 2000 })) {
@@ -133,6 +165,7 @@ async function fillNewTextarea(page, content, beforeCount) {
       return true;
     }
   } catch (_) {}
+
   return false;
 }
 
@@ -369,12 +402,12 @@ async function addStep(page, step, stepIndex, seqName, emailFillQueue, emailEdit
     log.step(seqName, touchNum, `Email content deferred to fill queue (editor idx ${emailEditorIdx})`);
   } else if (step.type === 'phone_call' || step.type === 'action_item') {
     if (step.task_note) {
-      const filled = await fillNewTextarea(page, step.task_note, beforeSnapshot.textareaCount);
+      const filled = await fillNewInput(page, step.task_note, beforeSnapshot);
       log.step(seqName, touchNum, filled ? 'Task note filled' : 'Task note fill FAILED');
     }
   } else if (step.type === 'linkedin_connect' || step.type === 'linkedin_message') {
     if (step.message) {
-      const filled = await fillNewTextarea(page, step.message, beforeSnapshot.textareaCount);
+      const filled = await fillNewInput(page, step.message, beforeSnapshot);
       log.step(seqName, touchNum, filled ? `Message filled (${step.message.length} chars)` : 'Message fill FAILED');
     }
   }
@@ -466,38 +499,73 @@ async function enableAllSteps(page, seqName) {
 }
 
 // ---------------------------------------------------------------------------
-// Activate the sequence
+// Activate the sequence via Apollo API (same approach as prefill-touch1.js)
 // ---------------------------------------------------------------------------
-async function activateSequence(page, seqName) {
-  log.info(`${seqName}: Activating sequence...`);
+async function activateSequence(page, seqName, seqId) {
+  log.info(`${seqName}: Activating via API...`);
+
+  // Strategy 1: Apollo API PATCH (most reliable)
+  const apiResult = await page.evaluate(async (id) => {
+    const endpoints = [
+      { url: `/api/v1/emailer_campaigns/${id}`, body: { emailer_campaign: { active: true } } },
+      { url: `/api/v1/emailer_campaigns/${id}/activate`, body: {} },
+    ];
+    for (const ep of endpoints) {
+      try {
+        const resp = await fetch(ep.url, {
+          method: ep.body && Object.keys(ep.body).length > 0 ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+          credentials: 'include',
+          body: JSON.stringify(ep.body),
+        });
+        const text = await resp.text().catch(() => '');
+        if (resp.status === 409 || text.includes('already active')) {
+          return { status: 'already_active', endpoint: ep.url };
+        }
+        if (resp.ok || resp.status < 400) {
+          return { status: 'activated', endpoint: ep.url };
+        }
+      } catch (_) {}
+    }
+    return { status: 'api_failed' };
+  }, seqId);
+
+  if (apiResult.status === 'activated') {
+    log.ok(`${seqName}: Activated via API (${apiResult.endpoint})`);
+    return true;
+  }
+  if (apiResult.status === 'already_active') {
+    log.ok(`${seqName}: Already active`);
+    return true;
+  }
+
+  // Strategy 2: UI fallback — click Inactive status pill or Activate button
+  log.warn(`${seqName}: API activation failed — trying UI...`);
   await page.evaluate(() => window.scrollTo(0, 0));
   await sleep(500);
-
-  for (const label of ['Activate', 'Start sequence', 'Enable sequence', 'Launch']) {
+  for (const sel of [
+    'button:has-text("Activate")',
+    '[class*="status"]:has-text("Inactive")',
+    'span:has-text("Inactive")',
+  ]) {
     try {
-      const btn = page.locator(`button:has-text("${label}")`).last();
-      if (await btn.isVisible({ timeout: 3000 })) {
+      const btn = page.locator(sel).last();
+      if (await btn.isVisible({ timeout: 2000 })) {
         await btn.click({ timeout: 5000 });
-        log.ok(`${seqName}: Activated via "${label}" button`);
-        await sleep(2000);
-
-        // Confirm any activation modal
-        for (const confirm of ['Confirm', 'Yes, activate', 'Activate']) {
-          try {
-            const confirmBtn = page.locator(`button:has-text("${confirm}")`).last();
-            if (await confirmBtn.isVisible({ timeout: 2000 })) {
-              await confirmBtn.click({ timeout: 3000 });
-              log.ok(`${seqName}: Activation confirmed`);
-              await sleep(1500);
-            }
-          } catch (_) {}
+        await sleep(1500);
+        // Confirm modal if it appears
+        const confirmBtn = page.locator('button:has-text("Confirm")').last();
+        if (await confirmBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+          await confirmBtn.click({ timeout: 3000 });
+          await sleep(1000);
         }
+        log.ok(`${seqName}: Activated via UI (${sel})`);
         return true;
       }
     } catch (_) {}
   }
 
-  log.warn(`${seqName}: Could not find Activate button`);
+  log.warn(`${seqName}: Could not activate — will be activated by prefill-touch1.js`);
   return false;
 }
 
@@ -642,7 +710,7 @@ async function processSequence(page, seq, seqId, seqIdx) {
   await enableAllSteps(page, seqName);
 
   // Activate the sequence
-  await activateSequence(page, seqName);
+  await activateSequence(page, seqName, seqId);
 
   // Screenshot final state
   await page.screenshot({ path: `/tmp/fill-seq-${seqIdx}-after.png` });

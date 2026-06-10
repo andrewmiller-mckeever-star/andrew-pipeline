@@ -14,7 +14,7 @@ Run as Sonnet subagent. Commands:
 
 ```bash
 RCLONE=/tmp/rclone_install/rclone-v1.73.1-osx-arm64/rclone
-DESKTOP="/Users/andrew/Downloads/Claud Code folder /YDCpipeline"
+DESKTOP="/Users/andrew/Downloads/Claud_Code_folder/YDCpipeline"
 BASE="Account Plans, Lists & Personalized Sequences"
 COMPANY="{CompanyName}"
 
@@ -42,28 +42,47 @@ Every contact gets two labels (plus optional third):
 - "{Company} - Seq {A|B|C|D}" (sequence assignment)
 - "Warm Intro" (only if contact was flagged in Step 1 CTD research brief with `warm_intro=true`)
 
-### Phase A: Playwright Script (Claude runs via Bash)
+### Phase A: Playwright Script (Runs Outside Claude)
 
-1. Verify outreach JSON exists at:
-   `{APOLLO_BUILDER_PATH}/{account}_sequences.json`
+1. Verify outreach JSON was written by ydc-outreach skill to:
+   ~/Desktop/YDC Pipeline/apollo-sequence-builder/{account}_sequences.json
 
-2. Attempt graceful Chrome quit:
-```bash
-osascript -e 'quit app "Google Chrome"' 2>&1
-sleep 2
+2. Alert user to run (user must close Chrome first):
 ```
-   - If exit code 0: Chrome closed, proceed.
-   - If Chrome is not running: proceed.
-   - If Chrome fails to quit (e.g. user has unsaved work / many tabs): STOP and ask the user to close Chrome manually. Do not force-kill. Do not proceed until user confirms Chrome is closed.
-
-3. Run the script headlessly via Bash:
-```bash
-cd "{APOLLO_BUILDER_PATH}" && node build-sequences.js {account}_sequences.json 2>&1
+cd "/Users/andrew/Downloads/Claud_Code_folder/YDCpipeline/apollo-sequence-builder" && HEADED=true node build-sequences.js ~/Desktop/YDC\ Pipeline/apollo-sequence-builder/{account}_sequences.json
 ```
-   (No HEADED=true — headless is reliable and doesn't require a visible browser window.)
 
-4. Read results file: `{APOLLO_BUILDER_PATH}/{account}_sequences_results.json`
-   Extract sequence IDs for Phase B.
+3. Wait for user to confirm completion (paste output or say "done")
+
+4. Read results file: ~/Desktop/YDC Pipeline/apollo-sequence-builder/{account}_sequences_results.json
+   Extract sequence IDs and `inactive_confirmed` status for Phase B.
+
+### Inactive Gate (run before Phase B — hard stop if unsafe)
+
+For each sequence in `_results.json`, check `inactive_confirmed` AND `id`:
+- `inactive_confirmed === 'inactive'` → safe, proceed with enrollment
+- `inactive_confirmed === 'archived'` → sequence was active, forced inactive via archive; skip enrollment; flag as needs rebuild
+- `inactive_confirmed === 'unsafe'` AND `id` is null → creation failed, sequence doesn't exist; skip enrollment for this sequence, continue others
+- `inactive_confirmed === 'unsafe'` AND `id` is not null → **HALT entire enrollment for this account**; an existing sequence is confirmed or potentially ACTIVE and could not be deactivated
+
+If ANY sequence is `'unsafe'` with a non-null ID: post to #automated-outbound-skills-and-routines (C0B4RRF3FC0):
+```
+⚠️ ENROLLMENT HALTED — {Company}
+Seq {X} came out of build-sequences.js ACTIVE and could not be deactivated.
+Sequence ID: {id} — verify and manually deactivate in Apollo before enrolling.
+```
+Then stop Phase B entirely. Report in the completion summary.
+
+If any sequence is `'archived'` or `'unsafe'` with null ID: continue Phase B for the `'inactive'` sequences only. Note skipped ones clearly at the end.
+
+Summary format at completion:
+```
+INACTIVE GATE RESULT:
+  Seq A: inactive ✓ → enrolled
+  Seq B: archived ⛔ → skipped (rebuild required)
+  Seq C: unsafe (id=null) ⛔ → skipped (creation failed)
+  Seq D: unsafe (id=6a2051...) ⛔ → HALTED (active sequence — no contacts enrolled)
+```
 
 ### Phase B: Contact Creation & Enrollment (Sonnet subagent)
 

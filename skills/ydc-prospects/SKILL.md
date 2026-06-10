@@ -18,31 +18,24 @@ Use `apollo_mixed_people_api_search` with:
 
 This endpoint does NOT return emails. Returns names, titles, company, seniority, Apollo person IDs.
 
-### Step 3.1b: LinkedIn URL Enrichment Prep
-
-Before bulk matching, read the Leadership Directory in `{company}_facts.md`. For any Apollo search result that matches a name in the Leadership Directory, pull their LinkedIn URL from that file and add it to the enrichment payload. LinkedIn URL is the strongest matching key in `apollo_people_bulk_match` — it bypasses name-obfuscation failures and returns verified data more reliably.
-
-Cross-reference by: name fuzzy match (first + last) against Leadership Directory entries. When a match is found, attach the LinkedIn URL to that prospect's record before Step 3.2.
-
 ### Step 3.2: Enrich Top Prospects
 
 Use `apollo_people_bulk_match` in batches of 10:
-- Pass: first_name, last_name, organization_name, domain — AND `linkedin_url` where available from Step 3.1b
+- Pass: first_name, last_name, organization_name, domain
 - Returns: verified emails, phone numbers, work history, LinkedIn URLs
 - Consumes ~1 credit per person (~498K credits available, effectively unlimited)
-- **LinkedIn URL as primary match key:** When a LinkedIn URL is provided, Apollo uses it as the primary identifier and returns higher-confidence enrichment. Always include it when available.
 
 ## SFDC Contact Dedup (Pre-Step 3.2)
 
-Before enriching prospects, cross-reference the Apollo search results against the SF Flags section in `{company}_hooks.md` (produced by Step 1). For each prospect:
+Before enriching prospects, cross-reference the Apollo search results against the Salesforce contact list from Step 1.2 (CRM Intelligence Brief, "Existing Contacts in SF" section). For each prospect:
 - If the prospect is already in SF WITH activity history: FLAG as previously contacted. Include in the prospect list but note "Prior SF engagement" so Step 4 can adjust outreach tone.
 - If the prospect is in SF but has ZERO activity: safe to include as normal cold prospect.
-- If the prospect appeared in a [Gong In] reply (listed under "Prospect Replies" in SF Flags): FLAG as warm path. This prospect should NOT receive cold outreach. Route to warm follow-up instead.
-- If the prospect was touched by an Apollo sequence (listed under "Prior sequences run" in SF Flags): FLAG as already sequenced. Avoid re-enrolling in the same or similar sequence.
+- If the prospect appeared in a [Gong In] reply (from CRM Intelligence Brief "Prospect Replies" section): FLAG as warm path. This prospect should NOT receive cold outreach. Route to warm follow-up instead.
+- If the prospect was touched by an Apollo sequence (from "Outbound Sequences Already Run" section): FLAG as already sequenced. Avoid re-enrolling in the same or similar sequence.
 
 ## CTD Warm Path Cross-Reference (Pre-Step 3.2, runs alongside SFDC dedup)
 
-The CTD Warm Intro Paths section in `{company}_hooks.md` (produced by Step 1) contains warm intro data from Connect The Dots. Cross-reference every Apollo result against this section before finalizing the prospect list.
+The Step 1 research brief (Section 9, "Warm Intro Paths (CTD)") contains a warm intro table from Connect The Dots. Cross-reference every Apollo result against this table before finalizing the prospect list.
 
 **Matching logic:** Match by LinkedIn URL first (`linkedin_id` from CTD vs LinkedIn URL from Apollo). Fallback: name + company fuzzy match.
 
@@ -110,7 +103,7 @@ Deliver a prospect list with:
 - Name, Title, Email (verified/unverified flag), LinkedIn URL, Seniority, Department
 - Proposed sequence assignment (A/B/C/D) based on title/department
 - Flag no-email contacts for manual LinkedIn outreach
-- `warm_intro` (boolean): true if contact has a CTD warm path (populated from Step 1 research brief, not a post-Step 3 call)
+- `warm_intro` (boolean): true if contact has a CTD warm path (populated from Step 1 research brief)
 - `connector_name` (string): name of the connector who can make the intro
 - `ctd_path_strength` (string): "strong" or null
 - `sequence_note` (string): special handling instructions (e.g., "WARM INTRO ONLY — do not cold enroll")

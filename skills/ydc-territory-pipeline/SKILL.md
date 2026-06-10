@@ -291,16 +291,26 @@ JSON format (from ydc-outreach/references/json-format.md):
 
 2. Alert user to run Playwright:
 ```bash
-cd ~/Desktop/YDC\ Pipeline/apollo-sequence-builder && HEADED=true node build-sequences.js {company}_sequences.json
+cd "/Users/andrew/Downloads/Claud_Code_folder/YDCpipeline/apollo-sequence-builder" && HEADED=true node build-sequences.js ~/Desktop/YDC\ Pipeline/apollo-sequence-builder/{company}_sequences.json
 ```
 
-3. After user confirms script success, read `_results.json` for sequence IDs
+3. After user confirms script success (or after autonomous run completes), read `_results.json` for sequence IDs and `inactive_confirmed` status per sequence
 
-4. Create contacts via `apollo_contacts_create` (with `run_dedupe: true`)
+**Inactive gate — check before any enrollment:**
+For each sequence in `_results.json`, check `inactive_confirmed` AND `id`:
+- `'inactive'` → safe, proceed
+- `'archived'` → skip enrollment for this sequence; flag as needs rebuild
+- `'unsafe'` AND `id` is null → creation failed, no sequence exists; skip this sequence, continue others
+- `'unsafe'` AND `id` is not null → **HALT all enrollment for this account** — an existing sequence is potentially active
+
+If ANY sequence has `unsafe` + non-null `id`: in automated context, set `status = 'partial_incident'` in progress file, post alert to C0B4RRF3FC0 (#automated-outbound-skills-and-routines) with the sequence ID, skip to the next account. In interactive context, stop and report to user before proceeding.
+
+4. Create contacts via `apollo_contacts_create` (with `run_dedupe: true`) — only for sequences that passed the inactive gate
 
 5. Enroll contacts via `apollo_emailer_campaigns_add_contact_ids`
    - Use email account ID from `apollo_email_accounts_index`
    - Sequential calls (not parallel, to avoid 500 errors)
+   - Only enroll into sequences where `inactive_confirmed === 'inactive'`
 
 6. **Sequences left INACTIVE. NEVER auto-activate.**
 

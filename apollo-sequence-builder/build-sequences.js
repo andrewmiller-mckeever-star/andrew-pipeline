@@ -29,9 +29,11 @@ const APOLLO_BASE = 'https://app.apollo.io';
 const DEFAULT_TIMEOUT = 60000;
 const STEP_TRANSITION_WAIT = 1500;
 
-// Apollo session file — run save-apollo-session.js once to create this.
-const STATE_FILE = path.join(__dirname, 'apollo_session.json');
 const CHROME_EXECUTABLE = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+// Dedicated Playwright profile — separate from regular Chrome so Chrome can stay open.
+// Chrome does NOT need to be closed. This is different from Ryan Reed's approach which
+// uses the real Chrome profile (which requires closing Chrome first).
+const CHROME_PROFILE_PATH = path.join(process.env.HOME, '.apollo-playwright-profile');
 
 // ---------------------------------------------------------------------------
 // Logging
@@ -164,7 +166,24 @@ async function dismissApolloUI(page) {
     }
   } catch (_) {}
 
-  // 6. Cookie consent / GDPR banners
+  // 6. "This sequence has no contacts" popup — dismiss with X to avoid navigation
+  try {
+    const noContactsPopup = page.locator('text="This sequence has no contacts"');
+    if (await noContactsPopup.isVisible({ timeout: 1000 })) {
+      const closeX = page.locator('button[aria-label*="close" i], button[aria-label*="Close" i], button:has-text("×")').last();
+      if (await closeX.isVisible({ timeout: 1000 })) {
+        await closeX.click();
+      } else {
+        // Click the X in the popup card
+        const popupX = noContactsPopup.locator('..').locator('button').last();
+        await popupX.click({ timeout: 1000 });
+      }
+      log.debug('Dismissed "no contacts" popup');
+      await sleep(500);
+    }
+  } catch (_) {}
+
+  // 6b. Cookie consent / GDPR banners
   try {
     const cookieBtn = page.locator('button:has-text("Accept"), button:has-text("Decline"), button:has-text("Got it")');
     if (await cookieBtn.first().isVisible({ timeout: 1000 })) {
@@ -375,6 +394,7 @@ const STEP_TYPE_LABELS = {
   'linkedin_connect': 'LinkedIn - send connection request',
   'linkedin_message': 'LinkedIn - send message',
   'action_item': 'Action item',
+  'linkedin_interact_post': 'Action item', // maps to Action item in Apollo UI
 };
 
 async function selectStepType(page, typeLabel) {
@@ -405,7 +425,7 @@ async function selectStepType(page, typeLabel) {
   throw new Error(`Could not find menu item "${typeLabel}" in step type picker`);
 }
 
-async function addStep(page, step, stepIndex, sequenceName, skipEmailFill = false) {
+async function addStep(page, step, stepIndex, sequenceName) {
   const touchNum = stepIndex + 1;
   const typeLabel = STEP_TYPE_LABELS[step.type];
   if (!typeLabel) throw new Error(`Unknown step type: ${step.type}`);
@@ -419,14 +439,9 @@ async function addStep(page, step, stepIndex, sequenceName, skipEmailFill = fals
   }));
   log.debug(`Before step: ${beforeSnapshot.textareaCount} textareas, ${beforeSnapshot.editorCount} editors`);
 
-  // Dismiss any open step editor panel before clicking "Add a step".
-  // After phone/action/LinkedIn steps, the editor panel stays open and can intercept clicks.
-  await page.keyboard.press('Escape');
-  await sleep(400);
-  await dismissApolloUI(page);
-  await sleep(300);
-
   // All touches (including Touch 1): click "+ Add a step" to open the step type menu.
+  // NOTE: Do NOT press Escape or call dismissApolloUI here — it triggers Apollo's
+  // "Your changes will be lost?" dialog, which auto-confirms and discards the previous step.
   const addBtn = page.locator('text="Add a step"').last();
   try {
     await addBtn.scrollIntoViewIfNeeded();
@@ -451,16 +466,11 @@ async function addStep(page, step, stepIndex, sequenceName, skipEmailFill = fals
   // Wait for the step editor to fully render
   await sleep(2000);
 
-  // Now configure the step based on type
+  // Now configure the step based on type — always inline (Ryan Reed approach: no deferred fill)
   switch (step.type) {
     case 'automatic_email':
     case 'manual_email':
-      if (!skipEmailFill) {
-        await configureEmailStep(page, step, touchNum, sequenceName, beforeSnapshot.editorCount);
-      } else {
-        // Set email sub-type only (Outreach / Follow-up / Last pitch) — defer content injection
-        await setEmailSubType(page, step, touchNum, sequenceName);
-      }
+      await configureEmailStep(page, step, touchNum, sequenceName, beforeSnapshot.editorCount);
       break;
     case 'phone_call':
       await configurePhoneStep(page, step, touchNum, sequenceName, beforeSnapshot);
@@ -682,204 +692,128 @@ async function fillDeferredEmailContent(page, step, touchNum, editorIdx, seqName
   }
 }
 
-async function configureEmailStep(page, step, touchNum, seqName, editorCountBefore = 0) {
-  // Apollo redesigned their sequence email UI to an AI-first composer.
-  // The right-panel Quill editor only appears after "Generate preview" is clicked.
-  // Strategy: check if a Quill editor already appeared (manual_email may use old UI),
-  // and if not, click "Generate preview" to trigger it.
+async function configureEmailStep(page, step, touchNum, seqName) {
+  // Ryan Reed approach (proven working): Template tab → clear placeholders → fill inline.
+  // No "Generate preview" — just switch to Template tab immediately after adding the step.
+  // APRIL 2026 UI CHANGE: Apollo defaults email steps to "Assisted" tab with AI placeholder
+  // variables pre-seeded. We switch to Template, clear the placeholder chips, then inject.
 
-  log.step(seqName, touchNum, `Checking for email editor (baseline: ${editorCountBefore} editors)...`);
-
-  // First: check if Quill editors already appeared without clicking anything
-  // (manual_email step type may expose the traditional editor immediately)
-  let currentEditorCount = await page.evaluate(() => document.querySelectorAll('.ql-editor').length);
-  let newEditorCount = currentEditorCount - editorCountBefore;
-
-  if (newEditorCount === 0) {
-    // No new editors yet — click "Generate preview" to trigger the right-panel Quill
-    log.step(seqName, touchNum, 'No editor visible yet — clicking Generate preview...');
-
-    let previewClicked = false;
-    for (const sel of [
-      'button:has-text("Generate preview")',
-      '[class*="generate"]:has-text("preview")',
-      'text="Generate preview"',
-    ]) {
+  log.step(seqName, touchNum, 'Switching to Template tab...');
+  try {
+    const templateCandidates = [
+      page.locator('button:has-text("Template")').last(),
+      page.locator('[role="tab"]:has-text("Template")').last(),
+      page.locator('text="Template"').last(),
+    ];
+    let clicked = false;
+    for (const cand of templateCandidates) {
       try {
-        const btn = page.locator(sel).last();
-        if (await btn.isVisible({ timeout: 4000 })) {
-          await btn.click();
-          previewClicked = true;
-          log.step(seqName, touchNum, `Generate preview clicked — waiting for AI to render...`);
+        if (await cand.isVisible({ timeout: 2000 })) {
+          await cand.click({ timeout: 3000 });
+          clicked = true;
           break;
         }
       } catch (_) {}
     }
-
-    if (!previewClicked) {
-      log.warn(`Could not click Generate preview for Touch ${touchNum}`);
-      try {
-        const ss = `/tmp/apollo-debug-touch${touchNum}-${Date.now()}.png`;
-        await page.screenshot({ path: ss, fullPage: true });
-        log.warn(`Debug screenshot: ${ss}`);
-      } catch (_) {}
+    if (clicked) {
+      await sleep(1000);
+      log.step(seqName, touchNum, 'Template tab selected');
+    } else {
+      log.debug('Template tab not found — may already be on Template or old UI');
     }
-
-    // Wait for AI generation + Quill render (up to 15s)
-    await sleep(2000);
-    try {
-      await page.waitForFunction(
-        (n) => document.querySelectorAll('.ql-editor').length > n,
-        editorCountBefore,
-        { timeout: 15000 }
-      );
-      await sleep(500);
-    } catch (e) {
-      log.warn(`No new Quill editors after Generate preview (baseline ${editorCountBefore}): ${e.message}`);
-      try {
-        const ss = `/tmp/apollo-debug-touch${touchNum}-${Date.now()}.png`;
-        await page.screenshot({ path: ss, fullPage: true });
-        log.warn(`Debug screenshot: ${ss}`);
-      } catch (_) {}
-    }
-
-    currentEditorCount = await page.evaluate(() => document.querySelectorAll('.ql-editor').length);
-    newEditorCount = currentEditorCount - editorCountBefore;
-    log.step(seqName, touchNum, `${newEditorCount} new Quill editor(s) available (total ${currentEditorCount})`);
-  } else {
-    log.step(seqName, touchNum, `${newEditorCount} Quill editor(s) already visible (old-style editor) — skipping Generate preview`);
+  } catch (e) {
+    log.warn(`Template tab click failed: ${e.message}. Continuing.`);
   }
 
-  // Dismiss "dynamic variables could not be substituted" notification if present
-  try {
-    const closeBtn = page.locator('[class*="notification"] button, [class*="toast"] button[aria-label*="close" i]').last();
-    if (await closeBtn.isVisible({ timeout: 1000 })) {
-      await closeBtn.click();
-      log.debug('Dismissed variable substitution notification');
-    }
-  } catch (_) {}
-
-  // APRIL 2026 UI CHANGE: Apollo's email step editor defaults to "Assisted" tab.
-  // Click "Template" tab to expose the raw Subject and Body fields before filling.
-  await clickTemplateTab(page, seqName, touchNum);
-  await sleep(500);
-
-  // Select email sub-type in Apollo's new AI composer (Outreach / Follow-up / Last pitch)
-  // These correspond to: new_thread=Outreach, follow-up replies=Follow-up, breakup=Last pitch
+  // Set email type (New thread vs Reply)
   if (step.email_type === 'reply') {
-    const typeLabel = touchNum === 5 ? 'Last pitch' : 'Follow-up';
+    log.step(seqName, touchNum, 'Setting type to Reply...');
     try {
-      const typeBtn = page.locator(`button:has-text("${typeLabel}")`).last();
-      if (await typeBtn.isVisible({ timeout: 3000 })) {
-        await typeBtn.click();
+      const typeDropdown = page.locator('div[role="combobox"]:has-text("New thread")').last();
+      if (await typeDropdown.isVisible({ timeout: 5000 })) {
+        await typeDropdown.click();
         await sleep(500);
-        log.step(seqName, touchNum, `Email sub-type set to "${typeLabel}"`);
+        const replyOption = page.locator('div[role="option"]:has-text("Reply")').first();
+        await replyOption.click({ timeout: 3000 });
+        await sleep(500);
+        log.step(seqName, touchNum, 'Type set to Reply');
+      } else {
+        log.warn('Type dropdown not visible. May already be Reply.');
       }
-    } catch (_) {}
+    } catch (e) {
+      log.warn(`Could not set Reply type: ${e.message}`);
+    }
   }
 
-  // Fill subject (Touch 1 / new_thread only)
+  // Fill subject (new_thread only)
   if (step.subject && step.email_type !== 'reply') {
     log.step(seqName, touchNum, 'Filling subject...');
-    const subjectSelectors = [
-      'input[placeholder="Enter email subject"]',
-      'input[placeholder*="subject" i]',
-      'input[placeholder*="Subject" i]',
-      'input[name*="subject" i]',
-    ];
-    let subjectFilled = false;
-    for (const sel of subjectSelectors) {
-      try {
-        const el = page.locator(sel).last();
-        if (await el.isVisible({ timeout: 4000 })) {
-          await el.click();
-          // APRIL 2026 UI CHANGE: Clear pre-seeded variable chip, then type to trigger React events.
-          await page.keyboard.press('Meta+a');
-          await page.keyboard.press('Delete');
-          await sleep(200);
-          await page.keyboard.type(step.subject, { delay: 20 });
-          subjectFilled = true;
-          log.step(seqName, touchNum, `Subject filled: "${step.subject}"`);
-          break;
-        }
-      } catch (_) {}
-    }
-    // Fallback: if 2+ new Quill editors appeared, first one is likely subject
-    if (!subjectFilled && newEditorCount >= 2) {
-      const subjectHtml = `<div>${step.subject.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>`;
-      const r = await page.evaluate(({ html, idx }) => {
-        const ed = document.querySelectorAll('.ql-editor')[idx];
-        if (!ed) return { success: false };
-        ed.innerHTML = html;
-        ed.classList.remove('ql-blank');
-        ed.dispatchEvent(new Event('input', { bubbles: true }));
-        return { success: true };
-      }, { html: subjectHtml, idx: editorCountBefore });
-      if (r.success) {
-        subjectFilled = true;
-        log.step(seqName, touchNum, `Subject injected into editor ${editorCountBefore}`);
-      }
-    }
-    if (!subjectFilled) {
-      log.warn(`Subject could not be filled for Touch ${touchNum}`);
+    try {
+      const subjectInput = page.locator('input[placeholder="Enter email subject"]').last();
+      await subjectInput.waitFor({ state: 'visible', timeout: 10000 });
+      await subjectInput.click();
+      // Clear Apollo's pre-seeded placeholder variable chip
+      await page.keyboard.press('Meta+A');
+      await sleep(100);
+      await page.keyboard.press('Delete');
+      await sleep(200);
+      await subjectInput.fill(step.subject);
+      log.step(seqName, touchNum, `Subject: "${step.subject}"`);
+    } catch (e) {
+      log.warn(`Subject fill failed: ${e.message}`);
     }
   }
 
-  // Inject email body
+  // Inject email body via Quill editor
   if (step.body) {
     log.step(seqName, touchNum, 'Injecting email body...');
-
-    // If 2 new editors for new_thread: [editorCountBefore]=subject, [editorCountBefore+1]=body
-    // If reply or only 1 new editor: [editorCountBefore]=body
-    const bodyIndex = (step.email_type !== 'reply' && newEditorCount >= 2)
-      ? editorCountBefore + 1
-      : editorCountBefore;
-
     const htmlBody = textToQuillHtml(step.body);
 
-    const doInject = async (idx) => page.evaluate(({ html, targetIndex }) => {
+    // Click into the last Quill editor and clear Apollo's pre-seeded variable chip
+    try {
+      const editorHandle = page.locator('.ql-editor').last();
+      await editorHandle.click({ timeout: 5000 });
+      await page.keyboard.press('Meta+A');
+      await sleep(100);
+      await page.keyboard.press('Delete');
+      await sleep(200);
+    } catch (e) {
+      log.debug(`Body pre-clear failed (will still inject): ${e.message}`);
+    }
+
+    const injected = await page.evaluate((html) => {
       const editors = document.querySelectorAll('.ql-editor');
       if (editors.length === 0) return { success: false, error: 'No .ql-editor found' };
-      const editor = editors[targetIndex] ?? editors[editors.length - 1];
-      editor.focus();
+      const editor = editors[editors.length - 1];
       editor.innerHTML = html;
       editor.classList.remove('ql-blank');
-      editor.dispatchEvent(new Event('focus', { bubbles: true }));
       editor.dispatchEvent(new Event('input', { bubbles: true }));
       editor.dispatchEvent(new Event('change', { bubbles: true }));
-      editor.dispatchEvent(new Event('blur', { bubbles: true }));
       return {
         success: true,
         charCount: editor.innerText.trim().length,
         isBlank: editor.classList.contains('ql-blank'),
-        editorIndex: targetIndex,
-        totalEditors: editors.length,
+        editorIndex: editors.length - 1,
       };
-    }, { html: htmlBody, targetIndex: idx });
-
-    // APRIL 2026 UI CHANGE: Click editor and clear any pre-seeded variable chip before injection.
-    try {
-      await page.locator('.ql-editor').nth(bodyIndex).click({ timeout: 3000 });
-      await page.keyboard.press('Meta+a');
-      await page.keyboard.press('Delete');
-      await sleep(300);
-    } catch (_) {}
-
-    let injected = await doInject(bodyIndex);
+    }, htmlBody);
 
     if (!injected.success) {
-      log.warn(`Body injection failed (${injected.error}) — retrying after 2s`);
+      log.err(`Body injection failed: ${injected.error}`);
       await sleep(2000);
-      injected = await doInject(bodyIndex);
-    }
-
-    if (!injected.success) {
-      throw new Error(`Body injection failed after retry: ${injected.error}`);
-    } else if (injected.charCount === 0 || injected.isBlank) {
-      log.err(`Body appears blank after injection (charCount: ${injected.charCount})`);
-      throw new Error('Body blank after injection');
+      const retry = await page.evaluate((html) => {
+        const editors = document.querySelectorAll('.ql-editor');
+        if (editors.length === 0) return { success: false, error: 'Still no .ql-editor' };
+        const editor = editors[editors.length - 1];
+        editor.innerHTML = html;
+        editor.classList.remove('ql-blank');
+        editor.dispatchEvent(new Event('input', { bubbles: true }));
+        editor.dispatchEvent(new Event('change', { bubbles: true }));
+        return { success: true, charCount: editor.innerText.trim().length };
+      }, htmlBody);
+      if (!retry.success) throw new Error(`Body injection failed after retry: ${retry.error}`);
+      log.step(seqName, touchNum, `Body injected on retry (${retry.charCount} chars)`);
     } else {
-      log.step(seqName, touchNum, `Body injected (${injected.charCount} chars, editor ${injected.editorIndex}/${injected.totalEditors - 1})`);
+      log.step(seqName, touchNum, `Body injected (${injected.charCount} chars)`);
     }
   }
 }
@@ -1022,6 +956,104 @@ async function verifySequence(page, expectedStepCount, sequenceName) {
 }
 
 // ---------------------------------------------------------------------------
+// Phase 4: Guarantee sequence is inactive after build
+// ---------------------------------------------------------------------------
+/**
+ * Checks and enforces that a sequence is inactive after creation.
+ * Apollo's "From scratch" UI can non-deterministically leave sequences ACTIVE.
+ * PUT active:false is silently ignored by the API — only UI toggle or archive work.
+ *
+ * Returns: 'inactive' | 'archived' | 'unsafe'
+ */
+async function checkSequenceActiveViaAPI(page, seqId) {
+  return page.evaluate(async (id) => {
+    try {
+      const res = await fetch(`/api/v1/emailer_campaigns/${id}`, {
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      const c = data.emailer_campaign;
+      if (!c) return null;
+      return c.active === true;
+    } catch (e) { return null; }
+  }, seqId);
+}
+
+async function ensureSequenceInactive(page, seqId, seqName) {
+  if (!seqId) {
+    log.err(`${seqName}: no sequence ID — cannot verify active state. DO NOT ENROLL.`);
+    return 'unsafe';
+  }
+  log.info(`${seqName}: checking active state...`);
+  const isActive = await checkSequenceActiveViaAPI(page, seqId);
+  if (isActive === null) {
+    log.err(`${seqName}: active-state API check failed. DO NOT ENROLL until manually verified.`);
+    return 'unsafe';
+  }
+  if (isActive === false) {
+    log.ok(`${seqName}: INACTIVE confirmed ✓`);
+    return 'inactive';
+  }
+  log.warn(`\x1b[31m⚠  ${seqName}: sequence is ACTIVE after creation — deactivating...\x1b[0m`);
+
+  // Strategy 1: settings page ARIA switch
+  try {
+    await page.goto(`${APOLLO_BASE}/#/sequences/${seqId}/settings`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await sleep(3000);
+    await dismissApolloUI(page);
+    const toggle = page.locator('[role="switch"][aria-checked="true"]').first();
+    if (await toggle.isVisible({ timeout: 5000 })) {
+      await toggle.click();
+      await sleep(2000);
+      const stillActive = await checkSequenceActiveViaAPI(page, seqId);
+      if (stillActive === false) {
+        log.ok(`${seqName}: deactivated via settings toggle ✓`);
+        return 'inactive';
+      }
+    }
+  } catch (_) {}
+
+  // Strategy 2: detail page Active button
+  try {
+    await page.goto(`${APOLLO_BASE}/#/sequences/${seqId}`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await sleep(3000);
+    const activeBtn = page.locator('button:has-text("Active")').first();
+    if (await activeBtn.isVisible({ timeout: 5000 })) {
+      await activeBtn.click();
+      await sleep(1000);
+      const confirmBtn = page.locator('button:has-text("Pause"), button:has-text("Deactivate"), button:has-text("Confirm")').first();
+      if (await confirmBtn.isVisible({ timeout: 2000 })) { await confirmBtn.click(); await sleep(1000); }
+      const stillActive = await checkSequenceActiveViaAPI(page, seqId);
+      if (stillActive === false) {
+        log.ok(`${seqName}: deactivated via detail page button ✓`);
+        return 'inactive';
+      }
+    }
+  } catch (_) {}
+
+  // Last resort: archive via API (forces active=false but locks sequence)
+  log.warn(`${seqName}: archiving via API to force active=false...`);
+  const archived = await page.evaluate(async (id) => {
+    try {
+      const res = await fetch(`/api/v1/emailer_campaigns/${id}/archive`, {
+        method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+      });
+      return res.ok;
+    } catch (e) { return false; }
+  }, seqId);
+
+  if (archived) {
+    log.warn(`\x1b[31m${seqName}: ARCHIVED (was active). DO NOT ENROLL — rebuild required.\x1b[0m`);
+    return 'archived';
+  }
+
+  log.err(`\x1b[31mCRITICAL: ${seqName} (${seqId}) is ACTIVE and could not be deactivated. DO NOT ENROLL.\x1b[0m`);
+  return 'unsafe';
+}
+
+// ---------------------------------------------------------------------------
 // Main: Build all sequences from JSON data
 // ---------------------------------------------------------------------------
 async function main() {
@@ -1050,31 +1082,57 @@ async function main() {
   log.info(`Loaded ${sequences.length} sequences for ${data.account || 'unknown account'}`);
   log.info(`Mode: ${HEADED ? 'headed (visible)' : 'headless'} | Debug: ${DEBUG}`);
 
-  // Launch browser with saved Apollo session (Chrome can be open — no conflict)
-  if (!fs.existsSync(STATE_FILE)) {
-    log.err(`Apollo session not found: ${STATE_FILE}`);
-    log.err('Run once to set up: node save-apollo-session.js');
-    process.exit(1);
-  }
-  log.info('Launching browser with saved Apollo session...');
+  // Launch browser using dedicated Playwright profile (Chrome can stay open — no conflict).
+  log.info('Launching browser with existing Chrome profile...');
 
-  const browser = await chromium.launch({
-    executablePath: CHROME_EXECUTABLE,
-    headless: !HEADED,
-    slowMo: SLOW_MO,
-    args: [
-      '--disable-blink-features=AutomationControlled',
-      '--no-first-run',
-      '--no-default-browser-check',
-    ],
-  });
-  const context = await browser.newContext({
-    viewport: { width: 1600, height: 900 },
-    storageState: STATE_FILE,
-  });
+  let context;
+  let browser;
+  try {
+    context = await chromium.launchPersistentContext(
+      CHROME_PROFILE_PATH,
+      {
+        executablePath: CHROME_EXECUTABLE,
+        headless: !HEADED,
+        slowMo: SLOW_MO,
+        viewport: { width: 1600, height: 900 },
+        args: [
+          '--disable-blink-features=AutomationControlled',
+          '--no-first-run',
+          '--no-default-browser-check',
+        ],
+      }
+    );
+  } catch (e) {
+    log.warn(`Could not use Chrome profile: ${e.message}`);
+    log.info('Falling back to fresh browser (you may need to log in)...');
+    browser = await chromium.launch({
+      executablePath: CHROME_EXECUTABLE,
+      headless: !HEADED,
+      slowMo: SLOW_MO,
+    });
+    context = await browser.newContext({ viewport: { width: 1600, height: 900 } });
+  }
 
   const page = await context.newPage();
   page.setDefaultTimeout(DEFAULT_TIMEOUT);
+
+  // Intercept PUT /sequences to diagnose what's in the save payload
+  page.on('request', req => {
+    if (req.method() === 'PUT' && req.url().includes('/api/v1/sequences/')) {
+      const body = req.postData() || '';
+      try {
+        const parsed = JSON.parse(body);
+        const steps = parsed.emailer_steps || [];
+        log.info(`[INTERCEPT] PUT /sequences: emailer_steps count = ${steps.length}`);
+        if (steps.length > 0) log.info(`[INTERCEPT] first step type: ${steps[0].type}`);
+      } catch(e) {
+        log.warn(`[INTERCEPT] PUT /sequences: could not parse body (${body.length} chars)`);
+      }
+    }
+    if (req.method() !== 'GET' && req.url().includes('/api/v1/emailer') && !req.url().includes('preview')) {
+      log.debug(`[INTERCEPT] ${req.method()} ${req.url().replace('https://app.apollo.io','')}`);
+    }
+  });
 
   // Results tracking
   const results = {
@@ -1113,6 +1171,7 @@ async function main() {
         id: null,
         steps: seq.steps.length,
         status: 'pending',
+        inactive_confirmed: null,
         errors: [],
       };
 
@@ -1125,140 +1184,21 @@ async function main() {
         const seqId = await createSequence(page, seq.name);
         seqResult.id = seqId;
 
-        // ── Phase 1: Add all steps ──────────────────────────────────────
-        // Email step Quill editors render LAZILY — they only appear in the DOM
-        // after the NEXT step is added. So we skip email content injection during
-        // step addition and defer it until after the subsequent step triggers render.
-        //
-        // Pattern observed: email step N's Quill appears after step N+1 is added.
-        // Queue: { step, touchNum, editorIdx } where editorIdx = 0,1,2... for email steps in order.
-        const emailFillQueue = []; // deferred email steps
-        let emailEditorIdx = 0;
-
+        // Add each step inline — Ryan Reed approach: fill content immediately, no deferred queue.
         for (let stepIdx = 0; stepIdx < seq.steps.length; stepIdx++) {
-          const step = seq.steps[stepIdx];
-          const isEmailStep = step.type === 'automatic_email' || step.type === 'manual_email';
-
           try {
-            // Add step structure (skip email body/subject for email steps)
-            await addStep(page, step, stepIdx, seq.name, /* skipEmailFill= */ isEmailStep);
+            await addStep(page, seq.steps[stepIdx], stepIdx, seq.name);
             await sleep(STEP_TRANSITION_WAIT);
           } catch (stepErr) {
             const msg = `Touch ${stepIdx + 1} failed: ${stepErr.message}`;
             log.err(msg);
             seqResult.errors.push(msg);
           }
-
-          if (isEmailStep) {
-            // Queue this email step for deferred content injection
-            emailFillQueue.push({ step, touchNum: stepIdx + 1, editorIdx: emailEditorIdx++ });
-          } else {
-            // Non-email step just added — check if any queued email steps now have Quills
-            await sleep(500);
-            const currentEditorCount = await page.evaluate(
-              () => document.querySelectorAll('.ql-editor').length
-            );
-            log.debug(`After Touch ${stepIdx + 1}: ${currentEditorCount} Quill editor(s) in DOM`);
-
-            const nowReady = emailFillQueue.filter(f => f.editorIdx < currentEditorCount);
-            for (const fill of nowReady) {
-              try {
-                await fillDeferredEmailContent(page, fill.step, fill.touchNum, fill.editorIdx, seq.name);
-              } catch (fillErr) {
-                const msg = `Touch ${fill.touchNum} deferred fill failed: ${fillErr.message}`;
-                log.err(msg);
-                seqResult.errors.push(msg);
-              }
-            }
-            // Remove filled items from queue
-            nowReady.forEach(f => emailFillQueue.splice(emailFillQueue.indexOf(f), 1));
-          }
         }
 
-        // ── Phase 2: Fill any remaining email steps ──────────────────────
-        // The last email step (T5) has no subsequent step to trigger its Quill.
-        // Try clicking "Expand steps" to force all step panels to render.
-        if (emailFillQueue.length > 0) {
-          log.info(`Filling ${emailFillQueue.length} remaining email step(s)...`);
-          try {
-            const expandBtn = page.locator('button:has-text("Expand steps")');
-            if (await expandBtn.isVisible({ timeout: 2000 })) {
-              await expandBtn.click();
-              await sleep(2000);
-            }
-          } catch (_) {}
-
-          const finalCount = await page.evaluate(
-            () => document.querySelectorAll('.ql-editor').length
-          );
-          log.debug(`Phase 2: ${finalCount} Quill editor(s) available`);
-
-          for (const fill of emailFillQueue) {
-            if (fill.editorIdx < finalCount) {
-              try {
-                await fillDeferredEmailContent(page, fill.step, fill.touchNum, fill.editorIdx, seq.name);
-              } catch (fillErr) {
-                const msg = `Touch ${fill.touchNum} phase-2 fill failed: ${fillErr.message}`;
-                log.err(msg);
-                seqResult.errors.push(msg);
-              }
-            } else {
-              const msg = `Touch ${fill.touchNum}: Quill not rendered (need index ${fill.editorIdx}, have ${finalCount})`;
-              log.warn(msg);
-              seqResult.errors.push(msg);
-            }
-          }
-        }
-
-        // Save the sequence
-        // Apollo's new_cc UI shows "Save changes" when a step editor panel is open.
-        // We try multiple strategies to click it before giving up.
+        // Save the sequence — Ryan Reed approach: simple safeClickByText, no force/JS tricks.
         log.info('Saving sequence...');
-        let saved = false;
-
-        // Scroll to top so header buttons (including "Save changes") are in viewport
-        await page.evaluate(() => window.scrollTo(0, 0));
-        await sleep(500);
-
-        // Strategy 1: CSS locator (bypasses ARIA name matching)
-        const saveLabels = ['Save changes', 'Save', 'Done', 'Publish', 'Save sequence'];
-        for (const label of saveLabels) {
-          try {
-            const btn = page.locator(`button:has-text("${label}")`).last();
-            if (await btn.isVisible({ timeout: 5000 })) {
-              await btn.click({ timeout: 5000 });
-              log.info(`Saved via CSS selector: "${label}"`);
-              saved = true;
-              break;
-            }
-          } catch (_) {}
-        }
-
-        // Strategy 2: JS evaluate — find by text content directly
-        if (!saved) {
-          const jsSaved = await page.evaluate((labels) => {
-            const allBtns = Array.from(document.querySelectorAll('button, [role="button"]'));
-            for (const label of labels) {
-              const btn = allBtns.find(b =>
-                b.textContent.trim().toLowerCase().includes(label.toLowerCase()) &&
-                b.offsetParent !== null
-              );
-              if (btn) { btn.click(); return label; }
-            }
-            return null;
-          }, saveLabels);
-          if (jsSaved) {
-            log.info(`Saved via JS evaluate: "${jsSaved}"`);
-            saved = true;
-          }
-        }
-
-        // Strategy 3: Fallback — Apollo may auto-save steps as they're added
-        // (new_cc UI sometimes commits each step via API without explicit save)
-        if (!saved) {
-          log.warn('Save button not found — assuming Apollo auto-saved step additions');
-          saved = true;
-        }
+        const saved = await safeClickByText(page, 'button', 'Save changes');
 
         if (saved) {
           await sleep(2000);
@@ -1300,14 +1240,29 @@ async function main() {
           const verification = await verifySequence(page, seq.steps.length, seq.name);
           seqResult.blankEditors = verification.blankCount;
           seqResult.status = verification.blankCount === 0 ? 'success' : 'needs_review';
+
+          // Phase 4: Guarantee sequence is inactive before any enrollment can happen.
+          try {
+            const inactiveStatus = await ensureSequenceInactive(page, seqResult.id, seq.name);
+            seqResult.inactive_confirmed = inactiveStatus;
+            if (inactiveStatus !== 'inactive') {
+              seqResult.errors.push(`SAFETY BLOCK: sequence active state is "${inactiveStatus}". DO NOT ENROLL CONTACTS.`);
+            }
+          } catch (inactiveErr) {
+            log.err(`Active-state check threw: ${inactiveErr.message}`);
+            seqResult.inactive_confirmed = 'unsafe';
+            seqResult.errors.push(`SAFETY BLOCK: active-state check failed (${inactiveErr.message}). DO NOT ENROLL CONTACTS.`);
+          }
         } else {
           log.err('Could not find Save button');
           seqResult.status = 'save_failed';
+          seqResult.inactive_confirmed = 'unsafe';
           seqResult.errors.push('Save button not found');
         }
       } catch (seqErr) {
         log.err(`Sequence creation failed: ${seqErr.message}`);
         seqResult.status = 'failed';
+        seqResult.inactive_confirmed = 'unsafe';
         seqResult.errors.push(seqErr.message);
       }
 

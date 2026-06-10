@@ -13,7 +13,7 @@ Primary source of prior account context for the whale pipeline. Replaces Slack k
 
 - **Org:** ydc.my.salesforce.com
 - **User:** andrew.miller-mckeever@you.com (User ID: `005Vq000009j4ezIAA`)
-- **MCP Tool:** `run_soql_query` (usernameOrAlias: `andrew.miller-mckeever@you.com`, directory: `/Users/andrew/Downloads/Claud Code folder /YDCpipeline`)
+- **MCP Tool:** `run_soql_query` (usernameOrAlias: `andrew.miller-mckeever@you.com`, directory: `/Users/andrew/Downloads/Claud_Code_folder/YDCpipeline`)
 - **Opportunity Stages:** 1-Discovery > 2-Qualification > 3-Workshop > 4-Proof of Value > 5-Agreement > Closed Won / Closed Lost
 - **Opp Naming Convention:** `{Account} | {New/Renewal} | ${Amount} | {Product(s)}`
 
