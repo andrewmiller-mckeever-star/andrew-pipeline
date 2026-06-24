@@ -55,3 +55,30 @@ apollo-sequence-builder/CTD_Investor_Referral_sequence.json
 apollo-sequence-builder/usage_seq_*.json
 apollo-sequence-builder/usage_seqs_*.json
 apollo-sequence-builder/usage_sequences_*.json
+
+# Per-account outreach content & enrollment data — never publish
+*-4seq-content.json
+*-2seq-content.json
+*-fill-content.json
+*-enrollment.json
+*-seq*-test.json
+*-seq*-retry.json
+*-4seq-build.json
+*-seqb-only.json
+
+# Per-account research, briefs & decks — never publish
+*_facts.md
+*_hooks.md
+*_usecases.md
+*_research_paper.html
+*_org_chart.html
+.replit_research/
+youcom-investors.md
+bofa-deck/
+*.pptx
+
+# Session working notes — internal only
+SESSION_CONTEXT_*.md
+
+# Contains hardcoded credentials — do not publish (ROTATE the key)
+score_missed_events.py
