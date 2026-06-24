@@ -35,14 +35,15 @@ You.com delivers the search infrastructure that powers modern Generative AI. We 
 
 ## What We Sell (Priority Order)
 
-1. **Search API (APEX tier):** Primary lead in all outreach. High-accuracy retrieval for agents and LLMs. Long, rich snippets. Real-time freshness. One API, all of the data. Enterprise reliability with unified billing.
-2. **Contents API:** Crawls and extracts clean, structured content from any URL or domain. Powers AI tools that need site-specific data without building their own crawler.
-3. **Research API:** Deep, multi-step research by way of an API. For tooling that needs thorough, cited answers to complex queries. Goes deeper than a single search call.
-4. **Vertical Index (aka Custom Index):** Domain-specific, real-time knowledge with citations. Purpose-built indexes by industry (retail, media, hospitality, finance, legal). Combines public web, partner data, and structured sources. Same product, different name. Supporting angle that shows depth.
-**Product tiers:** APEX (Search API, Contents API, Research API).
-**NEVER sell or reference in outreach:** PRAG, AI Factory, Chat, ESL, Apex products, MCP Server. These are excluded from all pipeline runs, account plans, and outreach sequences.
+1. **Search API (APEX tier):** Primary lead in all outreach. High-accuracy retrieval for agents and LLMs. Long, rich snippets. Real-time freshness. One API, all of the data. Enterprise reliability with unified billing. Includes the News Search API at no extra cost (a dedicated news endpoint for recent, time-sensitive results).
+2. **Contents API:** Fetches full page text, summaries, and metadata for many URLs in one request. Returns clean Markdown or raw HTML. Reliable extraction at scale. Powers AI tools that need site-specific data without building their own crawler. Also reachable through the Search API livecrawl parameter.
+3. **Research API:** Deep, multi-step search and synthesis by way of an API. Returns cited, source-backed answers to complex queries. Five effort tiers (Lite, Standard, Deep, Exhaustive, Frontier) trade speed for depth. Goes deeper than a single search call.
+4. **Finance Research API:** Same pattern as the Research API, but over a purpose-built financial index instead of the open web: SEC filings, company fundamentals, equity and commodity prices across 42 exchanges, FX, crypto, macro indicators, earnings transcripts, and financial news. Cited answers built to avoid fiscal-year, unit, and period errors. The vertical lead for financial services, fintech, banking, and investment accounts. Supporting angle elsewhere.
+5. **Vertical Index (aka Custom Index):** Domain-specific, real-time knowledge with citations. Purpose-built indexes by industry (retail, media, hospitality, finance, legal). Combines public web, partner data, and structured sources. Same product, different name. Supporting angle that shows depth.
+**Product tiers:** APEX (Search API, Contents API, Research API, Finance Research API).
+**NEVER sell or reference in outreach:** PRAG, AI Factory, Chat, ESL, Apex products, MCP Server. These are excluded from all pipeline runs, account plans, and outreach sequences. (MCP Server is the technical access layer for our APIs and a free-trial onboarding hook; that is internal context only, not an outreach talking point.)
 
-**The calibration:** Search API always leads. Contents API and Research API are supporting angles for accounts that need crawled site data or deep research capabilities. Vertical Index adds depth when industry-specific signals warrant it. The goal: come across as a serious infrastructure company with range, not prescribe the biggest possible deal in the first email.
+**The calibration:** Search API always leads, except in financial services, fintech, banking, and investment accounts, where the Finance Research API leads instead. Contents API and Research API are supporting angles for accounts that need crawled site data or deep research capabilities. Vertical Index adds depth when industry-specific signals warrant it. The goal: come across as a serious infrastructure company with range, not prescribe the biggest possible deal in the first email.
 
 ---
 

@@ -1,0 +1,11 @@
+# One query per line. Lines starting with # are ignored. Max 10 used.
+OpenAI GPT-5 release date 2026
+best practices for LLM prompt engineering
+Nvidia H100 vs H200 GPU benchmark comparison
+Series B funding rounds AI startups 2026
+Python asyncio tutorial for beginners
+climate tech companies IPO 2026
+what is retrieval augmented generation RAG
+Apple WWDC 2026 announcements new features
+PostgreSQL vs MongoDB for SaaS applications
+enterprise AI adoption statistics 2026

@@ -9,10 +9,11 @@ Source: CS Team Site (internal-only). NEVER reference, link to, or quote this si
 **The pipeline targets Search API deals.** All outreach should lead with Search API as the entry point. Vertical Index, PRAG, and Custom Agents are relevant ONLY when they naturally extend from a Search API conversation or when account research clearly signals those needs. Do NOT prescribe E2E solutions, AI Factory engagements, or complex multi-product stacks in cold outreach.
 
 **Framing hierarchy for outreach:**
-1. **Always lead with**: Search API as AI search infrastructure (grounding layer for agents/LLMs)
-2. **Mention when relevant to the account**: Vertical Index (if they need industry-specific data), PRAG (if they have clear private knowledge base needs)
-3. **Background context only (don't lead with)**: Custom AI Agents, Agent API, Web Scraping/Web Index. These are post-conversation topics that emerge during discovery, not outreach openers
-4. **Rarely mention**: AI Factory. Only if the account clearly lacks internal AI/engineering capacity
+1. **Always lead with**: Search API as AI search infrastructure (grounding layer for agents/LLMs). Exception: in financial services, fintech, banking, and investment accounts, lead with the Finance Research API instead (see below)
+2. **Lead with for finance accounts**: Finance Research API (financial services, fintech, banking, investment). It searches a purpose-built financial index, not the open web. Supporting angle, not lead, for non-finance accounts
+3. **Mention when relevant to the account**: Vertical Index (if they need industry-specific data), PRAG (if they have clear private knowledge base needs)
+4. **Background context only (don't lead with)**: Custom AI Agents, Agent API, Web Scraping/Web Index. These are post-conversation topics that emerge during discovery, not outreach openers
+5. **Rarely mention**: AI Factory. Only if the account clearly lacks internal AI/engineering capacity
 
 The deeper product knowledge below (industry patterns, deployment combinations, post-sale delivery) exists to make outreach copy more informed and credible. It is NOT a menu to prescribe from. Use it to understand the prospect's world better, not to pitch a bigger deal in the first email.
 
@@ -27,6 +28,25 @@ The deeper product knowledge below (industry patterns, deployment combinations, 
 - Long, rich snippets with real-time freshness and citations
 - Single API endpoint covers all web data. Enterprise reliability with robust uptime and unified billing
 - Designed for machine reasoning, not human browsing. General web indexes were built for browsers; You.com indexes for AI systems
+- LLM-ready snippets with rich metadata per result; country and language targeting filters; up to 100 URLs per call
+- **Includes the News Search API at no extra cost**: a dedicated news endpoint for recent, time-sensitive results. Use as a freshness angle for agents that need current events, market-moving news, or real-time monitoring
+
+**Research API (Supporting Angle / Standalone Product)**
+- Multi-step search and synthesis returning cited, source-backed answers to complex queries
+- Goes deeper than a single Search API call: runs multiple searches, reads sources, synthesizes a Markdown answer with inline citations
+- Five effort tiers trade speed for depth: Lite, Standard, Deep, Exhaustive, Frontier
+- Supports source controls (domain filtering) and structured JSON output
+- #1 on DeepSearchQA; methodology built on an AAAI Best Paper award
+- Use when a prospect's tooling needs thorough, cited answers (research assistants, due diligence agents, analyst copilots) rather than raw retrieval
+
+**Finance Research API (Vertical Lead for Financial Services)**
+- Same request/response pattern as the Research API, but searches a purpose-built financial index instead of the open web
+- Index covers: company fundamentals (earnings, estimates, valuation ratios, segment metrics), market activity (M&A, buybacks, IPOs, VC funding), prices and rates (equities across 42 global exchanges, crypto, FX, metals, commodities, interest rates, inflation), alternative signals (web traffic, app analytics), macroeconomic data, SEC filings, earnings transcripts, analyst coverage, and financial news
+- Precision-focused: built to avoid fiscal-year, unit, and period errors. Cited answers with traceable [[n]] source references
+- Two effort tiers: Deep, Exhaustive. Scores 87.29% on FinSearchComp
+- Common use cases: earnings analysis, competitive benchmarking, due diligence, regulatory/filing analysis, macroeconomic research
+- **The lead product (not Search API) for financial services, fintech, banking, and investment accounts.** A research accelerator for synthesis, not a structured data feed or time-series API
+- Not for: raw OHLCV exports, tick-by-tick price streams, or JSON time series for quant modeling (point those at a dedicated data provider)
 
 **Vertical Index / Custom Index (Supporting Angle, Same Product)**
 - Domain-specific, real-time knowledge with citations
@@ -54,10 +74,10 @@ The deeper product knowledge below (industry patterns, deployment combinations, 
 - Enables real-time monitoring and indexing of specific web sources relevant to a customer's domain
 - Used as a data ingestion layer that feeds into Vertical Index or Custom Index
 
-**MCP Server Integration**
-- Zero-setup web search for AI agents (no API key, no signup for prototyping)
-- 100 free searches/day for developers to try before committing
-- Full details in MCP Technical Details section below
+**MCP Server (Internal Access Layer, NOT an Outreach Element)**
+- The technical access layer for our APIs: every You.com API is reachable via MCP at api.you.com/mcp. Search is free to try at api.you.com/mcp?profile=free (no signup); new accounts get $100 in free credits
+- Zero-setup web search for AI agents and a free-trial onboarding hook
+- **Banned in cold outreach.** This is internal context only, never a talking point in emails, LinkedIn, or prospect-facing docs. The Search API (or Finance Research API for finance accounts) is always the lead
 
 **AI Factory-As-A-Service (Mention Only When Relevant)**
 - Full-service AI engagement model for organizations that lack internal AI/engineering capacity
@@ -78,11 +98,28 @@ These are the common ways You.com products are combined in real deployments:
 
 ---
 
+## Internal Pricing Reference (INTERNAL ONLY, NEVER in Outreach)
+
+These are public list prices from you.com/pricing, kept here for rep awareness only. **Never lead with list price in cold outreach.** No dollar figures in any email, LinkedIn message, or prospect-facing doc. Pricing comes up in commercial conversations, not first-touch.
+
+| Product | List price | Notes |
+|---------|-----------|-------|
+| Search API | $5.00 / 1k calls | 1-100 results per call. News Search endpoint included at no extra cost |
+| Contents API | $1.00 / 1k pages | Batch multiple URLs per request |
+| Research API | from $12.00 / 1k calls (Lite) | Tiered by effort: Lite, Standard, Deep, Exhaustive, Frontier |
+| Finance Research API | $110.00 / 1k calls (Deep/Exhaustive) | Purpose-built financial index |
+
+- All new accounts get $100 in free credits to start.
+- Commercial flexibility: pay-as-you-go (no minimums), volume discounts as usage scales, annual-commit discounts.
+- Enterprise trust signals (safe to reference in outreach): zero data retention, SOC 2 certified, DPA-ready, custom QPS limits, no model training on customer data.
+
+---
+
 ## MCP Server (Brief Reference)
 
-- You.com offers an MCP server: zero-setup web search for AI agents (no API key, 100 free searches/day)
+- You.com offers an MCP server: the technical access layer for all our APIs (api.you.com/mcp), plus a no-signup free Search try at api.you.com/mcp?profile=free
 - Link: docs.you.com/developer-resources/mcp-server
-- **NOT a default outreach element.** Only mention when it naturally fits a deeply technical persona who would actually prototype. The Search API is always the lead product.
+- **Banned in cold outreach.** Internal access-layer context only, not a talking point. The Search API (or Finance Research API for finance accounts) is always the lead product.
 
 ---
 
@@ -121,10 +158,10 @@ Based on solution delivery patterns, these are the use case categories that reso
 - **Outreach angle**: "Travelers expect AI-powered personalization. The question is whether your AI has access to the right data to deliver it"
 
 ### Financial Services
-- **Primary pattern**: Search API + Vertical Index (for market intelligence) or PRAG (for internal compliance/research)
-- **Use case framing**: Power compliance research, market intelligence, risk analysis, and internal knowledge assistants with AI search grounded in financial data, regulatory filings, and firm-specific knowledge
-- **Pain points that resonate**: Regulatory complexity, speed of market data, compliance documentation burden, need for audit-ready AI outputs with citations
-- **Outreach angle**: "In financial services, AI accuracy isn't a feature, it's a regulatory requirement. The search infrastructure behind your AI has to be citation-grade"
+- **Primary pattern**: Finance Research API as the lead (purpose-built financial index), with Vertical Index or PRAG as supporting depth for internal compliance/research
+- **Use case framing**: Power earnings analysis, due diligence, competitive benchmarking, regulatory/filing analysis, and macroeconomic research with cited answers grounded in SEC filings, fundamentals, market data, and financial news, not the general web
+- **Pain points that resonate**: Regulatory complexity, speed of market data, compliance documentation burden, fiscal-year/unit/period errors from general-purpose tools, need for audit-ready AI outputs with traceable citations
+- **Outreach angle**: "General web search wasn't built to tell apart a fiscal year from a calendar year, or one company's segment metrics from another's. Financial workflows need an index built for filings and market data, with citations your compliance team can trace"
 
 ### Technology / SaaS
 - **Primary pattern**: Search API (standalone) for grounding existing AI features

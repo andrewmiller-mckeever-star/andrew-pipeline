@@ -1,0 +1,14 @@
+{
+  "name": "search-api-benchmark",
+  "version": "1.0.0",
+  "description": "Benchmark harness: You.com Search API vs competitor",
+  "main": "harness.js",
+  "scripts": {
+    "start": "node harness.js",
+    "bench": "node harness.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.30.0",
+    "dotenv": "^17.0.0"
+  }
+}

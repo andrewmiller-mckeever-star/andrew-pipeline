@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Competitive Intelligence Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0C0C12;
+      --bg-card: #14141F;
+      --bg-input: #1A1A28;
+      --border: #2A2A3E;
+      --accent: #5368EE;
+      --accent-hover: #6678F5;
+      --text: #E4E4F0;
+      --text-muted: #8A8AA8;
+      --text-dim: #5A5A78;
+      --error: #EE5368;
+      --success: #53EE8A;
+      --radius: 10px;
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100vh;
+      padding: 32px 24px;
+    }
+
+    header {
+      max-width: 1200px;
+      margin: 0 auto 32px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    header h1 {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    header .badge {
+      font-size: 11px;
+      font-weight: 500;
+      background: rgba(83, 104, 238, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(83, 104, 238, 0.3);
+      padding: 3px 8px;
+      border-radius: 20px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .search-panel {
+      max-width: 1200px;
+      margin: 0 auto 36px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+
+    .search-panel h2 {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 16px;
+    }
+
+    .inputs-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 900px) {
+      .inputs-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 500px) {
+      .inputs-grid { grid-template-columns: 1fr; }
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-wrap label {
+      display: block;
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-bottom: 5px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      padding: 9px 12px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input[type="text"]::placeholder { color: var(--text-dim); }
+    input[type="text"]:focus { border-color: var(--accent); }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    button {
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 500;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      padding: 9px 18px;
+      transition: background 0.15s, opacity 0.15s;
+    }
+
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+
+    .btn-secondary {
+      background: var(--bg-input);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover:not(:disabled) { border-color: var(--accent); color: var(--text); }
+
+    .status-msg {
+      margin-left: auto;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    /* Results grid */
+    .results-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      gap: 16px;
+    }
+
+    .results-grid.cols-1 { grid-template-columns: 1fr; }
+    .results-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .results-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .results-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+    .results-grid.cols-5 { grid-template-columns: repeat(5, 1fr); }
+
+    @media (max-width: 1100px) {
+      .results-grid.cols-4,
+      .results-grid.cols-5 { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 800px) {
+      .results-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    }
+    @media (max-width: 520px) {
+      .results-grid { grid-template-columns: 1fr !important; }
+    }
+
+    .col-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .col-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .col-header .company-name {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .col-header .ts {
+      font-size: 10px;
+      color: var(--text-dim);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .col-body {
+      padding: 12px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .result-item {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .result-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .result-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 20px;
+      flex-shrink: 0;
+    }
+    .label-Product      { background: rgba(83,104,238,0.18); color: #7B8FFF; border: 1px solid rgba(83,104,238,0.3); }
+    .label-Partnerships { background: rgba(83,238,138,0.15); color: #53EE8A; border: 1px solid rgba(83,238,138,0.3); }
+    .label-Strategy     { background: rgba(238,163,83,0.15); color: #EEA353; border: 1px solid rgba(238,163,83,0.3); }
+    .label-Market       { background: rgba(83,210,238,0.15); color: #53D2EE; border: 1px solid rgba(83,210,238,0.3); }
+    .label-People       { background: rgba(200,83,238,0.15); color: #C853EE; border: 1px solid rgba(200,83,238,0.3); }
+    .label-Funding      { background: rgba(238,220,83,0.15); color: #EEDC53; border: 1px solid rgba(238,220,83,0.3); }
+    .label-Summary      { background: rgba(150,150,170,0.15); color: #9A9AB8; border: 1px solid rgba(150,150,170,0.25); }
+    .label-Intel        { background: rgba(150,150,170,0.15); color: #9A9AB8; border: 1px solid rgba(150,150,170,0.25); }
+
+    .result-source {
+      font-size: 11px;
+      color: var(--text-dim);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .result-title {
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.35;
+      color: var(--text-muted);
+    }
+
+    .result-title a {
+      color: inherit;
+      text-decoration: none;
+      transition: color 0.12s;
+    }
+    .result-title a:hover { color: var(--accent); }
+
+    .result-snippet {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.55;
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .error-state {
+      padding: 20px 16px;
+      text-align: center;
+      color: var(--error);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .error-state .error-icon {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .skeleton {
+      background: linear-gradient(90deg, var(--bg-input) 25%, var(--border) 50%, var(--bg-input) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 4px;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .skeleton-title { height: 14px; width: 85%; margin-bottom: 6px; }
+    .skeleton-line { height: 12px; width: 100%; margin-bottom: 4px; }
+    .skeleton-line.short { width: 60%; }
+
+    .empty-state {
+      max-width: 1200px;
+      margin: 60px auto;
+      text-align: center;
+      color: var(--text-dim);
+    }
+    .empty-state svg { opacity: 0.3; margin-bottom: 16px; }
+    .empty-state p { font-size: 14px; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Competitive Intelligence</h1>
+    <span class="badge">Powered by You.com</span>
+  </header>
+
+  <div class="search-panel">
+    <h2>Competitors</h2>
+    <div class="inputs-grid" id="inputsGrid"></div>
+    <div class="actions">
+      <button class="btn-primary" id="searchBtn" onclick="runSearch(false)">Analyze</button>
+      <button class="btn-secondary" id="refreshBtn" onclick="runSearch(true)" disabled>Refresh All</button>
+      <span class="status-msg" id="statusMsg"></span>
+    </div>
+  </div>
+
+  <div id="resultsArea"></div>
+
+  <script>
+    const COMPANY_PLACEHOLDERS = ['e.g. Perplexity', 'e.g. Google', 'e.g. OpenAI', 'e.g. Mistral', 'e.g. Cohere'];
+
+    // Build input fields
+    const grid = document.getElementById('inputsGrid');
+    for (let i = 0; i < 5; i++) {
+      const wrap = document.createElement('div');
+      wrap.className = 'input-wrap';
+      wrap.innerHTML = `
+        <label for="comp${i}">Competitor ${i + 1}${i === 0 ? '' : ' (optional)'}</label>
+        <input type="text" id="comp${i}" placeholder="${COMPANY_PLACEHOLDERS[i]}"
+          ${i === 0 ? 'required' : ''}
+          onkeydown="if(event.key==='Enter') runSearch(false)" />
+      `;
+      grid.appendChild(wrap);
+    }
+
+    function getCompanies() {
+      return Array.from({ length: 5 }, (_, i) => document.getElementById(`comp${i}`).value.trim())
+        .filter(Boolean);
+    }
+
+    function setLoading(on) {
+      document.getElementById('searchBtn').disabled = on;
+      document.getElementById('refreshBtn').disabled = on;
+      document.getElementById('statusMsg').textContent = on ? 'Researching… (may take ~15s)' : '';
+    }
+
+    function formatTime(ts) {
+      return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function renderSkeletons(companies) {
+      const area = document.getElementById('resultsArea');
+      const n = companies.length;
+      area.innerHTML = `<div class="results-grid cols-${n}" id="grid">
+        ${companies.map(name => `
+          <div class="col-card" id="col-${CSS.escape(name)}">
+            <div class="col-header">
+              <span class="company-name">${escHtml(name)}</span>
+              <span class="ts">Loading…</span>
+            </div>
+            <div class="col-body">
+              ${[0,1,2].map(() => `
+                <div class="result-item">
+                  <div class="skeleton skeleton-title"></div>
+                  <div class="skeleton skeleton-line"></div>
+                  <div class="skeleton skeleton-line"></div>
+                  <div class="skeleton skeleton-line short"></div>
+                </div>`).join('')}
+            </div>
+          </div>`).join('')}
+      </div>`;
+    }
+
+    function escHtml(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function renderColumn(colEl, entry) {
+      const header = colEl.querySelector('.col-header');
+      header.querySelector('.ts').textContent = formatTime(entry.fetchedAt) + (entry.cached ? ' (cached)' : '');
+
+      const body = colEl.querySelector('.col-body');
+
+      if (entry.error) {
+        body.innerHTML = `<div class="error-state">
+          <div class="error-icon">⚠</div>
+          <div>${escHtml(entry.error)}</div>
+        </div>`;
+        return;
+      }
+
+      if (!entry.results || entry.results.length === 0) {
+        body.innerHTML = `<div class="error-state">No results found.</div>`;
+        return;
+      }
+
+      body.innerHTML = entry.results.map(r => `
+        <div class="result-item">
+          <div class="result-meta">
+            <span class="result-label label-${escHtml(r.label || 'Intel')}">${escHtml(r.label || 'Intel')}</span>
+            <span class="result-source">${escHtml(r.source)}</span>
+          </div>
+          <div class="result-title">
+            <a href="${escHtml(r.url)}" target="_blank" rel="noopener">${escHtml(r.title)}</a>
+          </div>
+          ${r.snippet ? `<div class="result-snippet">${escHtml(r.snippet)}</div>` : ''}
+        </div>`).join('');
+    }
+
+    async function runSearch(refresh) {
+      const companies = getCompanies();
+      if (!companies.length) {
+        document.getElementById('comp0').focus();
+        return;
+      }
+
+      setLoading(true);
+      renderSkeletons(companies);
+
+      try {
+        const qs = `companies=${encodeURIComponent(companies.join(','))}&refresh=${refresh}`;
+        const res = await fetch(`/api/search?${qs}`);
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || 'Server error');
+
+        data.results.forEach(entry => {
+          const id = `col-${CSS.escape(entry.company)}`;
+          const colEl = document.getElementById(id);
+          if (colEl) renderColumn(colEl, entry);
+        });
+
+        document.getElementById('refreshBtn').disabled = false;
+        document.getElementById('statusMsg').textContent =
+          `Last updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      } catch (err) {
+        document.getElementById('resultsArea').innerHTML =
+          `<div class="empty-state"><p>Request failed: ${escHtml(err.message)}</p></div>`;
+      } finally {
+        document.getElementById('searchBtn').disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
