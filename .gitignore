@@ -70,10 +70,12 @@ apollo-sequence-builder/usage_sequences_*.json
 *_facts.md
 *_hooks.md
 *_usecases.md
+*_plan_data.json
 *_research_paper.html
 *_org_chart.html
 .replit_research/
 youcom-investors.md
+steno-lovable-prompt.md
 bofa-deck/
 *.pptx
 
