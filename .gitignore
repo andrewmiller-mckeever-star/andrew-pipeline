@@ -22,8 +22,10 @@ memory/
 .env
 **/.env
 
-# Claude Code local settings — may contain API keys
-.claude/
+# Claude Code local settings — may contain API keys.
+# .claude/skills/ is re-included: cloud-ported skills (no secrets) that Routine sessions load from the repo.
+.claude/*
+!.claude/skills/
 
 # Credential files
 APOLLO_USER_ID

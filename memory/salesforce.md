@@ -8,14 +8,12 @@ type: reference
 
 ## Connection Details
 - **Org:** ydc.my.salesforce.com
-- **User:** ryan.reed@you.com (User ID: `005Vq00000CQghSIAT`)
+- **User:** andrew.miller-mckeever@you.com (User ID: `005Vq000009j4ezIAA`)
 - **Org ID:** 00Dfo000003ZI8QEAW
 - **API Version:** 66.0
-- **Auth:** Salesforce CLI (`sf org login web`)
-- **MCP Config:** `/Users/ryan/Desktop/YDC Pipeline/.mcp.json`
-- **MCP Package:** `@salesforce/mcp` (via npx, toolsets: core,data,orgs,users)
-- **Primary MCP tool:** `run_soql_query`
-- **Skill:** `~/.claude/skills/ydc-salesforce/SKILL.md` (full query specs, output format, decision gates)
+- **Auth (laptop):** Salesforce CLI (`sf org login web`); MCP package `@salesforce/mcp` (via npx, toolsets: core,data,orgs,users), primary tool `run_soql_query`
+- **Auth (cloud):** account-level Salesforce connector (hosted, read-only) — primary tool `soqlQuery`, plus `getObjectSchema`, `getRelatedRecords`
+- **Skill:** `skills/ydc-salesforce/SKILL.md` (laptop) / `.claude/skills/ydc-salesforce/SKILL.md` (cloud) — full query specs, output format, decision gates
 
 ## Org Schema
 

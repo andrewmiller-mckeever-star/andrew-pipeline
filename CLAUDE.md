@@ -19,6 +19,18 @@ Always-on context for You.com API Sales. This loads every conversation regardles
 
 ---
 
+## Cloud Execution (Claude Code Routines)
+
+When this repo runs in a Claude Code cloud session or Routine (no laptop):
+
+- **Cloud skills live in `.claude/skills/`** — cloud-adapted copies of the laptop skills in `skills/`. In a cloud session, use the `.claude/skills/` version. The `skills/` directory is the laptop originals; do not execute their local-path or browser steps in the cloud.
+- **Auth is account-level claude.ai connectors only:** Google Calendar, Google Drive, Slack, Salesforce (hosted, READ-ONLY: `soqlQuery`, `getObjectSchema`, `getRelatedRecords`), Apollo.io, Granola, Gmail, You.com Search. No local MCP servers, no `sf` CLI, no rclone, no browser automation.
+- **Secrets come from cloud-environment env vars,** never from files in this repo: `YDC_API_KEY`, `APOLLO_API_KEY`, `COMPANY_SEARCH_API_KEY`, `CTD_API_KEY`, `CTD_CLIENT_ID`. If a key is unset, degrade per the skill's fallback (usually the You.com Search connector or WebSearch) — do not abort, do not ask for the key in output.
+- **Write boundary (cloud default):** creating Google Docs/files in the designated Drive folders and posting to the specific Slack channel each skill names. NEVER write to Salesforce from the cloud (the connector is read-only by design; surface would-be writes for human review). Never email anyone. Never message any Slack channel or person a skill doesn't explicitly name. Apollo writes only where a skill's human-approval gate ("go" reply) has fired.
+- **Routine definitions** are in `routines-cloud/` (one file per Routine: schedule, connectors, exact prompt). The laptop originals are archived in `routines/`. Migration runbook: `MIGRATION.md`.
+
+---
+
 ## Who We Are
 
 You.com delivers the search infrastructure that powers modern Generative AI. We enable organizations to ground their AI agents in factual, cited, and trustworthy data sources. $100M Series C at $1.5B valuation. 1B+ queries/month. 5,000+ API customers. 57% Fortune 500 penetration.
