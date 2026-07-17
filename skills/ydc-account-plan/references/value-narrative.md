@@ -7,11 +7,13 @@ You.com delivers the search infrastructure that powers modern Generative AI, ena
 By integrating You.com's Search APIs, customers ensure their agents operate on fresh, authoritative, and contextually relevant information, dramatically reducing hallucinations and improving decision quality, transparency, and user trust. These APIs act as modular building blocks that support everything from simple retrieval tasks to complex multi-step agentic workflows.
 
 **Key Product Capabilities to Reference (in priority order):**
-- Search API: High-accuracy retrieval for agents and LLMs. Long, rich snippets. Real-time freshness. One API, all of the data. Enterprise reliability with robust uptime and unified billing.
+- Search API: High-accuracy retrieval for agents and LLMs. Long, rich snippets. Real-time freshness. One API, all of the data. Enterprise reliability with robust uptime and unified billing. Includes the News Search API at no extra cost (dedicated news endpoint for time-sensitive results).
+- Research API: Multi-step search and synthesis returning cited, source-backed answers to complex queries. Five effort tiers (Lite, Standard, Deep, Exhaustive, Frontier) trade speed for depth. For tooling that needs thorough, cited answers, not just raw retrieval.
+- Finance Research API: Same pattern as the Research API but over a purpose-built financial index (SEC filings, fundamentals, market data across 42 exchanges, macro indicators, financial news). Cited answers built to avoid fiscal-year/unit/period errors. The lead product for financial services, fintech, banking, and investment accounts.
 - Vertical Specific Index: Domain-specific, real-time knowledge with citations. Purpose-built indexes by industry (retail, media, hospitality, finance, legal, etc.). Combines public web, partner data, and structured sources.
 - Private RAG (PRAG): Enterprise knowledge base grounding. Secure private knowledge engine over enterprise documents with zero data retention and audit-ready compliance.
 - Custom Index: Tailored search indexes for specific use cases
-- MCP Server Integration: Zero-setup web search for AI agents (no API key, no signup for prototyping). 100 free searches/day.
+- MCP Server: The technical access layer for all our APIs and a free-trial onboarding hook. Internal context only, banned in cold outreach, never a talking point.
 - AI Factory-As-A-Service: Only mention when the account clearly lacks internal AI/engineering capacity. Not a default talking point.
 
 **Sales Pitch Framework (from Sales Deck):**

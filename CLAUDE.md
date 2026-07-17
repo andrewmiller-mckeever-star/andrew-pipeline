@@ -4,6 +4,8 @@ Always-on context for You.com API Sales. This loads every conversation regardles
 
 **AE Setup:** Read `ae-config.md` at the start of every pipeline session to load your name, email, and file paths. All identity and path values live there — nothing is hardcoded in the pipeline.
 
+**My account list:** When Andrew asks to compare something to "my accounts," "my list," or "my book," use the snapshot at `SFDC_ACCOUNTS_LIST_PATH` (see ae-config.md) as the default reference. It is a point-in-time export; for always-fresh data the pipeline skills query Salesforce live instead.
+
 ## Skill Architecture
 
 | Layer | What | When it loads |
@@ -142,6 +144,31 @@ Thanks, Ryan
 
 Why this is the gold standard for ALL writing: starts with THEM (their urgency, their failed evals). Zero AI-isms, em dashes, superlatives, or glazing. Plain, human tone. Short paragraphs. One point per paragraph. No buzzwords. Maps credibility to their specific problem. This style applies whether you're writing cold outreach, a warm follow-up, a partner email, or a Slack message.
 
+**Andrew voice rules (Always Apply, derived from Andrew's sent email + Slack, added 2026-07-15):**
+
+*Links (hard rules):*
+- Only canonical, verified URLs, no trailing slash: `https://you.com/platform` (signup, new accounts get $100 free credits), `https://you.com/docs/welcome` (docs). NEVER invent or guess a domain. If a URL has not been verified in Andrew's own past emails or the live product, do not use it.
+- Links get their own short paragraph. The docs line stands alone.
+- **Gmail draft mechanics (verified 2026-07-15):** the Gmail API wraps every URL-shaped string in a draft's plain-text body with a `google.com/url?q=...` redirect AT WRITE TIME (scheme-less domains too). So: (1) always create drafts with an explicit `htmlBody` where each link is an anchor tag - display text = clean scheme-less URL (`you.com/platform`), href = canonical https URL; (2) never rely on a plaintext-only body for any email containing links; (3) after creating drafts with links, read one back to verify - the plaintext alternative will show wrapped URLs (unavoidable), but compose and recipients render the clean HTML part. If Andrew reports the compose window still shows wrapped links, fall back to [LINK] placeholders and flag it.
+
+*Word choice:*
+- Plain verbs: test, explore, run, try, help, connect, set up, loop in. No cute or slangy phrasing ("poke at it," "swing by," "say the word").
+- Andrew's recurring phrases, use naturally: "Worth a conversation?", "Happy to leave it here.", "happy to make that happen," "reply here and I will add them," "Quick context on us:", "the offer stands whenever you're ready," "loop in the right person from our engineering team."
+- Offer engineering help by name: "my engineering team."
+
+*Structure:*
+- Open with something THEY did or something concrete, often with a number ("You're already close to 15,000 calls. That's a fast ramp for week one.").
+- One idea per paragraph, 1-2 sentences. An email is 4-6 short paragraphs max.
+- Concrete options instead of vague asks: named times ("Wednesday at 11:30 am or 4 pm"), named features ("Website filtering, Output formats, other endpoints, etc.").
+- Close with one short question ("Worth a conversation?" / "What would you test first?"). Never a stacked ask.
+- Say "you or your team" when offering resources.
+
+*Tone:*
+- Speed over polish. Andrew writes fast and a little loose. Never make copy sound more formal or more writerly than he does. Direct beats elegant.
+- Low pressure everywhere. Never chase; leave doors open.
+- Sign-off: "Warm regards," or "Cheers," (Andrew's stated preference 2026-07-15 - Warm regards for senior/enterprise contacts, Cheers for startups and peers); "Thanks," fine occasionally; then just "Andrew" (the signature block handles title/contact).
+- Slack: even shorter, first person, plain apologies ("sorry for the delay"), direct asks with the person named.
+
 ---
 
 ## Cold Outbound Rules (Sequences & LinkedIn Only)
@@ -253,6 +280,7 @@ Your LinkedIn profile handles identity. The email sequence carries the pitch. Th
 | Resource | Location |
 |----------|----------|
 | AE Config | ae-config.md (in this repo root — your name, email, tokens, paths) |
+| My Account List | See `SFDC_ACCOUNTS_LIST_PATH` in ae-config.md (canonical snapshot of Andrew's owned SFDC accounts) |
 | Sales Deck | See `SALES_DECK_PATH` in ae-config.md |
 | Product Knowledge | {MEMORY_PATH}/product-knowledge.md |
 | Memory Files | {MEMORY_PATH}/ (auto-resolved by Claude Code based on project location) |

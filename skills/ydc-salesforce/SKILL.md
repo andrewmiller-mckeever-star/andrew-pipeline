@@ -22,7 +22,7 @@ Primary source of prior account context for the whale pipeline. Replaces Slack k
 ### Model Routing
 
 - **Sonnet subagent:** Fires all 7 SOQL queries in parallel. Returns raw JSON results.
-- **Opus main thread:** Receives raw results. Synthesizes into CRM Intelligence Brief. Evaluates decision gates. Merges with Research API output and Slack context for final Step 1 output.
+- **Opus main thread:** Receives raw results. Synthesizes into CRM Intelligence Brief. Evaluates decision gates. Merges with ARI research and Slack context for final Step 1 output.
 
 ### When Invoked by ydc-research (Step 1.2)
 
@@ -133,7 +133,7 @@ ORDER BY ActivityDate DESC LIMIT 20
 
 **Sequence parsing:** Apollo task subjects follow `[Apollo >>] [Email] {Subject} - [Seq: {Sequence Name}]`. Extract the sequence name to identify which pipeline sequences have already been executed.
 
-### Q7: Ryan's Current Pipeline (Context)
+### Q7: Andrew's Current Pipeline (Context)
 
 ```sql
 SELECT Id, Name, StageName, Amount, CloseDate, Account.Name
@@ -141,7 +141,7 @@ FROM Opportunity WHERE OwnerId = '005Vq000009j4ezIAA' AND IsClosed = false ORDER
 ```
 
 **What it tells you:**
-- Ryan's full open pipeline (not account-specific)
+- Andrew's full open pipeline (not account-specific)
 - Context for capacity and priority decisions
 
 ---
@@ -225,7 +225,7 @@ For each reply, propagate key thread context below the table row:
 
 If Q2 returns open opps (IsClosed = false):
 - Surface: opp name, stage, amount, owner, close date
-- If Ryan owns the active opp: pipeline proceeds but outreach should reference existing relationship, not cold-pitch
+- If Andrew owns the active opp: pipeline proceeds but outreach should reference existing relationship, not cold-pitch
 - If someone else owns it: flag for coordination ("Active opp owned by {Name}. Coordinate before outreach.")
 
 ### Gate 2: Closed-Lost Intelligence (Strategy Adjust)
@@ -327,3 +327,16 @@ Log the error. Proceed without CRM context. SFDC intelligence is high-value but 
 | Step 4 (Outreach) | Product angle adjusted if prior products were lost. Contact-level hooks adjusted for prior engagement. Cold vs warm tone calibrated. |
 | Step 6B (Apollo) | SF Contact IDs noted for CRM sync reference. |
 | Pipeline End | Warm reply summary printed in chat. |
+
+---
+
+## Changelog
+
+| Date | Change | Reason |
+|------|--------|--------|
+| 2026-06-02 | Changelog initialized | Tracking all skill changes going forward |
+| (prior) | Added Q4: Prospect Replies ([Gong In] prefix) as a dedicated query | Inbound replies were the highest-value signal but weren't being systematically detected; buried in general activity timeline |
+| (prior) | Added thread propagation for [Gong In] replies (Description field extraction) | Reply content in SF Description field contains the full conversation; extracting it gives full context |
+| (prior) | Added 5 decision gates (Active Opp, Closed-Lost, Contact Dedup, Product Mix, Databricks) | Previous version surfaced raw data without structured guidance on how to act on each signal |
+| (prior) | Added Q6: Outbound Sequence Touches ([Apollo >>] prefix) | Sequences were being re-run against contacts who had already been touched; Apollo task subjects parsed to detect prior sequences |
+| (prior) | Added Databricks partnership fields (Q1: Databricks_Status__c, Partner_Relationship_Lead__c) | Databricks co-sell is a structured signal in SFDC; wasn't being surfaced or used in pipeline decisions |

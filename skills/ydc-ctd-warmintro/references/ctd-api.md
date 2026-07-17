@@ -5,7 +5,7 @@
 Every request requires two headers:
 
 ```
-ctd-api-key: uak_ySiouuC1pGh2RwfauOrjEssAp5V8-W4p
+ctd-api-key: {CTD_API_KEY — see ae-config.md}
 ctd-client-id: andrew.miller-mckeever@you.com
 ```
 

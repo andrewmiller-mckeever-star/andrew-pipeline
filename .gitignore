@@ -30,7 +30,14 @@ APOLLO_USER_ID
 SFDC_USER_ID
 
 # Prospect / account data — internal only
-sfdc_accounts_full.csv
+sfdc_accounts_full*.csv
+archive/
+
+# Customer POVs, event sponsor lists, enrollment data, decks — never publish
+Amazon_*.md
+RAISE_*
+*-enroll.json
+linkedin-deck/
 
 # Raw event data
 event_*.json

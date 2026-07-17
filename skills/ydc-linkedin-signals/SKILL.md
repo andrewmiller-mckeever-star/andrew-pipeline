@@ -112,7 +112,7 @@ After all prospects are scanned, generate comment suggestions for the **top 3-5 
 - Demonstrate domain expertise relevant to their post topic
 - Ask a genuine follow-up question when possible
 - 2-3 sentences max
-- Written in Ryan's voice: plain, direct, knowledgeable peer tone
+- Written in Andrew's voice: plain, direct, knowledgeable peer tone
 - No AI-isms, no glazing, no generic flattery
 
 ### Step 7: Output summary
@@ -144,3 +144,12 @@ These LinkedIn selectors are current as of March 2026:
 | Repost indicator | `.update-components-header__text-view` (presence = repost) |
 
 **If selectors break:** LinkedIn updates its DOM periodically. Take a screenshot, read the page structure, and update selectors in this file.
+
+---
+
+## Changelog
+
+| Date | Change | Reason |
+|------|--------|--------|
+| 2026-06-02 | Changelog initialized | Tracking all skill changes going forward |
+| 2026-03 | Updated selectors to current LinkedIn DOM (March 2026) | LinkedIn periodically obfuscates class names; replaced class-based selectors with stable aria/attribute selectors |

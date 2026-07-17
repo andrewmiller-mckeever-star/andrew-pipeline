@@ -1,9 +1,8 @@
 # Apollo Sequence JSON Format
 
-## JSON Data Format
+Sequences are built via Apollo REST API (cloud-native). No local JSON file is written or passed to Playwright. Hold the structure below in memory and pass it to ydc-apollo-build Phase A.
 
-Write the completed sequence JSON to:
-`~/Desktop/YDC Pipeline/apollo-sequence-builder/{account}_sequences.json`
+## In-Memory Schema
 
 ```json
 {
@@ -11,39 +10,38 @@ Write the completed sequence JSON to:
   "domain": "company.com",
   "sequences": [
     {
-      "name": "YDC | Company | Seq A: Engineering Leader",
+      "name": "YDC | Company | Seq 1: Technical Evaluator",
       "steps": [
         {
-          "type": "automatic_email",
-          "email_type": "new_thread",
-          "subject": "Subject line here",
-          "body": "Hi {{first_name}},\n\nFirst paragraph.\n\nSecond paragraph.\n\n{AE_NAME}\nYou.com"
+          "type": "manual_email",
+          "subject": "Subject line under 6 words",
+          "body": "Hi {{first_name}},\n\nFirst paragraph (Attention — hook).\n\nSecond paragraph (Interest + proof point).\n\nThird paragraph (Desire — tentative CTA).\n\nThanks,\nAndrew\nYou.com"
         },
         {
-          "type": "linkedin_connect",
-          "message": "LinkedIn connect note under 250 chars."
-        },
-        {
-          "type": "automatic_email",
-          "email_type": "reply",
-          "body": "Hi {{first_name}},\n\nFollow-up paragraph.\n\n{AE_FIRST_NAME}"
-        },
-        {
-          "type": "phone_call",
-          "task_note": "Call script text goes here."
+          "type": "auto_email",
+          "body": "Hi {{first_name}},\n\nNew proof point or angle (not a rephrase of Touch 1).\n\nAndrew"
         },
         {
           "type": "action_item",
-          "task_note": "Manual task note (e.g., engage on LinkedIn / research before the breakup email)."
+          "task_note": "View {{first_name}} {{last_name}}'s LinkedIn profile. Like or comment on a recent post if one exists in the last 2 weeks. Note any post topics or career updates for LinkedIn DM."
         },
         {
-          "type": "automatic_email",
-          "email_type": "reply",
-          "body": "Hi {{first_name}},\n\nBreakup paragraph.\n\n{AE_FIRST_NAME}"
-        },
+          "type": "auto_email",
+          "body": "Hi {{first_name}},\n\nBreakup touch — new angle, not a rephrase. AIDA structure.\n\nAndrew"
+        }
+      ],
+      "contacts": [
         {
-          "type": "linkedin_message",
-          "message": "LinkedIn DM under 250 chars. No pitch."
+          "first_name": "Sarah",
+          "last_name": "Chen",
+          "email": "sarah@company.com",
+          "title": "VP Engineering",
+          "linkedin_url": "https://linkedin.com/in/sarahchen",
+          "warm_intro": false,
+          "connect_note": "Under 250 chars. Fact-to-Consequence + Curiosity Hook. Zero pitch, zero CTA.",
+          "dm_message": "Under 300 chars. References their LinkedIn content. Zero product mention. Zero meeting CTA.",
+          "touch1_hook": "One-line hook used in Touch 1 subject/opener",
+          "touch1_hook_type": "trigger_event"
         }
       ]
     }
@@ -51,56 +49,43 @@ Write the completed sequence JSON to:
 }
 ```
 
-> **Note:** `{AE_NAME}` and `{AE_FIRST_NAME}` are populated from `ae-config.md` at the root of the repo.
-> Before writing any sequence JSON, read ae-config.md and substitute the AE's actual name values.
+## Step Types (Apollo REST API)
 
-## Step Types Supported
+| Type | Touch | Day | Notes |
+|------|-------|-----|-------|
+| `manual_email` | 1 | 0 | Andrew reviews and sends |
+| `auto_email` | 3 | +4 | Reply thread, fires after Touch 1 sent |
+| `action_item` | 5 | +6 | LinkedIn profile view task |
+| `auto_email` | 6 | +3 | Breakup reply, fires after Touch 1 sent |
 
-`automatic_email`, `manual_email`, `phone_call`, `linkedin_connect`, `linkedin_message`, `action_item`
+LinkedIn connect and LinkedIn DM are handled via the LinkedIn queue file in Drive — NOT sequence steps.
 
-## Step Type Mapping (Standardized Across All Sequences)
-
-| Touch | Day | Step Type | Notes |
-|-------|-----|-----------|-------|
-| 1 | Day 1 | Automatic email | New thread, unique subject |
-| 2 | Day 3 | LinkedIn - connect | No-pitch connection request |
-| 3 | Day 5 | Automatic email | Reply to Touch 1 thread |
-| 4 | Day 8 | Phone call | Manual call task |
-| 5 | Day 10 | Action item | Manual task (e.g., LinkedIn engage / research) |
-| 6 | Day 14 | Automatic email | Reply to Touch 1 thread (breakup) |
-| 7 | Day 17 | LinkedIn - message | LinkedIn DM, no pitch |
-
-All 4 sequences (A, B, C, D) use this identical 7-touch structure. Touches 3 and 6 use "reply to previous email" step type in Apollo (not "new thread").
-
-## Apollo Sequence Naming Convention
+## Sequence Naming Convention
 
 ```
-YDC | {Company} | Seq A: Engineering Leader
-YDC | {Company} | Seq B: Executive Sponsor
-YDC | {Company} | Seq C: Product Leader
-YDC | {Company} | Seq D: AI/ML Leader
+YDC | {Company} | Seq 1: Technical Evaluator
+YDC | {Company} | Seq 2: Business Sponsor
 ```
+Whale pipeline: Seq A: Engineering Leader / Seq B: Executive Sponsor / Seq C: Product Leader / Seq D: AI/ML Leader
 
-## Running the Playwright Script
+## Writing Rules (all apply)
 
-After writing the JSON file, alert the user to run:
+- Touch 1 subject: under 6 words
+- Touch 1 body: 80-120 words, AIDA structure, opens with "Hi {{first_name}},"
+- Follow-ups: 80-120 words, each adds NEW proof point or angle (never rephrase)
+- No em dashes. Plain text only. 5th-7th grade reading level.
+- Interest-based CTAs only (no time-based asks)
+- Tentative language in Interest section
+- At least one Socher reference per sequence
+- At least one public proof point per sequence
+- Never name competitors. Never reference specific evals.
+- Strip corporate suffixes.
+- connect_note: Fact-to-Consequence + Curiosity Hook, under 250 chars, zero pitch, zero CTA, zero flattery
+- dm_message: peer-to-peer, references their actual LinkedIn posts/content, under 300 chars, zero product mention, zero meeting CTA, different hook from Touch 6
 
-The script lives in the repo; the sequence JSON lives on the Desktop. Use full paths:
+## touch1_hook_type Values
 
-```bash
-REPO="/Users/andrew/Downloads/Claud_Code_folder/YDCpipeline/apollo-sequence-builder"
-JSON="$HOME/Desktop/YDC Pipeline/apollo-sequence-builder/{account}_sequences.json"
-
-# Headless (default, reliable, no window)
-cd "$REPO" && node build-sequences.js "$JSON"
-
-# Headed (watch the browser)
-cd "$REPO" && HEADED=true node build-sequences.js "$JSON"
-
-# Debug mode (verbose logging + slow motion)
-cd "$REPO" && DEBUG=true HEADED=true node build-sequences.js "$JSON"
-```
-
-Chrome does NOT need to be closed. build-sequences.js uses its own dedicated profile (`~/.apollo-playwright-profile`) via `launchPersistentContext`, separate from your everyday Chrome. (The "quit Chrome" rule applies only to the LinkedIn task script, which uses a different profile.)
-
-After the script completes, read the `_results.json` file to extract sequence IDs (needed for Phase B contact enrollment) and confirm all sequences were created successfully.
+- `trigger_event` — recent news, launch, hire, funding, product announcement
+- `their_content` — something they published, posted, or said publicly
+- `company_initiative` — a named product, team, or strategic direction
+- `role_pain` — fallback when nothing specific is findable (flag if 3+ contacts use this)

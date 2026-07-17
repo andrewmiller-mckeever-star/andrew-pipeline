@@ -30,7 +30,7 @@ Invoke the ydc-salesforce skill. Runs 7 SOQL queries in parallel against the tar
 - Prospect replies ([Gong In] prefix, with full thread propagation)
 - Activity timeline (last 12 months)
 - Outbound Apollo sequences already run
-- Ryan's current pipeline context
+- Andrew's current pipeline context
 
 Output: Structured CRM Intelligence Brief (Section 9 of research output) with 5 decision gates:
 1. Active Opportunity check
@@ -46,44 +46,36 @@ Search these channels for account name mentions: #api-gtm-team, #sales-team, #es
 Capture: informal context, competitive mentions, anecdotal notes not captured in SF.
 Slack is supplemental to SFDC, not primary. SFDC has the structured data; Slack catches informal signals.
 
-### Step 2c: CTD Warm Intro Check (runs in parallel with Steps 2 and 2b)
+### Step 2c: CTD Warm Intro Check + Investor Overlap (runs in parallel with Steps 2 and 2b)
 
-Query Connect The Dots to find warm intro paths into the target account. This runs at research time — not post-pipeline — so the data is available to weight prospect selection in Step 3.
+Invoke the **ydc-ctd-warmintro skill as a Sonnet subagent**, passing the target company domain. The skill handles:
+- CTD API calls, filtering, ranking, and ghost email drafting (Bucket A/B/C paths)
+- Monthly refresh of `youcom-investors.md` (rebuilds if not updated this month)
+- Target company investor research (3 Research API queries)
+- Shared investor cross-reference + person lookup (3 queries per matched firm)
+- Ghost Slack message + ghost email drafting for each shared investor firm
 
-**Auth:** Read `CTD_API_KEY` and `CTD_CLIENT_ID` from `ae-config.md`.
+Embed the full ydc-ctd-warmintro output verbatim into Section 9 of the research brief. Do not summarize or truncate it.
 
-**Three calls in sequence:**
+**Delimited output for nightly doc:** The CTD skill produces two types of labeled blocks:
 
-**1. Check company reachability:**
 ```
-GET https://api.ctd.ai/user/atc-paths-api/public/v1/company?company_domain={domain}
-Headers: ctd-api-key: {CTD_API_KEY}, ctd-client-id: {CTD_CLIENT_ID}
-```
-- If 404 or no data: note "No CTD data for {Company}" in Section 9 and skip remaining CTD calls.
-- Log `ctd_company_score_label` for context but always proceed to call 2 regardless of score.
+=== CTD REFERRAL PATHS FOR NIGHTLY DOC ===
+Company: {company name}
+Domain: {domain}
+{all Bucket A/B paths with 3-piece copy}
+=== END CTD REFERRAL PATHS ===
 
-**2. Find reachable ICP contacts:**
+=== INVESTOR OVERLAP PATHS FOR NIGHTLY DOC ===
+Company: {company name}
+Domain: {domain}
+{all shared investor paths with 3-piece copy}
+=== END INVESTOR OVERLAP PATHS ===
 ```
-GET https://api.ctd.ai/user/atc-paths-api/public/v1/people?company_domain={domain}&degree=first&degree=second&target_seniority=VP&target_seniority=Director&target_seniority=CXO&target_seniority=CEO&target_seniority=Founder&target_function=Engineering&target_function=Product&target_function=Information+Technology&page_size=40
-```
-Filter results to ONLY contacts where `ctd_score_label` = "Strong Chance to Connect".
 
-**3. Get strong intro paths:**
-```
-GET https://api.ctd.ai/user/atc-paths-api/public/v1/paths?company_domain={domain}&path_relationship_strength=strong&path_relationship_strength=medium&degree=first&degree=second&page_size=40
-```
-Keep only paths where `path_relationship_strength_label` = "strong". Drop medium.
+The pipeline orchestrator collects BOTH block types from all accounts and compiles them into the persistent daily Google Doc at the end of the batch (see ydc-pipeline Step 7).
 
-**For each qualifying path, extract:**
-- Target: name, title, LinkedIn ID
-- Connector: name, title, company, LinkedIn ID, `connector_type`
-- Relationship context: `overlapping_message` from `edges[]`
-- Degree: 1st or 2nd
-- **You.com Employee flag:** if the connector's company is "You.com" or domain is "you.com", mark `ydc_employee: true`
-
-**Output:** Structured warm intro table in Section 9 of the research brief (see Output Template below). This data is passed forward to ydc-prospects for contact weighting. Do NOT generate ghost emails here — that is the job of the standalone ydc-ctd-warmintro skill.
-
-**Graceful failure:** If any CTD call errors or returns empty, note it clearly in Section 9 and continue. CTD failure does not block the pipeline.
+**Graceful failure:** If CTD returns no data or errors, note it clearly in Section 9 and continue. If investor research returns nothing, note it and continue. Neither failure blocks the pipeline.
 
 ### Step 2d: Sumble Intelligence Check (runs in parallel with Steps 2, 2b, 2c)
 
@@ -185,188 +177,117 @@ Do NOT re-run broad research queries already covered by the Research API.
 8. LinkedIn (org chart, leadership via Apollo)
 9. Sales deck: see SALES_DECK_PATH in ae-config.md
 
-## Output Template
+## Output
 
-After all Research API calls return, synthesize into the following structured research brief. This document feeds directly into ydc-account-plan. Every externally sourced fact must have a citation. No fabricated URLs.
-
-**Citation format:** (Source Name — URL) inline after each claim. If no verifiable URL exists: (No verifiable source — To Be Validated by AE).
-
-**Minimum citation targets:**
-- Total across all sections: 20+ sources
-- Section 3 (AI Initiatives): 5+ sources
-- Section 8 (Data & Search Infrastructure): 3+ sources minimum — this is the highest-value section
-- Section 5 (Leadership): 1 source per named leader (LinkedIn or company page)
-- If any section has 0 sources from Research API: mandatory WebSearch gap-fill before proceeding
+After all research calls complete, write three structured artifact files to disk. These replace the long-form prose brief. Each file is optimized for the downstream step that consumes it. The full research API responses stay in context for synthesis but are not written to disk as prose.
 
 ---
+
+### File 1: `{company}_facts.md`
+Save to: `/Users/andrew/Downloads/Claud_Code_folder/YDCpipeline/{company}_facts.md`
+
+Structured facts organized by account plan section. ~400 words. Include source URLs inline for every cited fact.
 
 ```
-# {Company} Research Brief
-Generated: {date} | Sources: You.com Research API + Salesforce + Slack + WebSearch
+## Company Overview
+- Company Name:
+- Website:
+- HQ:
+- Employees: [number (Source - URL)]
+- Revenue/ARR: [figure (Source - URL)]
+- Industry:
+- Business Units: [list]
+- Tech Stack: [list — flag Sumble signals: displacement/migration/RAG/co-sell]
+- Recent Press: [3-5 items with dates and source URLs]
+- AI Initiatives: [list with product names, launch dates, source URLs]
+- Existing Relationship: [from SF — prior sequences, last activity, or "No SF data"]
+- Renewal Details: [from SF — closed-won opps, or "No SF data"]
+- Internal Ownership: [SF account owner, or "No SF data"]
 
----
+## Strategic Context
+- Corporate Strategy: [2-3 sentences + source URLs]
+- Industry Trends: [2-3 bullets + source URLs]
+- AI/Automation Programs: [specific initiatives + source URLs]
+- Earnings Themes: [if public company + source URLs, else omit]
+- Market Pressures: [2-3 bullets + source URLs]
 
-## 1. Company Overview
-- Full name, website, HQ location
-- Employee count (Source — URL)
-- Revenue / ARR / valuation (Source — URL)
-- Industry classification and primary business lines
-- Fiscal year and public/private status
+## Leadership Directory
+[One line per Director+ contact identified from Research API Area 2 and Sumble]
+- Name: | Title: | LinkedIn: [URL if found] | Dept: | Relevance to YDC:
 
-## 2. Tech Stack
-- Cloud providers, primary languages, ML frameworks, databases in known use
-- Any public engineering blog posts about infrastructure choices
-- (Source — URL) for each confirmed detail
+## Relevant Teams and Products
+[Product and team names that help Step 3 identify the right prospects]
+- [Product name]: owned by [team/person if known] — relevant because [1 sentence]
 
-## 3. AI/ML Initiatives [PRIORITY: feeds Seq D hook and all persona hooks]
-- All AI products and features shipped in 2025-2026, with launch dates (Source — URL)
-- Any use of RAG, agentic workflows, LLM integrations, or AI assistants
-- Internal AI tooling (coding assistants, knowledge bases, internal copilots)
-- AI hiring signals: open roles mentioning LLMs, RAG, retrieval, search infra
-- Citation density target: 5-10 sources
-
-**Pitch signal:** Flag any AI product that needs real-time external data, grounding, or citation accuracy. These are the direct entry angles.
-
-## 4. Strategy & Leadership
-- CEO/CTO/CPO public statements on AI strategy (Source — URL)
-- Recent earnings or investor commentary themes
-- Strategic pivots or cost reduction signals
-- Known technology investment priorities
-
-## 5. Leadership Team [CRITICAL: feeds Step 3 prospect targeting]
-
-| Name | Title | LinkedIn | Notes |
-|------|-------|----------|-------|
-| {Name} | CTO | {URL} | {e.g., joined from X, focus on Y} |
-| {Name} | VP Engineering | {URL} | |
-| {Name} | VP/Head of Product | {URL} | |
-| {Name} | Head of AI/ML | {URL} | |
-| {Name} | Chief Data/Analytics Officer | {URL} | |
-
-Include every confirmed VP+ in Engineering, AI/ML, Product, Data. Fill gaps with "Not publicly identified."
-Source each person: (LinkedIn — URL) or (Company page — URL).
-
-## 6. Recent News (2025-2026) [Chronological]
-- {Date}: {Event} (Source — URL)
-- {Date}: {Funding round / launch / partnership / hire / regulatory event} (Source — URL)
-Include specific dollar figures and dates where available. Minimum 5 entries.
-
-## 7. Competitive Landscape
-- Named competitors in their market (not You.com competitors)
-- Any analyst comparisons or market share data (Source — URL)
-- Competitive pressures affecting their technology investments
-
-## 8. Data & Search Infrastructure [HIGHEST-VALUE SECTION — You.com relevance]
-This section determines the pitch entry angle. Be exhaustive.
-
-- How does the company currently retrieve external content for AI products or internal tools?
-- Any named third-party data providers, search APIs, or content aggregation services (Source — URL)
-- Any engineering blog posts, job postings, or conference talks about retrieval, search, or RAG architecture (Source — URL)
-- Any public signals of data freshness problems, hallucination issues, or coverage gaps
-- Any migration signals (switching providers, building in-house, evaluating alternatives)
-- Citation density target: 3-8 sources
-
-**Pitch entry angle:** Based on findings, state in 1-2 sentences: what is the most credible angle for You.com Search API? Which product (Search API / Contents API / Research API / Vertical Index) maps most directly to what they need?
-
-## 9. CRM Intelligence & Prior Engagement
-[Filled from ydc-salesforce skill output — do not fabricate]
-
-### Account Status
-- SF Account: {Exists / Does not exist}
-- Owner, Account Type, Industry
-
-### Prospect Replies (Warm Paths)
-[From [Gong In] tasks — see ydc-salesforce output]
-
-### Opportunity History
-[From SF opp queries]
-
-### Existing SF Contacts
-[For dedup in Step 3]
-
-### Activity Timeline
-[Last 12 months summary]
-
-### Slack Context
-[Any relevant signals from #api-gtm-team, #sales-team, #esl-api-sales]
-
-### Pipeline Decision Gates
-[From ydc-salesforce skill — 5 gates: Active Opp, Prior Rejection, Contact Dedup, Product Mix, Databricks]
-
-### Warm Intro Paths (CTD)
-[Filled from Step 2c CTD query — do not fabricate. If CTD returned no data, write "No CTD data for {Company}."]
-
-CTD Company Score: {Strong / Familiar / Weak / No data}
-Strong Intro Paths Found: {N}
-
-| Target Name | Target Title | Connector | Connector Co | Degree | YDC Employee? | Relationship Context |
-|-------------|-------------|-----------|--------------|--------|---------------|----------------------|
-| {Name}      | {Title}     | {Name}    | {Company}    | 1st    | Yes / No      | {overlapping_message — 1-2 sentence summary} |
-
-**You.com Employee Connectors (priority intro asks — ask via Slack before activating sequences):**
-- {Connector Name} ({Title} at You.com) → {Target Name} ({Target Title})
-  Context: {1-sentence summary of shared history / relationship}
-
-**NOTE TO ydc-prospects:** Contacts matching CTD targets with strong paths get elevated one rank in prospect prioritization. Contacts reachable via a You.com employee connector are included in the prospect list regardless of standard ICP criteria — tag as `WARM INTRO ONLY, do not cold enroll`.
-
-## 10. Sumble Intelligence
-[Filled from Step 2d Sumble calls — do not fabricate. If Sumble returned no data, write "No Sumble data for {Company}."]
-
-**Tech Stack Signals:**
-| Signal Type | Technology | Implication |
-|-------------|-----------|-------------|
-| Competitor | Exa | Direct displacement opportunity |
-| RAG Stack | LangChain | Building AI agents — needs grounding layer |
-| Legacy Scraping | BeautifulSoup | Manual data pipeline — migration angle |
-| Co-sell | Databricks | Unity Catalog integration angle |
-(list only detected technologies — omit rows with no signal)
-
-Competitor tech detected: Yes / No
-Legacy scraping stack detected: Yes / No
-RAG/LLM stack detected: Yes / No
-
-**Active Hiring Signals (top 5 AI/search/data roles):**
-| Job Title | Signal |
-|-----------|--------|
-| {title} | {1-sentence signal from job description} |
-
-No relevant job postings found: {Yes / No}
-
-**Outreach hook implications:**
-- {1-3 bullets: how Sumble signals should inform Touch 1 hook or sequence angle}
-
----
-
-## Synthesis: Outreach Hook Candidates
-
-After completing all 9 sections, run a cross-reference pass:
-
-**AI Initiatives x Data Infrastructure:** Where do Sections 3 and 8 intersect? Which AI product is most likely underpowered by weak retrieval? That intersection is the primary pitch entry point.
-
-**Hook candidates by persona (pull 2-3 per sequence):**
-
-| Sequence | Persona | Best Hook Candidate | Hook Type |
-|----------|---------|--------------------| ----------|
-| Seq A | Engineering Leader | {specific trigger event or infra signal} | {Trigger / Content / Initiative / Pain} |
-| Seq B | Executive Sponsor | {funding news / AI program / strategic angle} | |
-| Seq C | Product Leader | {product launch or competitive gap} | |
-| Seq D | AI/ML Leader | {RAG/retrieval signal from Section 3 or 8} | |
-
-**Strongest proof point match:** Which named case study (Harvey / Windsurf / Salesforce / DuckDuckGo / Databricks) maps closest to this account's use case? State why.
-
-**Founder credibility placement:** Which sequence/persona benefits most from Socher credibility angle? State the framing.
-
----
-
-## Research Quality Assessment
-- Areas with strong coverage (5+ sources): [list]
-- Areas with thin coverage (fewer than 2 sources): [list] — flag for AE follow-up or WebSearch gap-fill
-- Total sources cited: [n]
-- Research API calls completed: [n]/5
-- WebSearch supplemental: [yes/no — what for]
+## Competitive Landscape
+- Competitors (their market): [list + source URLs]
+- Market pressures: [2-3 bullets + source URLs]
 ```
 
 ---
+
+### File 2: `{company}_usecases.md`
+Save to: `/Users/andrew/Downloads/Claud_Code_folder/YDCpipeline/{company}_usecases.md`
+
+3-5 prioritized use cases. ~250 words. This is the "why they'd buy" layer — connects their specific signals to You.com outcomes.
+
+```
+## Use Cases
+
+### UC1: [Name]
+- Pain signal: [specific evidence from research with date if available]
+- You.com capability: [Search API / Contents API / Research API]
+- Why they'd buy: [1-2 sentences connecting their signal to the outcome]
+- Relevant persona: [Engineering Leader / Executive Sponsor / Product Leader / AI/ML Leader]
+- Proof point match: [DuckDuckGo / Harvey / Windsurf / Salesforce / Databricks — and why it fits]
+
+[Repeat for UC2-UC5, ranked by signal strength]
+
+## Secondary Angles
+[2-3 backup hooks — lower confidence but worth noting for Step 4 follow-up touches]
+- [Signal] | [Angle] | [Persona]
+```
+
+---
+
+### File 3: `{company}_hooks.md`
+Save to: `/Users/andrew/Downloads/Claud_Code_folder/YDCpipeline/{company}_hooks.md`
+
+6-8 outreach-ready signals plus all CRM/CTD flags. ~200 words. This is the direct input for Step 4 Touch 1 hook selection.
+
+```
+## Trigger Events
+- [Signal type] | [Specific finding + date] | [Persona: Seq A/B/C/D]
+
+## Tech Stack Signals
+- [Technology] | [Implication for outreach] | [Persona]
+  (include Sumble findings: competitor tech, legacy scraping, RAG stack, co-sell)
+
+## Hiring Signals
+- [Job title + date posted] | [Key signal from JD — e.g. "explicitly mentions replacing legacy search API"] | [Persona]
+
+## Proof Point Recommendation
+- Primary: [case study + why it fits this account]
+- Secondary: [backup case study + reason]
+
+## SF Flags
+- Prior sequences run: [sequence names + dates, or "None"]
+- Contacts to hold (in SF with activity): [names + reason]
+- Closed-lost products to avoid re-pitching: [products + dates, or "None"]
+- Active opportunity: [Yes/No + details]
+- Databricks co-sell signal: [Yes/No]
+
+## CTD Warm Intro Paths
+[Embed full ydc-ctd-warmintro output verbatim here — all paths, ghost emails, summary, next steps]
+[Or: "No CTD data returned for this account."]
+
+## Handoff Notes
+NOTE TO ydc-prospects: Read _facts.md Leadership Directory for LinkedIn URLs to use in Apollo bulk match. Read SF Flags above for contacts to hold and dedup. Contacts matching CTD targets get +1 rank priority. Contacts reachable via a You.com employee connector are WARM INTRO ONLY — do not cold enroll.
+
+NOTE TO ydc-account-plan: Read _facts.md + _usecases.md to populate plan_data.json. CTD data is in _hooks.md — add Warm Intro column to Section 8 Contact Assignments table if CTD paths exist.
+
+NOTE TO ydc-outreach: Read _usecases.md for use case angles per sequence. Read _hooks.md Trigger Events + Tech Stack Signals for Touch 1 hook selection. SF Flags govern hold/activation timing.
+```
 
 ## Slack Channels Reference
 
@@ -388,3 +309,17 @@ After completing all 9 sections, run a cross-reference pass:
 **ARI PDF (Deprecated 2026-04-08):** The pipeline previously required a manually generated You.com ARI deep research PDF. This has been replaced by automated Research API calls in Step 3. No user action required for research — the pipeline runs end-to-end without a PDF.
 
 **Perplexity CDP Playbook (Deprecated 2026-03-19):** Perplexity Deep Research via Chrome CDP was the original primary research tool, replaced by ARI PDF, now replaced by the Research API. The CDP playbook is retained in memory/perplexity-cdp.md for historical reference only.
+
+---
+
+## Changelog
+
+| Date | Change | Reason |
+|------|--------|--------|
+| 2026-06-02 | Changelog initialized | Tracking all skill changes going forward |
+| 2026-04-08 | Replaced ARI PDF with automated Research API calls (Step 3) | ARI PDF required manual generation; Research API runs end-to-end without user action |
+| 2026-03-19 | Replaced Perplexity CDP playbook with ARI PDF | Perplexity Chrome CDP was brittle; ARI PDF provided more reliable structured output |
+| (prior) | Added Step 2d: Sumble intelligence check (parallel with SF/Slack/CTD) | Tech stack and hiring signals from Sumble improve use case selection and hook quality in Steps 3-4 |
+| (prior) | Added Step 2c: CTD warm intro as Sonnet subagent | Warm intro discovery needed to run in parallel with SFDC, not sequentially |
+| (prior) | Replaced Section 9 "Slack Context" with "CRM Intelligence & Prior Engagement" (ydc-salesforce output) | SFDC is the authoritative source; Slack is supplemental. Dedicated salesforce skill runs 7 parallel SOQL queries |
+| (prior) | Replaced long-form prose brief with three structured artifact files (_facts.md, _usecases.md, _hooks.md) | Downstream steps (account plan, prospects, outreach) each need different subsets; single prose brief was over-loading every consumer |

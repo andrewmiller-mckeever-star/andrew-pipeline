@@ -14,26 +14,35 @@
 
 **6.2: Create contacts**
 
-For each prospect from Apollo enrichment (Step 3) with a valid email, call `apollo_contacts_create`:
-- first_name, last_name, email, title, organization_name, account_id
+**HARD GATE — email required:** Only call `apollo_contacts_create` for contacts where you have an actual verified email string from `apollo_people_bulk_match`. The `has_email: true` flag from `apollo_mixed_people_api_search` is NOT an email address — it only means Apollo believes one exists. If bulk_match did not return a non-null email for a contact, skip `apollo_contacts_create` entirely for that person. Creating contacts without emails produces unenrollable shells in Apollo.
+
+For each prospect with a confirmed email from bulk_match, call `apollo_contacts_create`:
+- first_name, last_name, **email** (must be non-null), title, organization_name, account_id
 - `label_names`: ["Whale Pipeline", "{Company} - Seq {A|B|C|D}"]
 - `run_dedupe`: true
 
 Group returned contact IDs by their sequence letter assignment.
 
-**6.3: Enroll contacts in sequences**
+**6.3: Pre-enrollment email check**
+
+Before enrolling, call `apollo_contacts_search` q_keywords="{Company}" and verify that each contact ID you intend to enroll has a non-null `email` field and `email_status` of "verified" or "likely to engage". Drop any contact that shows `email: null` or `email_status: null` — these will be silently blocked by `sequence_no_email: false` anyway, and enrolling them wastes API calls.
+
+Log: "Enrolling N contacts (dropped M with null email)."
+
+**6.4: Enroll contacts in sequences**
 
 For each sequence found in 6.0B, call `apollo_emailer_campaigns_add_contact_ids`:
 - `id` + `emailer_campaign_id`: sequence ID (same value for both)
 - `send_email_from_email_account_id`: from 6.0A
-- `contact_ids`: grouped from 6.2
+- `contact_ids`: verified-email contacts only, grouped from 6.2
 - `sequence_same_company_in_same_campaign`: true
-- `sequence_active_in_other_campaigns`: false
+- `sequence_active_in_other_campaigns`: true
+- `sequence_finished_in_other_campaigns`: true
 - `sequence_no_email`: false
 
 **Sequences remain INACTIVE. Contacts are enrolled but no emails are sent until the user manually activates each sequence in Apollo.**
 
-**6.4: Verify & report**
+**6.5: Verify & report**
 
 Display a summary after completion:
 
