@@ -14,7 +14,7 @@
 ## PROMPT
 
 ```
-Run the ydc-usage-outreach-daily skill in scan mode. Scan new API signups and newly active users across Andrew's accounts, classify them, post the numbered review list to #my-accounts-api-users-daily, and write the daily-pending state file to Drive. Follow the skill's cloud write boundary exactly: Salesforce is READ-ONLY in the cloud (any Contact-creation payloads are surfaced for review, not executed); Apollo writes happen only in enroll mode after Andrew's "go" reply.
+Open the repository file .claude/skills/ydc-usage-outreach-daily/SKILL.md and follow its instructions exactly, in scan mode. Scan new API signups and newly active users across Andrew's accounts, classify them, post the numbered review list to #my-accounts-api-users-daily, and write the daily-pending state file to Drive. Follow the file's cloud write boundary exactly: Salesforce is READ-ONLY in the cloud (any Contact-creation payloads are surfaced for review, not executed); Apollo writes happen only in enroll mode after Andrew's "go" reply. If the file cannot be read, post a one-line error notice to #my-accounts-api-users-daily instead of improvising.
 ```
 
 ## Cutover notes

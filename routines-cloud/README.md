@@ -2,7 +2,9 @@
 
 One file per cloud Routine. Each file contains everything needed to create the Routine in the Claude Code web UI: schedule, timezone, connectors to enable, and the exact prompt to paste. The prompt bodies are cloud-adapted versions of the laptop scheduled tasks in `routines/` (connector tools instead of hardcoded local MCP IDs, no local paths, no rclone).
 
-**How to create one:** Claude Code web → Automations/Routines → New Routine → repository `andrewmiller-mckeever-star/andrew-pipeline` → paste the PROMPT block → select the listed connectors → set the schedule → save unscheduled first, fire a manual test run, verify the expected output, THEN enable the schedule.
+**How to create one:** Claude Code web → Automations/Routines → New Routine → repository `andrewmiller-mckeever-star/andrew-pipeline` → paste the PROMPT block → select the listed connectors → set the schedule → fire a manual "Run now" test, verify the expected output, then trust the schedule.
+
+**⚠️ Skill loading (learned 2026-07-20):** Routine sessions do NOT auto-register repo skills from `.claude/skills/` — the first scheduled run found no ydc-meeting-brief skill and correctly stopped. Every prompt that delegates to a skill therefore says "Open the repository file .claude/skills/<name>/SKILL.md and follow its instructions" instead of "run the skill". Keep that pattern for any new Routine. Also trim each Routine's connectors to only the ones its file lists — headless runs can hang on connectors that need interactive re-auth.
 
 **Cutover rule (every routine):** never run the cloud Routine and the laptop task on the same schedule at the same time — you'll get double Slack posts or double enrollment. Sequence: manual cloud test → verify → enable cloud schedule → watch 2-3 runs → disable the laptop task (each file names which one).
 

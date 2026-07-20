@@ -12,8 +12,10 @@
 
 ## PROMPT
 
+> Routine sessions do not auto-register repo skills from `.claude/skills/` (verified 2026-07-20: the first scheduled run found no ydc-meeting-brief skill and correctly refused to improvise). The prompt therefore instructs the session to READ the skill file from the cloned repo instead of invoking it as a skill.
+
 ```
-Run the ydc-meeting-brief skill for tomorrow's external meetings. Pull tomorrow's Google Calendar, filter to non-recurring meetings with external (non-you.com) attendees, research each company and attendee, write one meeting brief Google Doc per meeting in the "Meeting Briefs" Drive folder, and post the links in one message to #automated-meeting-briefs in Slack opening with <@U0A4M1BAR08>. Follow the ydc-meeting-brief skill instructions exactly, including its soft-fail rules and write boundary.
+Open the repository file .claude/skills/ydc-meeting-brief/SKILL.md and follow its instructions exactly — it is the cloud version of the ydc-meeting-brief skill. Run it for tomorrow's external meetings: pull tomorrow's Google Calendar, filter to non-recurring meetings with external (non-you.com) attendees, research each company and attendee, write one meeting brief Google Doc per meeting in the "Meeting Briefs" Drive folder, and post the links in one message to #automated-meeting-briefs in Slack opening with <@U0A4M1BAR08>. Follow the file's soft-fail rules and write boundary. If the file cannot be read, post a one-line error notice to #automated-meeting-briefs instead of improvising the workflow.
 ```
 
 ## Verify after manual test

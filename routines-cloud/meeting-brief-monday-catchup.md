@@ -22,5 +22,5 @@ STEP 1: Compute today's (Monday's) date dynamically. Human format and ISO format
 
 STEP 2: Search #automated-meeting-briefs via the Slack connector search tool with query "in:#automated-meeting-briefs". Look for any message posted since midnight today OR yesterday (Sunday) after 2:50 PM containing either "Meeting briefs ready for Monday" / "Meeting briefs ready for {today}" or "No external meetings". If found: stop immediately, post nothing, do nothing.
 
-STEP 3: If no brief was posted, run the ydc-meeting-brief skill in catch-up mode: follow the skill exactly, with one substitution throughout — wherever it says "tomorrow", use TODAY instead (target date = today's Monday; calendar pull = today midnight to midnight; Slack post reads "Meeting briefs ready for {today's Monday date}:").
+STEP 3: If no brief was posted, open the repository file .claude/skills/ydc-meeting-brief/SKILL.md and follow it in catch-up mode: follow the file exactly, with one substitution throughout — wherever it says "tomorrow", use TODAY instead (target date = today's Monday; calendar pull = today midnight to midnight; Slack post reads "Meeting briefs ready for {today's Monday date}:"). If the file cannot be read, post a one-line error notice to #automated-meeting-briefs instead of improvising.
 ```

@@ -14,5 +14,5 @@ Rebuilt for cloud: uses the Granola connector + Drive connector. No local Python
 ## PROMPT
 
 ```
-Run the granola-archive-sync-cloud skill: archive Granola meeting transcripts to the Google Drive folder "GranolaArchive" before Granola's 30-day free-tier deletion. Use the Granola connector to list meetings from the last 35 days, check which are already archived in Drive, write each missing transcript as its own file, and append an OK line to sync-log.md in the same folder. DM Andrew (U0A4M1BAR08) on Slack ONLY if something goes wrong (Granola auth failure, zero meetings retrievable, Drive write failures). Stay silent on success.
+Open the repository file .claude/skills/granola-archive-sync-cloud/SKILL.md and follow its instructions exactly: archive Granola meeting transcripts to the Google Drive folder "GranolaArchive" before Granola's 30-day free-tier deletion. Use the Granola connector to list meetings from the last 35 days, check which are already archived in Drive, write each missing transcript as its own file, and append an OK line to sync-log.md in the same folder. DM Andrew (U0A4M1BAR08) on Slack ONLY if something goes wrong (Granola auth failure, zero meetings retrievable, Drive write failures, or the skill file cannot be read). Stay silent on success.
 ```

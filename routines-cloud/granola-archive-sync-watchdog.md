@@ -18,7 +18,7 @@ Step 1: In the Google Drive folder "GranolaArchive", find sync-log.md (Drive con
 
 Step 2: If that last OK is less than 7 days old, exit silently — Monday's sync ran.
 
-Step 3: If sync-log.md is missing, has no OK line, or the last OK is 7+ days old, run the granola-archive-sync-cloud skill now (full archive pass: list Granola meetings from the last 35 days via the Granola connector, write missing transcripts to the GranolaArchive Drive folder, append an OK line to sync-log.md).
+Step 3: If sync-log.md is missing, has no OK line, or the last OK is 7+ days old, open the repository file .claude/skills/granola-archive-sync-cloud/SKILL.md and follow it now (full archive pass: list Granola meetings from the last 35 days via the Granola connector, write missing transcripts to the GranolaArchive Drive folder, append an OK line to sync-log.md). If the file cannot be read, DM Andrew instead of improvising.
 
 Step 4: If the catch-up run itself hits problems (Granola auth failure, Drive write failure), DM Andrew (U0A4M1BAR08) with what failed and what to check. If Granola auth is the problem, tell him to re-authenticate the Granola connector in claude.ai settings. Stay silent on normal catch-up success.
 ```
