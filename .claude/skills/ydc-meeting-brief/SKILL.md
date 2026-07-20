@@ -170,6 +170,15 @@ Pull relevant threads from: `#api-gtm-team`, `#esl-api-sales`, `#sales-team`.
 
 Summarize any relevant context: deal notes, competitive mentions, prior conversations, internal opinions. If nothing found, note: "No Slack history found."
 
+### 3F: Prior Briefs and Open Loops
+
+Search `#automated-meeting-briefs` for the company name. Prior brief posts and their linked docs give you the relationship arc. Extract:
+
+- **OPEN LOOPS** — questions or next steps flagged in earlier briefs that are still unresolved. Carry them into today's brief as "unfinished business, not new asks."
+- **STALE TALKING POINTS** — anything already congratulated or led with on an earlier call (awards, launches). Flag them so Andrew doesn't lead with them again.
+
+**Counting rule:** a brief post is NOT a call. Count conversations only from actual calendar events or explicit call notes. If the count is uncertain, refer to calls by their dates instead of an ordinal ("calls on June 24, July 14" beats a wrong "fifth conversation").
+
 ---
 
 ## Step 4: Write the Meeting Brief
@@ -239,6 +248,8 @@ Search for the "Meeting Briefs" folder using the Google Drive connector tool `se
 
 Use the returned folder ID as `parentId`. If the search fails, fall back to `GDRIVE_FOLDER_ID` from Step 1 (the parent `accountplans` folder).
 
+**Same-day dedupe:** also search the folder for an existing `Meeting Brief | {COMPANY} | {YYYY-MM-DD}`. If one exists (pre-generated or from an earlier run), still create yours — and mark the Slack line in Step 6 as superseding it.
+
 Call the Google Drive connector tool `create_file`:
 - `title`: `"Meeting Brief | {COMPANY} | {YYYY-MM-DD}"`
 - `mimeType`: `"text/plain"` (auto-converts to Google Doc in Drive)
@@ -271,6 +282,8 @@ Format:
 **Every qualifying meeting found in Step 2 must appear in this post**, even if its brief failed. Use these line formats:
 - Created successfully: `{Start Time} — {Company} | {Meeting Title}: {Google Doc URL}`
 - Failed entirely: `{Start Time} — {Company} | {Meeting Title}: ⚠️ brief generation failed — re-run manually`
+
+**After the meeting lines, add ONE short context paragraph** (2-4 sentences, plain text): relationship temperature, the single most important goal, and any open loops carried forward — enough that Andrew can triage from his phone without opening the doc. If a same-day brief already existed (Step 5 dedupe), end with: "(Supersedes the earlier brief for this day — this one uses live calendar + CRM data.)"
 
 Tone: clear, brief, no fluff. This is a notification, not a message.
 
