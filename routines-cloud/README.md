@@ -10,18 +10,20 @@ One file per cloud Routine. Each file contains everything needed to create the R
 
 ## Migration status map (18 laptop tasks → cloud)
 
+**Watchdog decision (Andrew, 2026-07-21):** the confirmation/catch-up watchdogs existed only because the laptop or Claude desktop could be closed. Cloud scheduling removes that failure mode; the Routines Runs panel + each routine's built-in error-posting replace the confirmation function. So watchdogs for CLOUD-migrated routines are RETIRED, not migrated. The watchdog files stay in this directory as optional insurance only. Exception to consider: `ydc-territory-watchdog.md` watches a job that STAYS on the laptop — a cloud status check is the only thing that catches "laptop closed at 2 PM" for the territory pipeline. Optional, Andrew's call.
+
 | Laptop task | Cloud plan |
 |---|---|
-| ydc-meeting-brief | → `ydc-meeting-brief.md` (wave 1, PILOT) |
-| meeting-brief-monitor | → `meeting-brief-monitor.md` (wave 1) |
-| meeting-brief-monday-watchdog-7am/-8am/-930am | RETIRE (existed only because the laptop was closed on Sundays; cloud runs Sundays). Optional single insurance: `meeting-brief-monday-catchup.md` |
-| ydc-territory-watchdog | → `ydc-territory-watchdog.md` (wave 1, status-only) |
-| ydc-usage-outreach-watchdog | → `ydc-usage-outreach-watchdog.md` (wave 1) |
+| ydc-meeting-brief | → `ydc-meeting-brief.md` (PILOT — LIVE in cloud 2026-07-21) |
+| meeting-brief-monitor | RETIRE (watchdog; Runs panel replaces it). File kept as optional. |
+| meeting-brief-monday-watchdog-7am/-8am/-930am | RETIRE (existed only because the laptop was closed on Sundays) |
+| ydc-territory-watchdog | OPTIONAL cloud Routine — watches the LAPTOP territory pipeline, which is not migrating; a cloud status post is the only laptop-closed detection for it |
+| ydc-usage-outreach-watchdog | RETIRE (watchdog; Runs panel replaces it). File kept as optional. |
 | ydc-linkedin-queue | → `ydc-linkedin-queue.md` (wave 2, needs APOLLO_API_KEY env var) |
 | ydc-usage-outreach-daily | → `ydc-usage-outreach-daily.md` (wave 2) |
-| ydc-usage-outreach-enroll-watcher | → `ydc-usage-outreach-enroll-watcher.md` (wave 2) |
+| ydc-usage-outreach-enroll-watcher | → `ydc-usage-outreach-enroll-watcher.md` (wave 2 — NOT a watchdog: it's the event poller for Andrew's "go" reply; required) |
 | granola-archive-sync | → `granola-archive-sync.md` (wave 2, REBUILT on Granola connector) |
-| granola-archive-sync-watchdog | → `granola-archive-sync-watchdog.md` (wave 2) |
+| granola-archive-sync-watchdog | RETIRE (catch-up for missed laptop Mondays; cloud doesn't miss Mondays). File kept as optional. |
 | ydc-linkedin-queue-watchdog | already disabled — do not migrate |
 | ydc-territory-nightly | STAYS ON LAPTOP (Playwright/Apollo UI) |
 | ydc-territory-watchdog-10pm (3pm retry) | STAYS ON LAPTOP (re-runs browser pipeline) |
@@ -29,7 +31,7 @@ One file per cloud Routine. Each file contains everything needed to create the R
 | ydc-linkedin-apollo-tasks-daily | STAYS ON LAPTOP (Playwright/LinkedIn session) |
 | linkedin-tasks-check | STAYS ON LAPTOP (re-runs browser script) |
 
-End state: 13 schedules in cloud (10 Routines + 3 retired), 5 on the laptop.
+End state: **5 cloud Routines** (meeting-brief, linkedin-queue, granola-sync, usage-outreach-daily, enroll-watcher; +1 optional territory status), **7 watchdogs retired outright**, **5-6 tasks stay on the laptop** (browser-bound + territory watchdogs).
 
 ## Timezones
 
