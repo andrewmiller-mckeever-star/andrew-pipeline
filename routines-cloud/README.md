@@ -10,7 +10,17 @@ One file per cloud Routine. Each file contains everything needed to create the R
 
 ## Migration status map (18 laptop tasks → cloud)
 
-**Watchdog decision (Andrew, 2026-07-21):** the confirmation/catch-up watchdogs existed only because the laptop or Claude desktop could be closed. Cloud scheduling removes that failure mode; the Routines Runs panel + each routine's built-in error-posting replace the confirmation function. So watchdogs for CLOUD-migrated routines are RETIRED, not migrated. The watchdog files stay in this directory as optional insurance only. Exception to consider: `ydc-territory-watchdog.md` watches a job that STAYS on the laptop — a cloud status check is the only thing that catches "laptop closed at 2 PM" for the territory pipeline. Optional, Andrew's call.
+**Watchdog architecture (Andrew, 2026-07-21, revised):** the OLD Mac watchdogs existed because the laptop could be closed — that failure mode is gone in cloud. But cloud runs can still fail silently, so each cloud primary gets ONE cloud watchdog a few hours later. Where re-running is cheap the watchdog SELF-HEALS (runs the full workflow itself); where it isn't, it ALERTS via DM. Superseded files kept for history: `meeting-brief-monitor.md`, `meeting-brief-monday-catchup.md` (both replaced by `meeting-brief-watchdog.md`).
+
+| Cloud primary | Cloud watchdog | Behavior |
+|---|---|---|
+| ydc-meeting-brief (3 PM) | `meeting-brief-watchdog.md` (6 PM Sun–Thu LA) | Self-heals: re-runs full brief workflow |
+| ydc-linkedin-queue (9:30 AM) | `ydc-linkedin-queue-watchdog-cloud.md` (11:30 AM) | Self-heals: re-runs the report |
+| ydc-usage-outreach-daily (9 AM) | `ydc-usage-outreach-watchdog.md` (10 AM) | Alerts (DM); scan too heavy to duplicate |
+| granola-archive-sync (Mon 11 AM) | `granola-archive-sync-watchdog.md` (Thu 11 AM) | Self-heals: full catch-up sync |
+| enroll-watcher (every 15-30 min) | `ydc-usage-outreach-enroll-watchdog.md` (8:45 PM) | Alerts (DM) if a "go" went un-actioned; never enrolls |
+
+`ydc-territory-watchdog.md` remains the special case: it watches the LAPTOP territory pipeline (not migrating) — a cloud status post is the only laptop-closed detection for it. Recommended.
 
 | Laptop task | Cloud plan |
 |---|---|
