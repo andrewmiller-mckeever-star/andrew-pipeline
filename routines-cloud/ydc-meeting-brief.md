@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Schedule | `0 15 * * 0-4` — 3:00 PM Sun–Thu |
+| Schedule | `30 14 * * 0-4` — 2:30 PM Sun–Thu (Andrew's chosen slot, 2026-07-21) |
 | Timezone | America/Los_Angeles |
 | Repository | andrewmiller-mckeever-star/andrew-pipeline |
 | Connectors | Google Calendar, Google Drive, Slack, Salesforce, You.com Search (Free) — ONLY these five |

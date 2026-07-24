@@ -1,10 +1,10 @@
 # Routine: meeting-brief-watchdog (self-healing)
 
-Replaces `meeting-brief-monitor.md` and `meeting-brief-monday-catchup.md` (both now superseded). Cloud runs can fail silently; this fires 3 hours after the 3 PM brief run, and if no post landed, it runs the full brief workflow itself.
+Replaces `meeting-brief-monitor.md` and `meeting-brief-monday-catchup.md` (both now superseded). Cloud runs can fail silently; this fires 2.5 hours after the 2:30 PM brief run, and if no post landed, it runs the full brief workflow itself.
 
 | Field | Value |
 |---|---|
-| Schedule | `0 18 * * 0-4` — 6:00 PM Sun–Thu |
+| Schedule | `0 17 * * 0-4` — 5:00 PM Sun–Thu (2.5h after the 2:30 PM primary) |
 | Timezone | America/Los_Angeles |
 | Repository | andrewmiller-mckeever-star/andrew-pipeline |
 | Connectors | Google Calendar, Google Drive, Slack, Salesforce, You.com Search (Free) — same five as the primary, because on failure it runs the whole workflow |
@@ -16,13 +16,13 @@ Replaces `meeting-brief-monitor.md` and `meeting-brief-monday-catchup.md` (both 
 > Self-contained (Routine sessions cannot rely on repo files). Steps 3-9 below are the complete meeting-brief workflow, duplicated from `routines-cloud/ydc-meeting-brief.md` — keep the two in sync when editing.
 
 ```
-You are the evening watchdog for Andrew's meeting-brief Routine, which runs at 3 PM Pacific and briefs TOMORROW's external meetings. Cloud runs can fail silently; your job is to catch that and self-heal.
+You are the evening watchdog for Andrew's meeting-brief Routine, which runs at 2:30 PM Pacific and briefs TOMORROW's external meetings. Cloud runs can fail silently; your job is to catch that and self-heal.
 
 STEP 1: Compute today's date and tomorrow's date (America/Los_Angeles), each in human and ISO form.
 
-STEP 2: Search #automated-meeting-briefs (channel C0AUZEBTLBD) via the Slack connector search tool for messages posted TODAY after 2:45 PM Pacific containing either "Meeting briefs ready for" or "No external meetings". If found: EXIT SILENTLY. Post nothing, write nothing — the primary run worked.
+STEP 2: Search #automated-meeting-briefs (channel C0AUZEBTLBD) via the Slack connector search tool for messages posted TODAY after 2:15 PM Pacific containing either "Meeting briefs ready for" or "No external meetings". If found: EXIT SILENTLY. Post nothing, write nothing — the primary run worked.
 
-STEP 3: If no such post exists, the 3 PM run failed silently. Run the complete workflow below for TOMORROW's meetings, and when you post in Step 9, append the line: "(6 PM catch-up run — the 3 PM scheduled run did not post. Check the Routine's Runs panel.)"
+STEP 3: If no such post exists, the 2:30 PM run failed silently. Run the complete workflow below for TOMORROW's meetings, and when you post in Step 9, append the line: "(5 PM catch-up run — the 2:30 PM scheduled run did not post. Check the Routine's Runs panel.)"
 
 WRITE BOUNDARY: you may only create Google Docs in the "Meeting Briefs" Drive folder and post to #automated-meeting-briefs. Never write to Salesforce, never email anyone, never message any other channel or person.
 
