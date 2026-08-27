@@ -5,6 +5,13 @@ description: CLOUD version for Claude Code Routines. Generates 4 personalized ou
 
 # YDC: Outreach Sequence Generation (Step 4) (Cloud)
 
+## Rule precedence (added 2026-08-27)
+
+CLAUDE.md wins on voice, copy, and cadence. This skill wins on API mechanics, step types,
+personas, and process gates. On conflict, follow the newer date and say which rule you
+followed and which you set aside. Never silently pick one.
+
+
 **Cloud execution notes (differences from the laptop version):**
 - This skill is prompt logic: research + copywriting. Per-person research uses the You.com Search API via the `$YDC_API_KEY` env var; if unset, use the You.com Search connector (`you-search`) or WebSearch instead. Never abort for a missing key.
 - Sequences are built by ydc-apollo-build via the Apollo.io connector tools (cloud-native). The local Playwright build path (`build-sequences.js`, `~/.apollo-playwright-profile`) does NOT exist in cloud and is removed — see Build Method below.
@@ -174,7 +181,10 @@ See references/writing-rules.md for full detail. Non-negotiables:
 - Never name competitors, never reference specific evaluations (even anonymized).
 - Every email opens with "Hi {{first_name}}," on its own line.
 - Never write "our APIs," "our founder," or "our case studies." Name You.com explicitly: "You.com's APIs," "You.com's founder."
-- LinkedIn notes: never write "Curious how your team is thinking about [X]." Replace with Fact-to-Consequence + Research-Share Close: ", would love to connect and share more of my research."
+- LinkedIn notes: **superseded by CLAUDE.md (2026-08-27, Andrew's call).** Use Fact-to-Consequence
+  plus a close from CLAUDE.md's ranked close menu. The note never asks for the connection, so the
+  ", would love to connect and share more of my research." close is retired. "Curious how..." is
+  permitted but is the last of five options, never the default, and at most once per account.
 
 ## Self-Review Gate (MANDATORY — Run Before Writing JSON)
 
@@ -203,7 +213,7 @@ After generating all 4 sequences but BEFORE producing the in-memory JSON, explic
 | Follow-up qualifier openers | Touches 3 and 6: body after greeting starts with the new hook. No qualifier phrases: "Last note," "One more thing," "One more angle," "Closing the loop," "Quick follow-up," "Additional context." |
 | New reason in every follow-up | Touch 3 angle is substantively different from Touch 1. Touch 6 (breakup) introduces a third distinct angle. If 3 distinct angles don't exist for the account, collapse to 3 email touches. |
 | No hide-the-company language | No "our APIs," "our founder," "our case studies." Every product/founder reference names You.com explicitly. |
-| LinkedIn connect: zero pitch + Research-Share Close | Touch 2: No product names, no flattery, no role claim, no question close. Ends with ", would love to connect and share more of my research." |
+| LinkedIn connect: zero pitch + varied close | Touch 2: No product names, no flattery, no role claim, no "would be great to connect." Close comes from CLAUDE.md's ranked menu; vary the shape across a batch, max one "Curious..." per account. |
 | Action item task note | Touch 5: instructs AE to view profile, engage with recent post, note content for Touch 7. |
 | LinkedIn DM: specific LinkedIn signal | Touch 7: names a specific post, talk, project, or milestone from their actual LinkedIn. "CTO is one of those roles..." or any role-pain sentence = automatic rewrite. Zero product mention. Zero meeting CTA. |
 | LinkedIn DM: no em dashes | Scan every T7 for "—". One em dash = rewrite the whole message. |

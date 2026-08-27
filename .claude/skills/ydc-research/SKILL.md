@@ -5,6 +5,13 @@ description: CLOUD version for Claude Code Routines. Deep company research for Y
 
 # YDC: Deep Company Research (Step 1) (Cloud)
 
+## Rule precedence (added 2026-08-27)
+
+CLAUDE.md wins on voice, copy, and cadence. This skill wins on API mechanics, step types,
+personas, and process gates. On conflict, follow the newer date and say which rule you
+followed and which you set aside. Never silently pick one.
+
+
 **Cloud execution notes (differences from the laptop version):**
 - All auth comes from account-level claude.ai connectors: Google Drive, Slack, Salesforce (read-only `soqlQuery`), Sumble, You.com Search. Locate connector tools by function-name suffix (e.g. a Drive tool ending in `search_files`), never by hardcoded `mcp__<uuid>__` prefixes.
 - You.com Research/Search API calls use the `$YDC_API_KEY` env var. If unset or failing, degrade to the You.com Search connector (`you-search`) plus WebSearch — note the degraded mode in the output, do not abort.
