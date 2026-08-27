@@ -5,6 +5,13 @@ description: Discovers and enriches Director+ prospects at target companies for 
 
 # YDC: Prospect Discovery (Step 3)
 
+## Rule precedence (added 2026-08-27)
+
+CLAUDE.md wins on voice, copy, and cadence. This skill wins on API mechanics, step types,
+personas, and process gates. On conflict, follow the newer date and say in your output which
+rule you followed and which you set aside. Never silently pick one.
+
+
 ## Primary Method: Apollo.io
 
 ### Step 3.1: Search for Prospects

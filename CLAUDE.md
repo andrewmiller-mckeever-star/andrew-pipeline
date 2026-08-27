@@ -6,6 +6,21 @@ Always-on context for You.com API Sales. This loads every conversation regardles
 
 **My account list:** When Andrew asks to compare something to "my accounts," "my list," or "my book," use the snapshot at `SFDC_ACCOUNTS_LIST_PATH` (see ae-config.md) as the default reference. It is a point-in-time export; for always-fresh data the pipeline skills query Salesforce live instead.
 
+## Rule Precedence (added 2026-08-27)
+
+**This file wins on voice, copy, and cadence. The pipeline skills win on API mechanics, step
+types, personas, and process gates.** On conflict, follow the newer date and say which rule
+you followed and which you set aside.
+
+Skills carry older copies of some writing rules. When they disagree with this file, this file
+is newer and authoritative.
+
+**Settled 2026-08-27 — LinkedIn connect-note close.** Andrew's decision: the note never asks
+for the connection, so `ydc-outreach`'s ", would love to connect and share more of my
+research." close is retired. "Curious how…" is permitted but is neither the only option nor
+the top one; it became the de facto default by accident. Use the ranked close menu under
+LinkedIn Connect Rules and vary the close across a batch.
+
 ## Skill Architecture
 
 | Layer | What | When it loads |
@@ -72,6 +87,8 @@ You.com delivers the search infrastructure that powers modern Generative AI. We 
 **Benchmark angles:** Higher accuracy with lower latency than competition (SimpleQA, FreshQA, MS Marco benchmarks).
 
 **Sales Deck:** ~/Downloads/You.com - AI Search Infra Pitch Deck - January 2026.pdf (pitch bible for framing, case studies, competitive positioning, eval process, "Art of the Possible" industry use cases).
+
+**Account-fit use case lenses:** When sizing up any company, run it through two lenses on top of the industry patterns: (1) Grounding AI agents and assistants (RAG assistants, copilots, autonomous agents that reason over retrieved content, lead with accuracy and citations), and (2) Surfacing evidence to people and pipelines (search UIs, competitive/market monitoring, dataset construction, lead with precision and freshness). Full signals-to-look-for and messaging angles live in {MEMORY_PATH}/product-knowledge.md under "Account-Fit Use Case Lenses."
 
 ---
 
@@ -156,7 +173,11 @@ Thanks, Ryan
 
 Why this is the gold standard for ALL writing: starts with THEM (their urgency, their failed evals). Zero AI-isms, em dashes, superlatives, or glazing. Plain, human tone. Short paragraphs. One point per paragraph. No buzzwords. Maps credibility to their specific problem. This style applies whether you're writing cold outreach, a warm follow-up, a partner email, or a Slack message.
 
-**Andrew voice rules (Always Apply, derived from Andrew's sent email + Slack, added 2026-07-15):**
+**Andrew voice rules (Always Apply, derived from Andrew's sent email + Slack, added 2026-07-15; re-grounded 2026-08-21 against ~160 of Andrew's own Slack messages, Feb-Aug 2026):**
+
+> Sampling caution: roughly 35 posts under Andrew's Slack account are written by his own pipeline routines (meeting briefs, territory nightly, usage scans). That is Claude's writing, not his. Exclude automated posts from any future voice sampling or the bot voice gets learned as his.
+
+Every message resolves to one of four things: an ack, a question, a commitment, or a number. If a draft does not resolve to one of those, it is not his voice.
 
 *Links (hard rules):*
 - Only canonical, verified URLs, no trailing slash: `https://you.com/platform` (signup, new accounts get $100 free credits), `https://you.com/docs/welcome` (docs). NEVER invent or guess a domain. If a URL has not been verified in Andrew's own past emails or the live product, do not use it.
@@ -165,21 +186,42 @@ Why this is the gold standard for ALL writing: starts with THEM (their urgency, 
 
 *Word choice:*
 - Plain verbs: test, explore, run, try, help, connect, set up, loop in. No cute or slangy phrasing ("poke at it," "swing by," "say the word").
-- Andrew's recurring phrases, use naturally: "Worth a conversation?", "Happy to leave it here.", "happy to make that happen," "reply here and I will add them," "Quick context on us:", "the offer stands whenever you're ready," "loop in the right person from our engineering team."
-- Offer engineering help by name: "my engineering team."
+- **Verified recurring phrases** (confirmed in ~160 of Andrew's own Slack messages, Feb-Aug 2026): "Happy to" as the workhorse ("Happy to jump on a call if I'm not making sense," "happy to parallelize the legal, commercial, and technical conversations"), "makes sense," "honestly," "let me," "would you be open to," "jump on a call," "no pressure if the timing is off," "ballpark estimates are totally fine," "take a look," "get it scheduled."
+- **Unverified, use with care:** "Worth a conversation?", "Happy to leave it here.", "the offer stands whenever you're ready." These appear ZERO times in Andrew's Slack. "Worth a conversation" surfaces only inside a Claude-generated bot post. They may exist in his sent email; do not treat them as confirmed voice until they turn up in a sent-mail sample.
+- Offer engineering help by name: "my engineering team," "my Eng. team," "David or others on my Eng. team."
 
 *Structure:*
-- Open with something THEY did or something concrete, often with a number ("You're already close to 15,000 calls. That's a fast ramp for week one.").
-- One idea per paragraph, 1-2 sentences. An email is 4-6 short paragraphs max.
-- Concrete options instead of vague asks: named times ("Wednesday at 11:30 am or 4 pm"), named features ("Website filtering, Output formats, other endpoints, etc.").
-- Close with one short question ("Worth a conversation?" / "What would you test first?"). Never a stacked ask.
+- Open with something THEY did or something concrete, often with a number ("You're already close to 15,000 calls. That's a fast ramp for week one."). No runway, no warm-up. Never open with "I," "We," or "At You.com."
+- **Give the reason for the ask.** Andrew's single most distinctive habit: nearly every request carries a because, usually as its own short sentence, often the literal phrase "I ask because." Real examples: "Any update on Ai4? I ask because I'm trying to make travel plans and have a meeting I've scheduled there already with a guy from x.ai." / "My team was looking at the QPS request and had a lot of questions." / "I think a call would be more productive than async." A bare ask does not sound like him. An ask plus one sentence of why does.
+- **Lead with the unrounded number.** He writes "915.8 million eco_search calls or $247,266 of spend," never "significant usage." Also "It's missing 23 accounts so we might want to rerun it."
+- One idea per paragraph, 1-2 sentences. An email is 4-6 short paragraphs max. About 40% of his Slack messages run under 10 words; almost none contain a sentence over 25 words.
+- Concrete options instead of vague asks: named times ("Tomorrow the 1st between 4:30 pm - 6 pm Madrid time? Thursday at 5 pm, or Monday between 4 pm - 6 pm Madrid time"), named features ("Website filtering, Output formats, other endpoints, etc.").
+- Close with one short, real question. Never a stacked ask, never a canned CTA. His actual closers: "Anyone object to me reaching out to them?" / "Who on your side should we sync with to scope it?" / "Who can take point on helping them this week?" / "Do any of these times work?" / "would you be open to a quick chat?"
 - Say "you or your team" when offering resources.
+- Bullets only for genuinely parallel items (resources, lanes of work), each one a fragment, not a sentence.
 
 *Tone:*
-- Speed over polish. Andrew writes fast and a little loose. Never make copy sound more formal or more writerly than he does. Direct beats elegant.
-- Low pressure everywhere. Never chase; leave doors open.
+- Plain register, clean mechanics. Andrew writes fast and a little loose in Slack because Slack is quick notes to teammates; the typos there are a byproduct of speed, NOT part of his voice. Anything drafted for him ships with correct spelling, homophones, and punctuation ("Yea" becomes "Yes," a sentence-initial "O" gets dropped). What never changes: sentence length, fragments used as answers, sentences starting with "But" or "So," and the plain vocabulary. Never upgrade a word. Direct beats elegant.
+- **The failure mode to watch for:** a draft that is grammatically cleaner AND more formal than he is. Cleaning mechanics and raising register are two separate passes, and only the first is allowed to touch anything.
+- **Show the reasoning, including the doubt.** This is what keeps him from sounding like a rep, and it is the first thing a polish pass destroys. Real examples: "honestly unless they have millions of calls a month it's not really worth our time otherwise." / "I was confused what we were going to cover for an hour... Maybe something will come of it." / "I can wing it but context is helpful." / "Snowflake is a harder pitch because we don't have anything official yet." Never assert certainty he does not have.
+- Warmth is one word, front-loaded: "Perfect," "Fantastic!", "Cool," "Nice," "100%", "Good call," "That's a great open rate!" Exclamation points are fine and frequent. Generic flattery is absent from his entire corpus: never "impressive," "incredible," or "amazing" about someone's work.
+- Low pressure everywhere. Never chase; leave doors open. Urgency only ever attaches to OUR side, never the reader's ("their all in Spain so it would be great if we can get them some answers today so they can get to work tomorrow in their AM").
+- Two-line test before any send: (1) Could this email have gone to anyone else? If yes, it is not ready. (2) Does it sound like something he would type into Slack in 30 seconds? If it sounds composed, cut it down.
+- Full evidence base and worked examples: `andrew-voice-guide.md` in this repo root.
 - Sign-off: "Warm regards," or "Cheers," (Andrew's stated preference 2026-07-15 - Warm regards for senior/enterprise contacts, Cheers for startups and peers); "Thanks," fine occasionally; then just "Andrew" (the signature block handles title/contact).
 - Slack: even shorter, first person, plain apologies ("sorry for the delay"), direct asks with the person named.
+
+*Outbound + follow-up email rules (added 2026-07-15 after the RAISE robo-blast failure; Andrew-approved):*
+- **The anyone-else test.** If the exact email could have been sent to anyone else, it does not get sent. Every email is built on ONE true, specific fact about the person: what they said at the booth, their usage number, their talk, their Brella interests, their team's presence at an event. **No fact = no email** - that contact goes to marketing nurture, never gets template copy.
+- **Show work, don't promise value.** Lead with something already done: "I ran your prompt through our eval," "I added credits to your account," "I asked my engineering team about X." (Model: Andrew's Slack to Databricks - "We've done a proper 3-way comparison on your exact prompt.")
+- **Website language is banned in email.** "The data layer under AI agents," "grounding agents in cited data," "that is our lane" - if Andrew wouldn't type it in Slack, it doesn't go in an email. Describe the problem the way a person says it out loud.
+- **30-90 words.** Sounds typed, not composed.
+- **Ask a real question, never a canned CTA.** A question about their work ("Is accuracy or latency the bigger issue?"), a routing question ("Does that live with you or someone else?"), or two named times. Vary the ask across a batch - never the same closing twice in a row.
+- **Never fake familiarity.** No "sorry we missed each other" to someone who never planned to meet. Honest framing: "Your team was all over RAISE and we never crossed paths."
+- **Batch is not blast.** Max ~5 sends per skeleton, every email gets its own first line. If a list is 50 deep, most of it belongs in nurture.
+- **Subjects short and specific**, referencing them or the event ("Snyk crew at RAISE", "your 15,000 calls").
+- **Cadence:** first touch fast; second touch day 4-5 with a NEW fact (never a reworded first email); breakup ~day 14, two sentences, easy out ("Should I close the loop, or is there still interest? Either way, no hard feelings.").
+- **Drafting workflow:** deliver drafts in reviewable batches (~10), not 50 at once.
 
 ---
 
@@ -247,7 +289,15 @@ Hi {{first_name}},
 | 6 | Day 14 | Email | Reply to Touch 1 thread (breakup) |
 | 7 | Day 17 | LinkedIn DM | Direct message, no pitch |
 
-**Threading:** Only Touch 1 gets a unique subject line. Touches 3 and 6 are replies to the original thread. In Apollo: use "reply to previous email" step type.
+**Cadence is a target, not enforced (clarified 2026-08-27).** No builder reads a `day` field.
+build-sequences.js sets no wait times at all, so Apollo's defaults apply; rest_build.py sets
+`0,1,3,3,3,3,3` with `wait_mode: "day"`, which ships as days 1/2/5/8/11/14/17. That means
+Touch 2 lands on day 2 and Touch 5 on day 11, not the day 3 and day 10 in the table above.
+Either change the wait values to match this table or treat the table as the manual target
+Andrew sets in the Apollo UI. Do not describe the day column as non-negotiable while no code
+reads it.
+
+**Threading:** Only Touch 1 gets a unique subject line. Touches 3 and 6 are replies to the original thread. In Apollo: use "reply to previous email" step type. Over REST this is `type: "reply_to_thread"` on the touch, which requires deleting the auto-created `new_thread` touch and verifying only one remains. See ydc-apollo-build A.2.
 **Contact cap:** 5 contacts per sequence (A, B, C, D). No duplicates across sequences. Priority: title relevance > verified email > use case alignment.
 **Word counts:** Opener 80-120 words. Follow-up 80-120 words. Breakup 80-120 words.
 **Reading level:** 5th-7th grade. Short, punchy sentences. No compound-complex structures.
@@ -267,11 +317,28 @@ Hi {{first_name}},
 
 Zero pitch. Zero CTA. Zero generic flattery. Under 250 characters. Almost entirely about them.
 
-**Formula: Fact-to-Consequence + Curiosity Hook**
-- Fact-to-Consequence: State what they did AND what problem/question it creates, in one sentence. Never characterize the initiative ("big move," "notable shift," "signals serious work"). The personalization must bridge to a problem, not evaluate the initiative.
-- Curiosity Hook: End on a genuine question about how they're solving that problem. Optionally add a light domain signal in parentheses: "(be it with a web index or otherwise)". The question IS the close. No "Would be great to connect" or similar filler. The connect button is the CTA. The note doesn't need to ask for the connection.
+**Formula: Fact-to-Consequence, then a close from the menu below.**
+
+- **Fact-to-Consequence** (always): State what they did AND what problem or question it creates, in one sentence. Never characterize the initiative ("big move," "notable shift," "signals serious work"). The personalization must bridge to a problem, not evaluate the initiative.
+- **The close:** pick from the ranked menu. The connect button is the CTA, so the note never asks for the connection. No "Would be great to connect" or similar filler.
+
+**Close menu, best first (revised 2026-08-27, Andrew's call).** "Curious how…" is allowed but it is NOT the default and NOT the top option. It got treated as the gold standard by accident; it is one option among five.
+
+1. **Direct question about their approach, no preamble.** Strongest and most common. "How are you handling that today?" / "Where does that land, the index or the model?"
+2. **Either/or that narrows the problem.** Matches Andrew's habit of offering concrete options. "Is that a freshness problem or a coverage one?"
+3. **Routing or ownership question.** Closest to his real closers ("Who on your side should we sync with?"). "Does that sit with your team or further up?"
+4. **No question at all.** State the consequence and stop. Legitimate and often the strongest when the consequence is sharp — about 40% of his own messages run under 10 words, and the connect button is the ask.
+5. **"Curious how…"** Fine to use. Never as the automatic choice.
+
+Optionally add a light domain signal in parentheses on any of these: "(be it with a web index or otherwise)".
+
+**Vary the close across a batch.** Never the same close shape twice in a row, and never more than one "Curious…" per account. Four notes on one account that all open the close the same way read as generated, which is the exact failure this rule exists to prevent.
+
 - BAD: "Zoom's agentic AI Companion expansion is a big infrastructure move. Curious how... Would be great to connect."
-- GOOD: "Zoom's AI Companion going agentic creates new demands on the real-time data layer. Curious how your team is thinking about that (be it with a web index or otherwise)."
+- GOOD (direct): "Zoom's AI Companion going agentic creates new demands on the real-time data layer. How is your team handling that today?"
+- GOOD (either/or): "Zoom's AI Companion going agentic puts weight on the real-time data layer. Is that a freshness problem for you or a coverage one?"
+- GOOD (routing): "Zoom's AI Companion going agentic creates new demands on the real-time data layer. Does that sit with your team or further up?"
+- GOOD (no question): "Zoom's AI Companion going agentic means the retrieval layer either keeps pace with live events or becomes the accuracy ceiling."
 
 **Hard bans for LinkedIn notes:**
 - No product names (Search API, PRAG, Vertical Index, etc.)

@@ -25,6 +25,8 @@ const path = require('path');
 const HEADED = process.env.HEADED === 'true';
 const DEBUG = process.env.DEBUG === 'true';
 const SLOW_MO = DEBUG ? 300 : 50;
+// How long a HEADED run waits for a manual Apollo login before giving up.
+const LOGIN_WAIT_MS = Number(process.env.LOGIN_WAIT_MS || 600000);
 const APOLLO_BASE = 'https://app.apollo.io';
 const DEFAULT_TIMEOUT = 60000;
 const STEP_TRANSITION_WAIT = 1500;
@@ -692,6 +694,82 @@ async function fillDeferredEmailContent(page, step, touchNum, editorIdx, seqName
   }
 }
 
+// Every reply step that could not be set to Reply and fell back to a "Re:" new thread.
+// Reported at the end of the run so the affected steps can be fixed by hand in Apollo.
+const threadFallbacks = [];
+
+/**
+ * Read back whatever the email-type control currently says ("New thread" / "Reply").
+ * Returns the trimmed label, or null if no such control is on screen.
+ */
+async function readEmailThreadType(page) {
+  return page.evaluate(() => {
+    const nodes = Array.from(
+      document.querySelectorAll('div[role="combobox"], button[role="combobox"], [class*="select" i]')
+    );
+    for (let i = nodes.length - 1; i >= 0; i--) {
+      const text = (nodes[i].innerText || '').trim();
+      if (/^(new thread|reply)$/i.test(text)) return text;
+    }
+    return null;
+  });
+}
+
+/**
+ * Set an email step's type to Reply and VERIFY it landed.
+ * Tries the dropdown up to 3 times across several selectors. Returns true only when the
+ * control reads "Reply" afterwards, so callers can never mistake a failed click for success.
+ */
+async function setEmailThreadTypeToReply(page, touchNum, seqName) {
+  const current = await readEmailThreadType(page);
+  if (current && /^reply$/i.test(current)) {
+    log.debug(`Touch ${touchNum}: already set to Reply`);
+    return true;
+  }
+  if (current === null) {
+    log.warn(`Touch ${touchNum}: no email-type control found on screen.`);
+  }
+
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    log.step(seqName, touchNum, `Setting type to Reply (attempt ${attempt}/3)...`);
+    const dropdowns = [
+      page.locator('div[role="combobox"]:has-text("New thread")').last(),
+      page.locator('button[role="combobox"]:has-text("New thread")').last(),
+      page.locator('div[role="combobox"]').last(),
+      page.locator('text="New thread"').last(),
+    ];
+
+    for (const dd of dropdowns) {
+      try {
+        if (!(await dd.isVisible({ timeout: 2000 }))) continue;
+        await dd.click({ timeout: 3000 });
+        await sleep(600);
+
+        const options = [
+          page.locator('div[role="option"]:has-text("Reply")').first(),
+          page.locator('[role="menuitem"]:has-text("Reply")').first(),
+          page.locator('li:has-text("Reply")').first(),
+        ];
+        for (const opt of options) {
+          try {
+            if (!(await opt.isVisible({ timeout: 1500 }))) continue;
+            await opt.click({ timeout: 3000 });
+            await sleep(800);
+            const now = await readEmailThreadType(page);
+            if (now && /^reply$/i.test(now)) return true;
+          } catch (_) {}
+        }
+        // Dropdown opened but no Reply option took — close it before the next attempt.
+        await page.keyboard.press('Escape').catch(() => {});
+        await sleep(300);
+      } catch (_) {}
+    }
+    await sleep(700);
+  }
+
+  return false;
+}
+
 async function configureEmailStep(page, step, touchNum, seqName) {
   // Ryan Reed approach (proven working): Template tab → clear placeholders → fill inline.
   // No "Generate preview" — just switch to Template tab immediately after adding the step.
@@ -725,28 +803,40 @@ async function configureEmailStep(page, step, touchNum, seqName) {
     log.warn(`Template tab click failed: ${e.message}. Continuing.`);
   }
 
-  // Set email type (New thread vs Reply)
+  // Set email type (New thread vs Reply).
+  // Touches 3 and 6 must thread onto Touch 1. Previously this was best-effort: a failed
+  // dropdown click only logged a warning, and the subject fill below is gated on
+  // email_type !== 'reply' — so a failure produced a NEW THREAD WITH A BLANK SUBJECT.
+  // Now: retry across selectors, verify the control actually reads "Reply", and if it
+  // still won't take, fall back to a new thread with a "Re: {parent subject}" subject.
+  let effectiveEmailType = step.email_type;
+
   if (step.email_type === 'reply') {
-    log.step(seqName, touchNum, 'Setting type to Reply...');
-    try {
-      const typeDropdown = page.locator('div[role="combobox"]:has-text("New thread")').last();
-      if (await typeDropdown.isVisible({ timeout: 5000 })) {
-        await typeDropdown.click();
-        await sleep(500);
-        const replyOption = page.locator('div[role="option"]:has-text("Reply")').first();
-        await replyOption.click({ timeout: 3000 });
-        await sleep(500);
-        log.step(seqName, touchNum, 'Type set to Reply');
-      } else {
-        log.warn('Type dropdown not visible. May already be Reply.');
+    const setReply = await setEmailThreadTypeToReply(page, touchNum, seqName);
+    if (setReply) {
+      log.step(seqName, touchNum, 'Type verified as Reply');
+    } else {
+      effectiveEmailType = 'new_thread';
+      const parent = step.parent_subject || '';
+      step.subject = parent ? `Re: ${parent}` : 'Re:';
+      log.err(
+        `Touch ${touchNum}: could not set Reply type. FALLING BACK to new thread with subject "${step.subject}". ` +
+        `This will NOT thread onto Touch 1 — fix by hand in Apollo.`
+      );
+      threadFallbacks.push({
+        sequence: seqName,
+        touch: touchNum,
+        fallback_subject: step.subject,
+        parent_subject: parent || null,
+      });
+      if (!parent) {
+        log.warn(`Touch ${touchNum}: no parent_subject available, fallback subject is a bare "Re:".`);
       }
-    } catch (e) {
-      log.warn(`Could not set Reply type: ${e.message}`);
     }
   }
 
-  // Fill subject (new_thread only)
-  if (step.subject && step.email_type !== 'reply') {
+  // Fill subject (new_thread only, including a reply that fell back to new thread)
+  if (step.subject && effectiveEmailType !== 'reply') {
     log.step(seqName, touchNum, 'Filling subject...');
     try {
       const subjectInput = page.locator('input[placeholder="Enter email subject"]').last();
@@ -1072,6 +1162,53 @@ async function ensureSequenceInactive(page, seqId, seqName) {
 // ---------------------------------------------------------------------------
 // Main: Build all sequences from JSON data
 // ---------------------------------------------------------------------------
+/**
+ * Accept the canonical content shape (sequences[].steps[].type, per ydc-outreach) and the
+ * drifted variants that exist in older hand-written content files (touches[], step_type).
+ * Unknown step types throw here, at load, naming the sequence and touch — rather than
+ * failing per-step mid-build and leaving a saved sequence with missing steps.
+ *
+ * Also stamps each reply step with parent_subject (the Touch 1 subject of its own sequence)
+ * so the "Re:" fallback in configureEmailStep has something real to use.
+ */
+function normalizeSequences(rawSequences) {
+  if (!Array.isArray(rawSequences)) return rawSequences;
+
+  return rawSequences.map((seq, seqIdx) => {
+    const rawSteps = seq.steps || seq.touches;
+    if (!Array.isArray(rawSteps)) {
+      throw new Error(
+        `Sequence ${seqIdx + 1} ("${seq.name || 'unnamed'}") has neither "steps" nor "touches".`
+      );
+    }
+
+    const steps = rawSteps.map((s, i) => {
+      const type = s.type || s.step_type;
+      if (!type) {
+        throw new Error(`"${seq.name || `sequence ${seqIdx + 1}`}" touch ${i + 1}: missing step type.`);
+      }
+      if (!STEP_TYPE_LABELS[type]) {
+        throw new Error(
+          `"${seq.name || `sequence ${seqIdx + 1}`}" touch ${i + 1}: unknown step type "${type}". ` +
+          `Known types: ${Object.keys(STEP_TYPE_LABELS).join(', ')}`
+        );
+      }
+      return { ...s, type };
+    });
+
+    // The subject a reply threads onto: the first email step that opens a new thread.
+    const parentSubject = (steps.find(
+      (s) => s.type.endsWith('email') && s.email_type !== 'reply' && s.subject
+    ) || {}).subject || '';
+
+    for (const s of steps) {
+      if (s.email_type === 'reply' && !s.parent_subject) s.parent_subject = parentSubject;
+    }
+
+    return { ...seq, steps };
+  });
+}
+
 async function main() {
   // Load data file
   const dataFile = process.argv[2];
@@ -1089,7 +1226,7 @@ async function main() {
   }
 
   const data = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
-  const sequences = data.sequences;
+  const sequences = normalizeSequences(data.sequences);
   if (!sequences || sequences.length === 0) {
     log.err('No sequences found in data file');
     process.exit(1);
@@ -1164,20 +1301,41 @@ async function main() {
     await sleep(3000);
     await dismissApolloUI(page);
 
-    // Check if logged in
-    const isLoggedIn = await page.locator('text="Sequences"').isVisible({ timeout: 5000 }).catch(() => false);
-    if (!isLoggedIn) {
-      log.err('Not logged into Apollo. Please log in manually, then re-run.');
-      if (HEADED) {
-        log.info('Waiting 60s for manual login...');
-        await sleep(60000);
-      } else {
-        log.err('Run with HEADED=true to log in visually.');
+    // Check if logged in.
+    // Previously this waited a flat 60s in HEADED mode and then printed "login confirmed"
+    // WITHOUT re-checking, so a timed-out login produced a run that "succeeded" into a login
+    // page and failed every sequence with "Could not find Create sequence button".
+    // Now: poll until the session is actually visible, and exit non-zero if it never is.
+    const loginVisible = () =>
+      page.locator('text="Sequences"').isVisible({ timeout: 5000 }).catch(() => false);
+
+    if (!(await loginVisible())) {
+      if (!HEADED) {
+        log.err('Not logged into Apollo. Re-run with HEADED=true to log in visually.');
         process.exit(1);
       }
+      log.err('Not logged into Apollo. Log in in the open browser window now.');
+      log.info(`Waiting up to ${Math.round(LOGIN_WAIT_MS / 60000)} min, checking every 5s...`);
+
+      const deadline = Date.now() + LOGIN_WAIT_MS;
+      let ok = false;
+      while (Date.now() < deadline) {
+        await sleep(5000);
+        if (await loginVisible()) { ok = true; break; }
+        const left = Math.round((deadline - Date.now()) / 1000);
+        if (left % 30 < 5) log.info(`Still waiting for login (${left}s left)...`);
+      }
+
+      if (!ok) {
+        log.err('Apollo login never completed. Nothing was built. Log in, then re-run.');
+        await context.close();
+        if (browser) await browser.close();
+        process.exit(1);
+      }
+      await dismissApolloUI(page);
     }
 
-    log.ok('Apollo login confirmed');
+    log.ok('Apollo login confirmed (verified)');
 
     // Build each sequence
     for (let seqIdx = 0; seqIdx < sequences.length; seqIdx++) {
@@ -1315,6 +1473,18 @@ async function main() {
           console.log(`     \x1b[31mError: ${err}\x1b[0m`);
         }
       }
+    }
+
+    if (threadFallbacks.length > 0) {
+      results.thread_fallbacks = threadFallbacks;
+      console.log('');
+      console.log(`\x1b[31mTHREADING FALLBACKS (${threadFallbacks.length}) — these steps did NOT thread onto Touch 1:\x1b[0m`);
+      for (const f of threadFallbacks) {
+        console.log(`     \x1b[31m${f.sequence} Touch ${f.touch} -> new thread, subject "${f.fallback_subject}"\x1b[0m`);
+      }
+      console.log('\x1b[31mSwitch each of these to Reply by hand in Apollo before activating.\x1b[0m');
+    } else {
+      console.log('\n\x1b[32mAll reply steps verified as Reply. No threading fallbacks.\x1b[0m');
     }
 
     console.log('\n\x1b[33mREMINDER: All sequences are INACTIVE. Review and activate manually in Apollo.\x1b[0m');

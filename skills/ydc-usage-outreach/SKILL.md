@@ -14,6 +14,13 @@ description: >-
 
 # YDC: Usage Outreach (Product-Led Outbound)
 
+## Rule precedence (added 2026-08-27)
+
+CLAUDE.md wins on voice, copy, and cadence. This skill wins on API mechanics, step types,
+personas, and process gates. On conflict, follow the newer date and say in your output which
+rule you followed and which you set aside. Never silently pick one.
+
+
 ## Purpose
 
 Find every person using or who has signed up for the You.com API across all owned accounts,

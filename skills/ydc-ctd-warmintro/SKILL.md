@@ -33,7 +33,7 @@ When run as part of the nightly pipeline, it accumulates all referral paths acro
 
 All requests use these headers:
 ```
-ctd-api-key: {CTD_API_KEY — see ae-config.md}
+ctd-api-key: ${CTD_API_KEY}
 ctd-client-id: andrew.miller-mckeever@you.com
 ```
 
@@ -431,8 +431,12 @@ SEQ_ID=$(curl -s -X POST "https://api.apollo.io/v1/emailer_campaigns" \
     \"active\": false
   }" | python3 -c "import sys,json; print(json.load(sys.stdin).get('emailer_campaign',{}).get('id',''))")
 
-# Add the manual_email step (Touch 1 referral ask)
-curl -s -X POST "https://api.apollo.io/v1/emailer_steps" \
+# Add the manual_email step (Touch 1 referral ask).
+# IMPORTANT (corrected 2026-08-27): a nested "emailer_template" on this POST is IGNORED.
+# Apollo creates an EMPTY template and links it. Content requires a second call.
+# The previous version of this example passed the template inline and produced sequences
+# with no subject and no body.
+STEP=$(curl -s -X POST "https://api.apollo.io/v1/emailer_steps" \
   -H "X-Api-Key: $APOLLO_API_KEY" \
   -H "Content-Type: application/json" \
   -d "{
@@ -440,11 +444,24 @@ curl -s -X POST "https://api.apollo.io/v1/emailer_steps" \
     \"type\": \"manual_email\",
     \"wait_time\": 0,
     \"wait_mode\": \"day\",
-    \"emailer_template\": {
-      \"subject\": \"{Touch_1_subject}\",
-      \"body_html\": \"{Touch_1_body_as_HTML_paragraphs}\"
-    }
+    \"position\": 1
+  }")
+
+# Find the auto-created template id, then fill it.
+TMPL=$(curl -s "https://api.apollo.io/v1/emailer_campaigns/$SEQ_ID" \
+  -H "X-Api-Key: $APOLLO_API_KEY" -H "Cache-Control: no-cache" \
+  | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['emailer_touches'][0]['emailer_template_id'])")
+
+curl -s -X PUT "https://api.apollo.io/v1/emailer_templates/$TMPL" \
+  -H "X-Api-Key: $APOLLO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"subject\": \"{Touch_1_subject}\",
+    \"body_html\": \"{Touch_1_body_as_HTML_paragraphs}\"
   }"
+
+# Verify: re-read the campaign and confirm body_text is non-empty before continuing.
+# A 200 on the PUT is not evidence.
 ```
 
 **5c.3 — Activate the sequence (with verification and retry):**

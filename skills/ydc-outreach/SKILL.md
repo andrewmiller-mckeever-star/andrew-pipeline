@@ -5,6 +5,35 @@ description: Generates 4 personalized outreach sequences (A: Engineering Leader,
 
 # YDC: Outreach Sequence Generation (Step 4)
 
+## Rule precedence — READ FIRST (added 2026-08-27)
+
+**CLAUDE.md wins on voice, copy, and cadence. This skill wins on structure, personas, step
+types, and process gates.** On any conflict, follow the newer date, and say in your output
+which rule you followed and which you set aside.
+
+Known conflicts as of 2026-08-27 (CLAUDE.md last edited 2026-08-21; this skill 2026-06-24;
+`references/writing-rules.md` 2026-05-28, so **CLAUDE.md is the newest source**):
+
+| Rule | This skill (older) | CLAUDE.md (newer) — FOLLOW THIS |
+|---|---|---|
+| LinkedIn connect close | End with ", would love to connect and share more of my research." | **Retired by Andrew 2026-08-27.** The note never asks for the connection. Use the ranked close menu in CLAUDE.md > LinkedIn Connect Rules. |
+| "Curious how…" in a connect note | Said to be replaced | Permitted, but **option 5 of 5, never the default**. Andrew's call 2026-08-27: it became the gold standard by accident. Max one per account, and vary the close shape across a batch. |
+| Touch 2 day | Day 2 | Day 3 |
+| Touch 5 day | Day 11 | Day 10 |
+
+Cadence days are a **target only**: neither builder reads a `day` field, and the shipped wait
+values are `0,1,3,3,3,3,3` (days 1/2/5/8/11/14/17). Andrew sets intervals in the Apollo UI.
+Do not treat either table as enforced.
+
+**Settled 2026-08-27 (Andrew).** Neither of the old rules stands as written. The research-share
+close is retired outright. "Curious how…" is fine to use but is the last of five options, never
+the automatic choice, and at most once per account. Follow CLAUDE.md's ranked close menu and
+vary the close across a batch.
+
+> Writing rules are duplicated across CLAUDE.md, this skill, and `references/writing-rules.md`
+> with three different vintages. CLAUDE.md is the single source of truth for voice and copy.
+> Treat the copies below as a checklist for the self-review gate, not as an authority.
+
 ## Sequence Architecture
 
 4 sequences per account, each targeting a different buyer persona:
@@ -48,6 +77,26 @@ Automated by `apollo-linkedin-connect.js`. Navigates to the prospect's recent ac
 **Touch 7 — LinkedIn Direct Message:**
 Completely different angle from the breakup email. Casual, peer-to-peer. Must reference something specific and real from the contact's LinkedIn profile — a post they wrote, a conference talk they gave, a job anniversary, a project they announced publicly. No pitch. No CTA for a meeting. One observation, one open question. Under 300 characters.
 
+**STRUCTURAL CONSTRAINT — read before writing any T7 (added 2026-08-27).**
+
+Touch 7 is a **single sequence-level step shared by up to 5 contacts.** There is one T7 body
+per sequence, not one per person. The per-contact rules below therefore cannot all be
+satisfied at once, and pretending otherwise produces either a fake-specific DM or a
+placeholder sitting in a live Apollo step. Resolve it this way:
+
+1. If **every** contact in the sequence shares one real, specific, verifiable signal (same
+   talk, same launch, same team milestone), write T7 to that shared signal.
+2. Otherwise write T7 to the **persona** with no fake specificity, and put each contact's
+   individual signal in the **Touch 5 task note** so the operator personalises the DM at send
+   time. This is the default for most accounts.
+3. Only if neither is possible, use the placeholder — and then the hard gate below applies.
+
+**PLACEHOLDER HARD GATE.** A sequence whose T7 contains `[T7 PLACEHOLDER` must not be
+activated, and every placeholder must be listed by name in the build report. Do not rely on a
+downstream script to catch it: `apollo-linkedin-connect.js` dm-overrides skip the placeholder
+check, so an unfilled placeholder can be SENT verbatim. Treat a placeholder as an open defect
+against the account, not a tidy to-do.
+
 **Touch 7 is the hardest touch to write correctly. Most LLM-generated T7s are garbage. Read these rules carefully.**
 
 Touch 7 hard rules — violations require a full rewrite, not a patch:
@@ -61,7 +110,21 @@ Touch 7 hard rules — violations require a full rewrite, not a patch:
 - **Tone:** message from someone they met once at a conference, not a salesperson.
 
 **Mandatory T7 research step (runs before writing any T7 copy):**
-For each contact, search: `"{first_name} {last_name}" site:linkedin.com OR "{first_name} {last_name}" "{company}" post OR talk OR article`. Look for:
+
+Use the You.com Search API and **scope every query by the company or domain**, or you get
+same-name noise. A bare name search for "Ben Myles" returned NFL coverage of Myles Garrett
+(verified 2026-08-26). Working shape:
+
+```bash
+curl -s -X POST "https://api.you.com/v1/search" \
+  -H "X-API-Key: $YDC_API_KEY" -H "Content-Type: application/json" \
+  -d '{"query":"\"{first} {last}\" \"{company}\" {domain} linkedin post talk interview"}'
+```
+
+Read `results.web` as well as `results.news` — a person-level signal is almost never in the
+news bucket. If the response has only `news`, treat it as no signal found.
+
+Then look for:
 1. A LinkedIn post from the last 60 days
 2. A conference talk or podcast appearance from the last 6 months
 3. A project announcement or job milestone from the last 3 months
@@ -77,6 +140,31 @@ Anti-example (every T7 that looks like this must be rewritten):
 "Hey Ben, CTO at a growing company is one of those roles where the job description keeps shifting. Curious what the biggest technical decisions have been over the last year. Is it mostly infrastructure and scale, or more about which AI bets to make?" — BANNED: em dash in original, "Curious" opener, role-pain default, asks for internal strategy, zero LinkedIn research.
 
 ## Contact Assignment Rules
+
+### GATE 0 — Count targetable contacts BEFORE writing any copy (added 2026-08-27)
+
+Run this first. It decides how many sequences to build.
+
+**"Targetable" excludes**, no matter what Apollo returns: advisors, strategic advisors, board
+and advisory-board members, account executives and other sellers, account managers, finance,
+operations, chief-of-staff and GTM-ops roles, individual-contributor engineers below senior,
+and any record whose title is visibly stale. (ShiftUp's list included a live record titled
+"Miami Dolphins & Formula 1 Miami Grand Prix BD.") Sanity-check titles against the company
+site or research brief before counting them.
+
+| Targetable contacts found | Build |
+|---|---|
+| 12 or more | 4 sequences (A, B, C, D), up to 5 contacts each |
+| 8 to 11 | 3 sequences: A (Engineering), B (Executive), and whichever of C/D has a real persona |
+| Fewer than 8 | **2 sequences only: A (Engineering) and B (Executive).** Say so in the output |
+
+**Never pad a persona sequence with people who do not hold that persona.** The older
+"fill with the closest adjacent role" rule produced a Seq D for a 29-person company staffed
+with an experience designer and an IC engineer, neither of whom should be pitched an AI/ML
+grounding angle. Building fewer, correct sequences beats four with one bad one. If a persona
+genuinely does not exist at this headcount, skip that sequence and name the reason.
+
+### Standard rules
 
 - 5 contacts per sequence maximum. No duplicates across sequences (one person, one sequence).
 - Seq B: C-suite first, then remaining VPs.
@@ -168,7 +256,10 @@ See references/writing-rules.md for full detail. Non-negotiables:
 - Never name competitors, never reference specific evaluations (even anonymized).
 - Every email opens with "Hi {{first_name}}," on its own line.
 - Never write "our APIs," "our founder," or "our case studies." Name You.com explicitly: "You.com's APIs," "You.com's founder."
-- LinkedIn notes: never write "Curious how your team is thinking about [X]." Replace with Fact-to-Consequence + Research-Share Close: ", would love to connect and share more of my research."
+- LinkedIn notes: **superseded by CLAUDE.md (2026-08-21).** Use Fact-to-Consequence + Curiosity
+  Hook, where the question is the close. Do NOT append ", would love to connect and share more
+  of my research." — CLAUDE.md bans that shape of close outright ("the connect button is the
+  CTA"). The older Research-Share rule is kept in the changelog for history only.
 
 ## Self-Review Gate (MANDATORY — Run Before Writing JSON)
 
@@ -197,7 +288,7 @@ After generating all 4 sequences but BEFORE writing the JSON file, explicitly ch
 | Follow-up qualifier openers | Touches 3 and 6: body after greeting starts with the new hook. No qualifier phrases: "Last note," "One more thing," "One more angle," "Closing the loop," "Quick follow-up," "Additional context." |
 | New reason in every follow-up | Touch 3 angle is substantively different from Touch 1. Touch 6 (breakup) introduces a third distinct angle. If 3 distinct angles don't exist for the account, collapse to 3 email touches. |
 | No hide-the-company language | No "our APIs," "our founder," "our case studies." Every product/founder reference names You.com explicitly. |
-| LinkedIn connect: zero pitch + Research-Share Close | Touch 2: No product names, no flattery, no role claim, no question close. Ends with ", would love to connect and share more of my research." |
+| LinkedIn connect: zero pitch + curiosity close | Touch 2: No product names, no flattery, no role claim, no "would be great to connect." Ends on a curiosity hook about how they solve the problem, optionally "(be it with a web index or otherwise)". Per CLAUDE.md 2026-08-21, which supersedes the older Research-Share close. |
 | Action item task note | Touch 5: instructs AE to view profile, engage with recent post, note content for Touch 7. |
 | LinkedIn DM: specific LinkedIn signal | Touch 7: names a specific post, talk, project, or milestone from their actual LinkedIn. "CTO is one of those roles..." or any role-pain sentence = automatic rewrite. Zero product mention. Zero meeting CTA. |
 | LinkedIn DM: no em dashes | Scan every T7 for "—". One em dash = rewrite the whole message. |
@@ -251,6 +342,11 @@ Content JSON format (passed to build-sequences.js):
 
 | Date | Change | Reason |
 |------|--------|--------|
+| 2026-08-27 | Added rule-precedence header; CLAUDE.md now authoritative for voice/copy/cadence | Connect-note close contradicted CLAUDE.md outright, causing a full rewrite of 4 notes mid-build |
+| 2026-08-27 | Retired the Research-Share connect close in favour of CLAUDE.md's curiosity hook | CLAUDE.md (2026-08-21) bans "would be great to connect"-shaped closes; this skill (2026-06-24) mandated one. Underlying evidence question still open for Andrew |
+| 2026-08-27 | Added T7 structural constraint + placeholder hard gate | T7 was specified per-contact but is one sequence-level step; two live ShiftUp sequences ended up holding `[T7 PLACEHOLDER]`, which dm-overrides can send verbatim |
+| 2026-08-27 | Fixed the T7 research query: scope by company/domain, read results.web | A bare name search returned NFL coverage for an unrelated person |
+| 2026-08-27 | Added Gate 0: count targetable contacts before writing copy; defined "targetable" | The 4x5 model has no small-company branch; a 29-person account produced a Seq D staffed with an experience designer and an IC engineer |
 | 2026-06-02 | Changelog initialized | Tracking all skill changes going forward |
 | (prior) | Added mandatory T7 research step before writing any LinkedIn DM | LLM-generated T7s were defaulting to role-pain templates instead of contact-specific signals |
 | (prior) | Added Touch 5 as `linkedin_interact_post` (like recent post) | Replaces the previous `action_item` type; confirms the exact Apollo task type returned by REST API |

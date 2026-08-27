@@ -12,6 +12,13 @@ description: >-
 
 # YDC Territory Pipeline
 
+## Rule precedence (added 2026-08-27)
+
+CLAUDE.md wins on voice, copy, and cadence. This skill wins on API mechanics, step types,
+personas, and process gates. On conflict, follow the newer date and say in your output which
+rule you followed and which you set aside. Never silently pick one.
+
+
 ## Overview
 
 Automated outbound pipeline across Andrew's full book of business (690 accounts ranked by composite score). 4 sequences per account (Seq A: Engineering Leader, Seq B: Executive Sponsor, Seq C: Product Leader, Seq D: AI/ML Leader), 5 contacts each (20 per account), 3 accounts per night. ~15 min per account.

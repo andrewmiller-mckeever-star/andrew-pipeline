@@ -8,6 +8,13 @@ description: End-to-end You.com whale account sales pipeline orchestrator. Runs 
 
 # YDC Whale Pipeline Orchestrator
 
+## Rule precedence (added 2026-08-27)
+
+CLAUDE.md wins on voice, copy, and cadence. This skill wins on API mechanics, step types,
+personas, and process gates. On conflict, follow the newer date and say in your output which
+rule you followed and which you set aside. Never silently pick one.
+
+
 ## Pipeline Flow
 
 ```
