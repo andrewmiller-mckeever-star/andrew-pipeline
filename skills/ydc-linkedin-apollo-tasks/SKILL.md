@@ -44,7 +44,7 @@ curl -s -X POST "https://api.apollo.io/api/v1/tasks/search" \
   -H "X-Api-Key: $APOLLO_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"sort_by_field":"task_due_at","sort_ascending":false,"per_page":100}' \
-  | jq '[.tasks[] | select(.user_id == "69c2b4822d0a4900117855af" and (.type == "linkedin_step_connect" or .type == "linkedin_step_message") and .status == "scheduled") | {type, due_at, name: .contact.name}] | sort_by(.due_at)'
+  | jq '[.tasks[] | select(.user_id == "{APOLLO_USER_ID}" and (.type == "linkedin_step_connect" or .type == "linkedin_step_message") and .status == "scheduled") | {type, due_at, name: .contact.name}] | sort_by(.due_at)'
 ```
 
 Present the count and list, ask "Ready to run?" before invoking the script.
@@ -65,7 +65,7 @@ DRY_RUN=true APOLLO_API_KEY=$APOLLO_API_KEY node apollo-linkedin-connect.js
 ```
 
 The script handles all of the following automatically:
-- Fetches Andrew's pending LinkedIn tasks from Apollo REST API (filters to `user_id == "69c2b4822d0a4900117855af"` client-side — the API's own filters are broken)
+- Fetches Andrew's pending LinkedIn tasks from Apollo REST API (filters to `user_id == "{APOLLO_USER_ID}"` client-side — the API's own filters are broken)
 - Prefetches DM/connect note text from campaign templates via Apollo API
 - Navigates headless Chrome to each LinkedIn profile
 - Sends connection requests or DMs
@@ -144,7 +144,7 @@ If Salesforce returns an Apollo API auth error (401): verify `APOLLO_API_KEY` is
 - This skill reads from **Apollo's task queue** — for sequences that generate LinkedIn tasks automatically (Touch 2 connect, Touch 5 post like, Touch 7 DM from `build-sequences.js`).
 - The Drive-based `ydc-linkedin-queue` skill is a separate legacy flow for pre-May-2026 whale pipeline accounts with Drive queue files.
 - Touch 5 tasks surface as `linkedin_step_interact_post` in the Apollo REST API — a distinct type, not `action_item`. The script also includes a legacy fallback for any `action_item` tasks whose note contains `"Like most recent LinkedIn post"` (older sequences built before the type was confirmed).
-- The Apollo task API filters (`task_types`, `assignee_ids`) are broken — they return all org-wide tasks regardless. The script filters client-side on `user_id == "69c2b4822d0a4900117855af"`.
+- The Apollo task API filters (`task_types`, `assignee_ids`) are broken — they return all org-wide tasks regardless. The script filters client-side on `user_id == "{APOLLO_USER_ID}"`.
 
 ---
 

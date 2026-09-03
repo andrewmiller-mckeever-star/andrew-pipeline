@@ -26,8 +26,22 @@ const WEEKLY_CONNECT_CAP = parseInt(process.env.WEEKLY_CONNECT_CAP || '200', 10)
 // Set SFDC_LOG=false to disable.
 const { execFile } = require('child_process');
 const SFDC_LOG_ENABLED = process.env.SFDC_LOG !== 'false';
-const SFDC_ORG = process.env.SFDC_USERNAME || 'andrew.miller-mckeever@you.com';
-const SFDC_OWNER_ID = process.env.SFDC_USER_ID || '005Vq000009j4ezIAA';
+// This repo is public. Account identifiers live in ae-config.md, which is gitignored.
+// Env wins; ae-config.md is the fallback.
+function aeConfig(key) {
+  if (process.env[key]) return process.env[key];
+  for (const base of [__dirname, path.join(__dirname, '..')]) {
+    const p = path.join(base, 'ae-config.md');
+    if (fs.existsSync(p)) {
+      const m = fs.readFileSync(p, 'utf8').match(new RegExp('^' + key + ':\\s*(.+)$', 'm'));
+      if (m) return m[1].trim().replace(/`/g, '');
+    }
+  }
+  console.error(`${key} is not set. Add it to ae-config.md or export it.`);
+  process.exit(1);
+}
+const SFDC_ORG = process.env.SFDC_USERNAME || aeConfig('AE_EMAIL');
+const SFDC_OWNER_ID = aeConfig('SFDC_USER_ID');
 // SFDC_API_VERSION is set as "66.0" in the environment, with no leading "v". The
 // REST path needs "v66.0", so an unnormalized value produced /services/data/66.0/...
 // and a 404 that looked like an auth problem. Normalize rather than trust the env.
@@ -45,7 +59,7 @@ const ONLY_TYPE = process.env.ONLY_TYPE || '';
 // ONLY_CONTACT restricts a run to a single contact (Apollo contact id, or a name substring).
 // Used for supervised one-person verification runs.
 const ONLY_CONTACT = process.env.ONLY_CONTACT || '';
-const ANDREW_USER_ID = '69c2b4822d0a4900117855af';
+const ANDREW_USER_ID = aeConfig('APOLLO_USER_ID');
 
 // Apollo task type for "LinkedIn - interact with post" sequence steps (Touch 5).
 // Apollo's REST API returns this as 'linkedin_step_interact_post' — a distinct type,

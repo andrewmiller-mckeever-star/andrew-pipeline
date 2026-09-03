@@ -193,7 +193,7 @@ Every message resolves to one of four things: an ack, a question, a commitment, 
 *Structure:*
 - Open with something THEY did or something concrete, often with a number ("You're already close to 15,000 calls. That's a fast ramp for week one."). No runway, no warm-up. Never open with "I," "We," or "At You.com."
 - **Give the reason for the ask.** Andrew's single most distinctive habit: nearly every request carries a because, usually as its own short sentence, often the literal phrase "I ask because." Real examples: "Any update on Ai4? I ask because I'm trying to make travel plans and have a meeting I've scheduled there already with a guy from x.ai." / "My team was looking at the QPS request and had a lot of questions." / "I think a call would be more productive than async." A bare ask does not sound like him. An ask plus one sentence of why does.
-- **Lead with the unrounded number.** He writes "915.8 million eco_search calls or $247,266 of spend," never "significant usage." Also "It's missing 23 accounts so we might want to rerun it."
+- **Lead with the unrounded number.** He writes the exact call count and the exact dollar spend, never "significant usage." Pull the real figures from Salesforce at drafting time. Also "It's missing 23 accounts so we might want to rerun it." (Redacted example: account name and spend figures removed, public repo.)
 - One idea per paragraph, 1-2 sentences. An email is 4-6 short paragraphs max. About 40% of his Slack messages run under 10 words; almost none contain a sentence over 25 words.
 - Concrete options instead of vague asks: named times ("Tomorrow the 1st between 4:30 pm - 6 pm Madrid time? Thursday at 5 pm, or Monday between 4 pm - 6 pm Madrid time"), named features ("Website filtering, Output formats, other endpoints, etc.").
 - Close with one short, real question. Never a stacked ask, never a canned CTA. His actual closers: "Anyone object to me reaching out to them?" / "Who on your side should we sync with to scope it?" / "Who can take point on helping them this week?" / "Do any of these times work?" / "would you be open to a quick chat?"
@@ -220,6 +220,17 @@ Every message resolves to one of four things: an ack, a question, a commitment, 
 - **Never fake familiarity.** No "sorry we missed each other" to someone who never planned to meet. Honest framing: "Your team was all over RAISE and we never crossed paths."
 - **Batch is not blast.** Max ~5 sends per skeleton, every email gets its own first line. If a list is 50 deep, most of it belongs in nurture.
 - **Subjects short and specific**, referencing them or the event ("Snyk crew at RAISE", "your 15,000 calls").
+- **Subject formula for data/intelligence vendors (added 2026-09-02, from Ryan Reed's two biggest cold wins):
+  their named product + a property of their data.** Not our product, not a value prop, not an initiative.
+  Shape of the winners (redacted example, public repo): "{their product}'s data economics",
+  "{their product} and source freshness", "Horizon scanning source coverage", "Web search quality for
+  {their product}", "{their product} quality as the product moat", "Keeping the reg corpus current".
+  Six verified wins built on this formula, the two largest closed in 25 and 63 days. The data property is
+  the second half and it is always one of: freshness, coverage, recall, currency, economics, or quality.
+  Under 6 words still holds; every winner above is 4 to 6 words. Account names and deal values are in
+  Salesforce, not here.
+- **Never put a You.com product name in a subject line.** The existing ban on reflexive product names covers
+  the body. It now covers the subject too. Zero cold subjects that produced an opp named a You.com product.
 - **Cadence:** first touch fast; second touch day 4-5 with a NEW fact (never a reworded first email); breakup ~day 14, two sentences, easy out ("Should I close the loop, or is there still interest? Either way, no hard feelings.").
 - **Drafting workflow:** deliver drafts in reviewable batches (~10), not 50 at once.
 
@@ -231,7 +242,12 @@ These rules apply ONLY when writing cold outreach sequences, LinkedIn connection
 
 **Content bans (cold outbound specific):**
 - No competitor names in outreach.
-- No specific eval references (even anonymized).
+- No specific eval references (even anonymized). **Scope clarified 2026-09-02:** this bans OUR OWN and
+  CUSTOMER-RUN evals, including the Big 4 evaluation, in any form. It does NOT ban a **published
+  third-party eval** that anyone can read. Those are citable, consistent with the sanctioned benchmark
+  angles under How We Sell (SimpleQA, FreshQA, MS Marco). Conditions: the eval must be public at a URL,
+  we must not name search-API competitors when citing it, and we must know whether we commissioned it
+  before a technical audience is told it is independent.
 - No confidential customer names or active evaluations.
 - No ESL/Chat/Apex product references.
 - No Bryan McCann in prospect-facing copy.
@@ -264,7 +280,9 @@ The following structure applies to cold outreach sequences only (the email touch
 Every cold outreach email must follow this structure:
 
 ```
-SUBJECT: [Personalized, under 6 words, references company or initiative] (Touch 1 only)
+SUBJECT: [Under 6 words. For data/intelligence vendors: their named product + a data property
+          (freshness, coverage, recall, currency, economics, quality). Otherwise: references them,
+          their initiative, or the event. Never a You.com product name.] (Touch 1 only)
 
 Hi {{first_name}},
 
@@ -277,7 +295,7 @@ Hi {{first_name}},
 [A - Action: Interest-based CTA only. One ask. Never time-based ("15 minutes," "quick call this week"). Use: "Is this something you're evaluating?" / "Worth a conversation?" / "Are you open to exploring this?"]
 ```
 
-**Standardized 7-touch cadence (all sequences, non-negotiable):**
+**Standardized 7-touch cadence (default for account-plan pipeline sequences):**
 
 | Touch | Day | Channel | Type |
 |-------|-----|---------|------|
@@ -297,6 +315,36 @@ Either change the wait values to match this table or treat the table as the manu
 Andrew sets in the Apollo UI. Do not describe the day column as non-negotiable while no code
 reads it.
 
+**Air-cover cadence: 9 touches over 42 days (added 2026-08-28, Andrew's call).** For long-run
+account coverage where the goal is a visible touch every week for six weeks, the 7-touch table
+above does not apply. Andrew asked for weekly-looking outreach across the H2 2026 priority list
+while he works the senior contact at each account by hand. That sequence is:
+
+| Touch | Day | Week | Channel | Type |
+|-------|-----|------|---------|------|
+| 1 | 1  | 1 | Email | New thread, subject A |
+| 2 | 3  | 1 | LinkedIn Connect | No-pitch |
+| 3 | 8  | 2 | Email | Reply to thread A |
+| 4 | 15 | 3 | LinkedIn DM | No-pitch |
+| 5 | 17 | 3 | Call | Phone task |
+| 6 | 22 | 4 | Email | **New thread, subject B** |
+| 7 | 29 | 5 | Action item | LinkedIn engage |
+| 8 | 31 | 5 | Email | Reply to thread B |
+| 9 | 38 | 6 | Email | Reply to thread B (breakup) |
+
+Apollo waits that reproduce it: `0,2,5,7,2,5,7,2,7` with `wait_mode: "day"`. Reply touches on
+positions 3, 8 and 9; `new_thread` on 1 and 6.
+
+**Two deliberate departures from the 7-touch rules, both Andrew-approved:**
+1. **A second thread opens at week 4.** The threading rule below says only Touch 1 gets a subject.
+   Over 42 days a single thread five replies deep gets buried, so touch 6 starts a fresh subject
+   and touches 8 and 9 reply to *that*.
+2. **One sequence per account, 6 contacts**, rather than 4 persona sequences at 5 contacts. The
+   senior target at each account is reserved for manual work and excluded from the sequence by
+   contact ID, so the two tracks cannot collide.
+
+Copy for the first 14 accounts is in `sequences/batch{1,2,3,4}-copy.md`.
+
 **Threading:** Only Touch 1 gets a unique subject line. Touches 3 and 6 are replies to the original thread. In Apollo: use "reply to previous email" step type. Over REST this is `type: "reply_to_thread"` on the touch, which requires deleting the auto-created `new_thread` touch and verifying only one remains. See ydc-apollo-build A.2.
 **Contact cap:** 5 contacts per sequence (A, B, C, D). No duplicates across sequences. Priority: title relevance > verified email > use case alignment.
 **Word counts:** Opener 80-120 words. Follow-up 80-120 words. Breakup 80-120 words.
@@ -305,11 +353,20 @@ reads it.
 **Greeting:** Every email opens with "Hi {{first_name}}," on its own line.
 
 **Hook prioritization (use highest available):**
-1. Trigger event (funding, product launch, leadership change, earnings)
-2. Their content (blog post, podcast, conference talk, LinkedIn post)
-3. Mutual connection or shared context
-4. Company initiative (AI program, hiring surge, strategic pivot)
-5. Role-based pain point (last resort)
+1. **Named product + data property** (added 2026-09-02). Their shipped product, and the freshness, coverage,
+   recall, currency, economics or quality of the data under it. Highest-converting hook on record for
+   data/intelligence vendors: two opps, $650K combined, 25 and 63 days. Requires knowing their product
+   names, so it costs research. Use it whenever the account sells a monitoring or intelligence product.
+2. Trigger event (funding, product launch, leadership change, earnings)
+3. Their content (blog post, podcast, conference talk, LinkedIn post)
+4. Mutual connection or shared context
+5. Company initiative (AI program, hiring surge, strategic pivot)
+6. Role-based pain point (last resort)
+
+> Note on why #1 was missing: the old ladder had no slot for it. A subject naming their product and its data
+> economics is not a trigger event, not their content, not a mutual connection, not an initiative, and not a
+> role-based pain. The two best cold outcomes of the year were being written against a rule that did not
+> describe them.
 
 ---
 

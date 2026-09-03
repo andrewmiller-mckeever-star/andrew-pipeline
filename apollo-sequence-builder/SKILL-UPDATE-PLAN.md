@@ -166,7 +166,7 @@ CHANGE 4 — Phase A (Create Sequences) — replace REST API curl blocks with:
   Transfer ownership to Andrew after each sequence is created (still required):
     curl -s -X PUT "https://api.apollo.io/v1/emailer_campaigns/$SEQ_ID" \
       -H "X-Api-Key: $APOLLO_API_KEY" \
-      -d '{"user_id": "69c2b4822d0a4900117855af"}'
+      -d '{"user_id": "{APOLLO_USER_ID}"}'
 
   Hard stop if any sequence shows status: "failed" in results JSON.
 

@@ -122,7 +122,7 @@ Use ydc-salesforce skill. Run Q1-Q7 in parallel:
 - Account Type = **Out of Business** → skip, log "out of business"
 - **Active open opp** (Stage 1–5, not Closed) → skip, log "active opp: {stage}"
 - **Closed-lost < 60 days** → skip, log "closed-lost cooling period (lost {date})"
-- **Last touch < 60 days** — only if the activity was logged by **Andrew** (`OwnerId = '005Vq000009j4ezIAA'`). Non-Andrew activities (marketing, other AEs) do NOT trigger this gate — surface them in the brief as context only.
+- **Last touch < 60 days** — only if the activity was logged by **Andrew** (`OwnerId = '{SFDC_USER_ID}'`). Non-Andrew activities (marketing, other AEs) do NOT trigger this gate — surface them in the brief as context only.
 - **Existing YDC Apollo sequence** with contacts in **active** status AND sender = `andrew.miller-mckeever@you.com` → skip, log "Andrew already has active sequences here". If sequences exist from other senders, or Andrew's sequences are all finished/archived, do NOT skip — surface as context in brief.
 
 **Proceed with modified approach:**

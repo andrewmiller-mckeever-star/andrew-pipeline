@@ -44,11 +44,11 @@ Use `mcp__b68eebde-98cd-48dc-be98-2d3083754ddd__list_events` to fetch all events
 
 **What remains** = meetings that need a brief.
 
-**Audit log (keep in memory):** For every event evaluated, record the title and filter outcome — e.g., "Atlassian x You.com Visit — INCLUDED (external: vratthinam@atlassian.com)" or "Weekly Standup — EXCLUDED (recurring)" or "All-hands — EXCLUDED (all attendees @you.com)". You will reference this list in Step 6 to ensure every qualifying meeting appears in the Slack post.
+**Audit log (keep in memory):** For every event evaluated, record the title and filter outcome — e.g., "Example Corp x You.com Visit — INCLUDED (external: contact@examplecorp.com)" or "Weekly Standup — EXCLUDED (recurring)" or "All-hands — EXCLUDED (all attendees @you.com)". You will reference this list in Step 6 to ensure every qualifying meeting appears in the Slack post.
 
 If nothing remains after filtering, post this message to `#automated-meeting-briefs` via `mcp__440c028e-25dc-49ef-9cbd-6650b738bb3d__slack_send_message`:
 
-> <@U0A4M1BAR08> No external meetings tomorrow. Nothing to prep.
+> <@{SLACK_USER_ID}> No external meetings tomorrow. Nothing to prep.
 
 (Use "today" instead of "tomorrow" if running in catch-up mode.)
 
@@ -244,11 +244,11 @@ https://docs.google.com/document/d/{file.id}/edit
 
 After all meetings are processed, post ONE message to `#automated-meeting-briefs` using `mcp__440c028e-25dc-49ef-9cbd-6650b738bb3d__slack_send_message`.
 
-**Always open with `<@U0A4M1BAR08>`** so the message triggers an unread notification.
+**Always open with `<@{SLACK_USER_ID}>`** so the message triggers an unread notification.
 
 Format:
 ```
-<@U0A4M1BAR08> Meeting briefs ready for {Day, Date}:
+<@{SLACK_USER_ID}> Meeting briefs ready for {Day, Date}:
 
 {Start Time} — {Company} | {Meeting Title}: {Google Doc URL}
 {Start Time} — {Company} | {Meeting Title}: {Google Doc URL}

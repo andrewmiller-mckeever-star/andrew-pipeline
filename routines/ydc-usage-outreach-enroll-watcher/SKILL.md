@@ -55,7 +55,7 @@ For each open scan, read the thread on channel C0AUKK58U73 (private channel
 #my-accounts-api-users-daily) at that scan's own `slack_thread_ts` via
 `mcp__440c028e-25dc-49ef-9cbd-6650b738bb3d__slack_read_thread`.
 
-Look for a reply from Andrew Miller-McKeever (U0A4M1BAR08) that starts with "go"
+Look for a reply from Andrew Miller-McKeever ({SLACK_USER_ID}) that starts with "go"
 (case-insensitive). Accept: "go", "Go", "GO", "go, exclude ...", "go, include ...",
 "go, skip ...", "go, leave ...", "go, force ...".
 

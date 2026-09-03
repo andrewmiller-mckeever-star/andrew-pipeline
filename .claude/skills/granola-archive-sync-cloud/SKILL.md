@@ -21,7 +21,7 @@ Granola's free tier deletes meeting recordings/transcripts 30 days after the mee
 | Variable | Default if unset |
 |---|---|
 | `AE_EMAIL` | `andrew.miller-mckeever@you.com` |
-| `SLACK_USER_ID` | `U0A4M1BAR08` |
+| `SLACK_USER_ID` | `{SLACK_USER_ID}` |
 
 ---
 

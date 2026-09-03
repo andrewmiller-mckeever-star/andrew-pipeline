@@ -43,10 +43,29 @@ from dotenv import load_dotenv
 ENV_PATH = os.path.join(os.path.dirname(__file__), ".env")
 
 # ── Identity ───────────────────────────────────────────────────────────────────
-ANDREW_SFDC_ID   = "005Vq000009j4ezIAA"        # Andrew's Salesforce User ID
-ANDREW_SLACK_ID  = "U0A4M1BAR08"               # Andrew's Slack user ID
-SLACK_CHANNEL    = "C0B4RRF3FC0"               # #automated-outbound-skills-and-routines
-                                                # Change to "U0A4M1BAR08" to DM instead
+# This repo is public. Account identifiers live in ae-config.md, which is gitignored.
+# Set them in the environment to override.
+def ae_config(key, default=None):
+    v = os.environ.get(key)
+    if v:
+        return v
+    here = os.path.dirname(os.path.abspath(__file__))
+    for base in (here, os.path.join(here, "..")):
+        path = os.path.join(base, "ae-config.md")
+        if os.path.isfile(path):
+            with open(path, encoding="utf-8") as fh:
+                for line in fh:
+                    if line.strip().startswith(key + ":"):
+                        return line.split(":", 1)[1].strip().strip("`")
+    if default is not None:
+        return default
+    sys.exit(f"{key} is not set. Add it to ae-config.md or export it.")
+
+
+ANDREW_SFDC_ID   = ae_config("SFDC_USER_ID")     # Salesforce User ID
+ANDREW_SLACK_ID  = ae_config("SLACK_USER_ID")    # Slack user ID
+SLACK_CHANNEL    = ae_config("SLACK_CHANNEL_ID") # #automated-outbound-skills-and-routines
+                                                 # Set to SLACK_USER_ID to DM instead
 SF_BASE          = "https://ydc.my.salesforce.com/"
 
 # ── Burst detection thresholds (tiered by weekly average volume) ───────────────

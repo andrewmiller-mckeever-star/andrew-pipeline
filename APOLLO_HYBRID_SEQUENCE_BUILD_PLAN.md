@@ -27,7 +27,7 @@ The `note` field on `action_item` and `phone_call` steps DOES work via REST — 
 ## Phase 1 — REST API (structure only)
 
 1. `POST /emailer_campaigns` — create sequence shell
-2. `PUT /emailer_campaigns/{id}` with `{"user_id": "69c2b4822d0a4900117855af"}` — transfer ownership to Andrew (REQUIRED — Apollo ignores user_id in POST body)
+2. `PUT /emailer_campaigns/{id}` with `{"user_id": "{APOLLO_USER_ID}"}` — transfer ownership to Andrew (REQUIRED — Apollo ignores user_id in POST body)
 3. `POST /emailer_steps` for each step — creates type + wait_time + position only
    - **Do NOT include `emailer_template` fields** — they do nothing and are misleading
    - **DO include `note` field** for `action_item` and `phone_call` steps — this works via REST
@@ -158,9 +158,9 @@ For the territory pipeline (template sequences with 10-15 contacts per sequence)
   - LinkedIn queue files in Drive (have connect notes + DMs for these 3)
 
 ### Andrew's Apollo IDs:
-- User ID: `69c2b4822d0a4900117855af`
-- Email account ID: `69655755f84adb0011b0d13b`
-- API service account (sequences created under if you skip the PUT): `690a9832ccf497001dddd69e`
+- User ID: `{APOLLO_USER_ID}`
+- Email account ID: `{APOLLO_EMAIL_ACCOUNT_ID}`
+- API service account (sequences created under if you skip the PUT): `{APOLLO_SERVICE_ACCOUNT_ID}`
 
 ---
 

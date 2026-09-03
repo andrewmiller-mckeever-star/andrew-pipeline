@@ -25,7 +25,7 @@ Read the file content via `mcp__b2f41a0b-70fb-4b72-b711-0dfd9cfb9ff8__read_file_
 
 ## Step 3: Alert Andrew and reset the marker
 
-Send a Slack DM to Andrew (U0A4M1BAR08) via `mcp__440c028e-25dc-49ef-9cbd-6650b738bb3d__slack_send_message`:
+Send a Slack DM to Andrew ({SLACK_USER_ID}) via `mcp__440c028e-25dc-49ef-9cbd-6650b738bb3d__slack_send_message`:
 
 ```
 ⚠️ Territory pipeline watchdog (3pm): tonight's 2pm run didn't complete. Restarting now — will post results when done.

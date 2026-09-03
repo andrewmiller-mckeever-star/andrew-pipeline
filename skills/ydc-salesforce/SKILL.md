@@ -12,7 +12,7 @@ Primary source of prior account context for the whale pipeline. Replaces Slack k
 ## Connection Details
 
 - **Org:** ydc.my.salesforce.com
-- **User:** andrew.miller-mckeever@you.com (User ID: `005Vq000009j4ezIAA`)
+- **User:** andrew.miller-mckeever@you.com (User ID: `{SFDC_USER_ID}`)
 - **MCP Tool:** `run_soql_query` (usernameOrAlias: `andrew.miller-mckeever@you.com`, directory: `/Users/andrew/Downloads/Claud_Code_folder/YDCpipeline`)
 - **Opportunity Stages:** 1-Discovery > 2-Qualification > 3-Workshop > 4-Proof of Value > 5-Agreement > Closed Won / Closed Lost
 - **Opp Naming Convention:** `{Account} | {New/Renewal} | ${Amount} | {Product(s)}`
@@ -137,7 +137,7 @@ ORDER BY ActivityDate DESC LIMIT 20
 
 ```sql
 SELECT Id, Name, StageName, Amount, CloseDate, Account.Name
-FROM Opportunity WHERE OwnerId = '005Vq000009j4ezIAA' AND IsClosed = false ORDER BY CloseDate ASC
+FROM Opportunity WHERE OwnerId = '{SFDC_USER_ID}' AND IsClosed = false ORDER BY CloseDate ASC
 ```
 
 **What it tells you:**

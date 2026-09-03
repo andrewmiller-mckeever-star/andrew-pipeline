@@ -82,7 +82,7 @@ Update `apollo_contact_id` contacts in Apollo with a label `"LinkedIn Connect Se
 Post to `#automated-linkedin-outbound-summary` (channel ID: `C0B4LF2MPUJ`) via `mcp__440c028e-25dc-49ef-9cbd-6650b738bb3d__slack_send_message`:
 
 ```
-<@U0A4M1BAR08> LinkedIn Queue — {today}
+<@{SLACK_USER_ID}> LinkedIn Queue — {today}
 
 ✅ Connects sent ({N}):
   • {First Last} @ {Company} — {sequence}

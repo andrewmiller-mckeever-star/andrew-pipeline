@@ -24,7 +24,7 @@ Combines two data paths so nothing is missed:
 
 Uses the Salesforce MCP (`mcp__Salesforce_DX__run_soql_query`).
 Org: `andrew.miller-mckeever@you.com`
-AE Salesforce User ID: `005Vq000009j4ezIAA` (from ae-config.md `SFDC_USER_ID`)
+AE Salesforce User ID: `{SFDC_USER_ID}` (from ae-config.md `SFDC_USER_ID`)
 
 ---
 
@@ -55,7 +55,7 @@ SELECT Email__c, Domain__c, Account__r.Name, Account__c,
        API_Calls_per_User_All_Time__c, Days_Active_Last_7_Days__c,
        Email_Free_Provider__c, Source_type__c
 FROM Product_User__c
-WHERE Account__r.OwnerId = '005Vq000009j4ezIAA'
+WHERE Account__r.OwnerId = '{SFDC_USER_ID}'
 ORDER BY API_Calls_Last_30_Days__c DESC NULLS LAST
 LIMIT 200
 ```
@@ -70,7 +70,7 @@ SELECT Email__c, Domain__c, Account__c,
 FROM Product_User__c
 WHERE Domain__c IN (
   SELECT Domain__c FROM Account
-  WHERE OwnerId = '005Vq000009j4ezIAA'
+  WHERE OwnerId = '{SFDC_USER_ID}'
   AND Domain__c != null
 )
 AND Account__c = null
@@ -89,10 +89,10 @@ FROM Product_User__c
 WHERE Signup_Date__c = LAST_N_DAYS:30
 AND Email_Free_Provider__c = false
 AND (
-  Account__r.OwnerId = '005Vq000009j4ezIAA'
+  Account__r.OwnerId = '{SFDC_USER_ID}'
   OR Domain__c IN (
     SELECT Domain__c FROM Account
-    WHERE OwnerId = '005Vq000009j4ezIAA'
+    WHERE OwnerId = '{SFDC_USER_ID}'
     AND Domain__c != null
   )
 )
@@ -110,10 +110,10 @@ FROM Product_User__c
 WHERE Signup_Date__c = LAST_N_DAYS:7
 AND Email_Free_Provider__c = false
 AND (
-  Account__r.OwnerId = '005Vq000009j4ezIAA'
+  Account__r.OwnerId = '{SFDC_USER_ID}'
   OR Domain__c IN (
     SELECT Domain__c FROM Account
-    WHERE OwnerId = '005Vq000009j4ezIAA'
+    WHERE OwnerId = '{SFDC_USER_ID}'
     AND Domain__c != null
   )
 )

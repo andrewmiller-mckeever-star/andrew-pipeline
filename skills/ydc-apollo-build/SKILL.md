@@ -40,7 +40,7 @@ Sequences are ALWAYS left INACTIVE (the sequence-level toggle stays off). Indivi
 
 **Apollo sequences CANNOT be deleted** — not via API, not via UI. They can only be archived. Never say "delete sequence." If a broken or duplicate sequence needs to be cleaned up, archive it via: `PUT /v1/emailer_campaigns/{id}` with body `{"archived": true}`.
 
-**Sequences MUST be owned by Andrew's user_id** — Apollo ignores `user_id` in the POST body. The API always creates sequences owned by the service account. To transfer ownership to Andrew (required for UI visibility), immediately issue a `PUT /v1/emailer_campaigns/{id}` with `{"user_id": "69c2b4822d0a4900117855af"}` after every sequence creation. This PUT sets both `user_id` and `object_owner_id`. Without it, the sequence appears invisible in Andrew's Apollo UI under "Owned by: Current User". See Step A.1b.
+**Sequences MUST be owned by Andrew's user_id** — Apollo ignores `user_id` in the POST body. The API always creates sequences owned by the service account. To transfer ownership to Andrew (required for UI visibility), immediately issue a `PUT /v1/emailer_campaigns/{id}` with `{"user_id": "{APOLLO_USER_ID}"}` after every sequence creation. This PUT sets both `user_id` and `object_owner_id`. Without it, the sequence appears invisible in Andrew's Apollo UI under "Owned by: Current User". See Step A.1b.
 
 ## Step 5: Google Drive Upload
 
@@ -150,7 +150,7 @@ mechanics matter, because several documented-looking shortcuts silently do nothi
 ```
 Per sequence:
 1. POST /v1/emailer_campaigns   {name, permissions:"private", active:false}
-2. PUT  /v1/emailer_campaigns/{id}  {user_id: "69c2b4822d0a4900117855af"}   # ownership
+2. PUT  /v1/emailer_campaigns/{id}  {user_id: "{APOLLO_USER_ID}"}   # ownership
 3. POST /v1/emailer_steps  x7  {emailer_campaign_id, type, wait_time,
                                 wait_mode:"day", position}
                                 # call / action_item: pass "note"
@@ -184,7 +184,7 @@ The results JSON is a log, never evidence. It is absent when a run dies early, a
 /v1/emailer_campaigns/{id}` and assert:
 
 - `active == false`
-- `user_id == "69c2b4822d0a4900117855af"`
+- `user_id == "{APOLLO_USER_ID}"`
 - `num_steps == 7`
 - exactly one touch per email/LinkedIn step
 - `reply_to_thread` on positions 3 and 6, `new_thread` on 1, 2 and 7
@@ -236,7 +236,7 @@ Then:
     -d "{
       \"emailer_campaign_id\": \"$SEQ_ID\",
       \"contact_ids\": [\"contact_id_1\", \"contact_id_2\"],
-      \"send_email_from_email_account_id\": \"69655755f84adb0011b0d13b\",
+      \"send_email_from_email_account_id\": \"{APOLLO_EMAIL_ACCOUNT_ID}\",
       \"sequence_active_in_other_campaigns\": true,
       \"sequence_finished_in_other_campaigns\": true,
       \"sequence_same_company_in_same_campaign\": true,
@@ -244,7 +244,7 @@ Then:
     }"
   ```
   - **SEQUENCES REMAIN INACTIVE** — sequence toggle off, individual steps active (build-sequences.js handles step activation)
-  - `send_email_from_email_account_id`: Andrew's email account = `69655755f84adb0011b0d13b`
+  - `send_email_from_email_account_id`: Andrew's email account = `{APOLLO_EMAIL_ACCOUNT_ID}`
   - `sequence_no_email: true` — Apollo auto-skips email steps for contacts missing an email; all other touches still fire
   - Verify enrollment by reading Apollo: `GET /v1/emailer_campaigns/{id}` and confirm
     `contact_statuses.paused` matches the number enrolled, `active` is 0, and the sequence is

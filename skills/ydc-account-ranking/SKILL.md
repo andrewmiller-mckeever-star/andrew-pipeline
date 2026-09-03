@@ -38,7 +38,7 @@ procurement goes through Salesforce.
 
 ```bash
 sf data query \
-  --query "SELECT Id, Name, NumberOfEmployees, Website, Industry, OwnerId, Target_Account__c, Account_Tier__c, Tier_Label__c, Account_Score__c, Account_Score_Rationale__c, Parent.Name, (SELECT StageName FROM Opportunities WHERE IsClosed = false LIMIT 1) FROM Account WHERE OwnerId = '005Vq000009j4ezIAA' ORDER BY Account_Score__c DESC NULLS LAST LIMIT 700" \
+  --query "SELECT Id, Name, NumberOfEmployees, Website, Industry, OwnerId, Target_Account__c, Account_Tier__c, Tier_Label__c, Account_Score__c, Account_Score_Rationale__c, Parent.Name, (SELECT StageName FROM Opportunities WHERE IsClosed = false LIMIT 1) FROM Account WHERE OwnerId = '{SFDC_USER_ID}' ORDER BY Account_Score__c DESC NULLS LAST LIMIT 700" \
   --result-format json \
   --target-org andrew.miller-mckeever@you.com \
   2>/dev/null > /tmp/sfdc_raw.json
@@ -52,7 +52,7 @@ SELECT Id, Name, NumberOfEmployees, Website, Industry, OwnerId,
        Parent.Name,
        (SELECT StageName FROM Opportunities WHERE IsClosed = false LIMIT 1)
 FROM Account
-WHERE OwnerId = '005Vq000009j4ezIAA'
+WHERE OwnerId = '{SFDC_USER_ID}'
 ORDER BY Account_Score__c DESC NULLS LAST
 LIMIT 700
 ```
@@ -115,7 +115,7 @@ SELECT Email__c, Domain__c, Account__r.Name, Account__c,
        API_Calls_Last_7_Days__c, API_Calls_Last_30_Days__c,
        Email_Free_Provider__c
 FROM Product_User__c
-WHERE Account__r.OwnerId = '005Vq000009j4ezIAA'
+WHERE Account__r.OwnerId = '{SFDC_USER_ID}'
 AND Email_Free_Provider__c = false
 ORDER BY API_Calls_Last_30_Days__c DESC NULLS LAST
 LIMIT 200
@@ -129,7 +129,7 @@ SELECT Email__c, Domain__c, Account__r.Name,
 FROM Product_User__c
 WHERE Signup_Date__c = LAST_N_DAYS:7
 AND Email_Free_Provider__c = false
-AND Account__r.OwnerId = '005Vq000009j4ezIAA'
+AND Account__r.OwnerId = '{SFDC_USER_ID}'
 ORDER BY Signup_Date__c DESC
 LIMIT 100
 ```
@@ -142,7 +142,7 @@ SELECT Email__c, Domain__c, Account__r.Name,
 FROM Product_User__c
 WHERE Signup_Date__c = LAST_N_DAYS:30
 AND Email_Free_Provider__c = false
-AND Account__r.OwnerId = '005Vq000009j4ezIAA'
+AND Account__r.OwnerId = '{SFDC_USER_ID}'
 ORDER BY Signup_Date__c DESC
 LIMIT 100
 ```

@@ -135,7 +135,7 @@ GET https://api.ctd.ai/user/atc-paths-api/public/v1/company?company_domain={doma
 
 Check response:
 - If 404 or no data: output "No CTD data for {Company}." and mark CTD steps complete (investor overlap still runs).
-- If error code 50.11: output "CTD API error (source account issue). Contact jelena@ctd.ai." and mark CTD steps complete.
+- If error code 50.11: output "CTD API error (source account issue). contact your CTD account manager." and mark CTD steps complete.
 - Log `ctd_company_score_label` for context but ALWAYS proceed to Step 2 regardless of company score.
 
 ### Step 2. Find Reachable Contacts (two queries, run in parallel)
@@ -386,7 +386,7 @@ Word count: 15-25 words.
 
 **If no shared investor firms were found:** Write "No investor overlap paths for {Company}." inside the delimited block and close it. Still include the block so the orchestrator knows the check ran.
 
-**After drafting investor overlap copy:** Post immediately to `#ctd-outbound-referrals-for-the-day` (channel ID: `C0B1ZPX4K0Q`) via `slack_send_message`. One message per company. Open every message with `<@U0A4M1BAR08>`. Include all three pieces of copy (Slack ask draft, ghost email, bump) in the message body so Andrew has everything in one place. Do not wait for Step 7 to post investor overlap — post it now.
+**After drafting investor overlap copy:** Post immediately to `#ctd-outbound-referrals-for-the-day` (channel ID: `C0B1ZPX4K0Q`) via `slack_send_message`. One message per company. Open every message with `<@{SLACK_USER_ID}>`. Include all three pieces of copy (Slack ask draft, ghost email, bump) in the message body so Andrew has everything in one place. Do not wait for Step 7 to post investor overlap — post it now.
 
 ---
 
@@ -394,7 +394,7 @@ Word count: 15-25 words.
 
 Apollo's tasks API only supports `action_item` and `call` types — manual email tasks are generated exclusively through sequence enrollment. For each Bucket A path, create a 1-step sequence with the referral ask as the `manual_email` step, activate it, then enroll the connector contact. This generates a Manual Email task that shows up in Apollo Tasks > Manual Emails alongside all other outbound emails Andrew reviews.
 
-**Auth:** `$APOLLO_API_KEY` in `X-Api-Key` header. Andrew's user ID: `69c2b4822d0a4900117855af`.
+**Auth:** `$APOLLO_API_KEY` in `X-Api-Key` header. Andrew's user ID: `{APOLLO_USER_ID}`.
 
 **5c.1 — Find or create the connector as an Apollo contact:**
 ```bash
@@ -498,7 +498,7 @@ ENROLL_RESP=$(curl -s -X POST "https://api.apollo.io/v1/emailer_campaigns/$SEQ_I
   -d "{
     \"contact_ids\": [\"$CONTACT_ID\"],
     \"emailer_campaign_id\": \"$SEQ_ID\",
-    \"send_email_from_email_account_id\": \"69655755f84adb0011b0d13b\"
+    \"send_email_from_email_account_id\": \"{APOLLO_EMAIL_ACCOUNT_ID}\"
   }")
 ENROLL_STATUS=$(echo "$ENROLL_RESP" | python3 -c "import sys,json; d=json.load(sys.stdin); print('enrolled' if d.get('contacts') else d.get('error_messages','unknown error'))")
 ```
@@ -530,7 +530,7 @@ For each Bucket B path (you.com internal exec as connector), post immediately to
 
 Format:
 ```
-<@U0A4M1BAR08> *CTD Referral — Bucket B: Internal Exec Path*
+<@{SLACK_USER_ID}> *CTD Referral — Bucket B: Internal Exec Path*
 *Account:* {Company}
 *Target:* {Target Full Name} | {Title}
 *Connector:* {Connector Full Name} ({Title} at you.com)
@@ -685,7 +685,7 @@ The message is a high-level summary only — all copy lives in the doc.
 
 **If paths were found:**
 ```
-<@U0A4M1BAR08> *Referral Asks — {Date}*
+<@{SLACK_USER_ID}> *Referral Asks — {Date}*
 Accounts: {Company1}, {Company2}, ...
 
 CTD paths: {N total}
@@ -699,7 +699,7 @@ Full copy + ghost emails: {Google Doc link}
 
 **If nothing was found:**
 ```
-<@U0A4M1BAR08> *Referral Asks — {Date}*
+<@{SLACK_USER_ID}> *Referral Asks — {Date}*
 Accounts checked: {list}
 
 No CTD or investor overlap paths found tonight.
@@ -785,7 +785,7 @@ NEXT STEPS:
 ## Error Handling
 
 - 404 on company: "No CTD data for {Company}." Investor overlap check still runs.
-- 50.11 source account error: note the error, suggest contacting jelena@ctd.ai. Investor overlap still runs.
+- 50.11 source account error: note the error, suggest contacting your CTD account manager. Investor overlap still runs.
 - 403 forbidden on CTD: API key may be revoked, alert Andrew. Investor overlap still runs.
 - 500 server error on CTD: retry once, then stop gracefully. Investor overlap still runs.
 - youcom-investors.md missing: rebuild it via Step 0 queries before continuing.

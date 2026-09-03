@@ -179,7 +179,7 @@ Array of JobChange objects:
 | 400 | Bad request | Check query parameters |
 | 403 | Forbidden | API key revoked or expired |
 | 404 | Not found | Company/person not in CTD |
-| 50.11 | Source account not found | CTD backend issue, email jelena@ctd.ai |
+| 50.11 | Source account not found | CTD backend issue, email your CTD account manager |
 | 500 | Server error | Retry once, then skip |
 
 ## Constraints

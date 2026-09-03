@@ -29,7 +29,7 @@ followed and which you set aside. Never silently pick one.
 | `YDC_RESEARCH_ENDPOINT` | `https://api.you.com/v1/research` |
 | `YDC_SEARCH_ENDPOINT` | `https://api.you.com/v1/search` |
 | `CTD_API_KEY` / `CTD_CLIENT_ID` | (none — CTD step soft-fails) |
-| `SFDC_USER_ID` | `005Vq000009j4ezIAA` |
+| `SFDC_USER_ID` | `{SFDC_USER_ID}` |
 
 ## What to Collect
 

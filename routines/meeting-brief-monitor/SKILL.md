@@ -16,13 +16,13 @@ You are a monitoring job for Andrew's daily meeting brief automation. Your job r
 3a. If a post IS found from today after 2:50 PM, post this confirmation to #automated-meeting-briefs using mcp__440c028e-25dc-49ef-9cbd-6650b738bb3d__slack_send_message:
 
 If briefs were created:
-"<@U0A4M1BAR08> ✓ Meeting brief job confirmed. [N] brief(s) created for tomorrow."
+"<@{SLACK_USER_ID}> ✓ Meeting brief job confirmed. [N] brief(s) created for tomorrow."
 
 If no meetings:
-"<@U0A4M1BAR08> ✓ Meeting brief job confirmed. No external meetings tomorrow."
+"<@{SLACK_USER_ID}> ✓ Meeting brief job confirmed. No external meetings tomorrow."
 
 3b. If NO post is found from today after 2:50 PM, post this warning to #automated-meeting-briefs:
-"<@U0A4M1BAR08> ⚠️ Meeting brief job did not post today — it may have failed or not run. Run /ydc-meeting-brief manually to catch up."
+"<@{SLACK_USER_ID}> ⚠️ Meeting brief job did not post today — it may have failed or not run. Run /ydc-meeting-brief manually to catch up."
 
 ## Tone
 Short and clear. This is a status ping, not a report. One line is enough.

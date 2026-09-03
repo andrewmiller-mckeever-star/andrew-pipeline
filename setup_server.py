@@ -376,7 +376,7 @@ def test_ctd(api_key: str, client_id: str) -> dict:
         if e.code == 401:
             return {'ok': False, 'msg': 'Invalid API key — check the key in your CTD dashboard'}
         if e.code == 403:
-            return {'ok': False, 'msg': 'API key revoked or expired — contact jelena@ctd.ai'}
+            return {'ok': False, 'msg': 'API key revoked or expired — contact your CTD account manager'}
         return {'ok': False, 'msg': f'CTD API error {e.code}: {e.reason}'}
     except Exception as e:
         return {'ok': False, 'msg': str(e)}
@@ -1341,7 +1341,7 @@ code.inline {
         <div class="card-title">ConnectTheDots (CTD)</div>
         <div class="card-sub">
           CTD finds warm intro paths into target accounts. Optional — you can skip this and add your key later in ae-config.md.
-          Get a key from <a href="https://connectthedots.ai" target="_blank" style="color:var(--blue)">connectthedots.ai</a> or contact jelena@ctd.ai.
+          Get a key from <a href="https://connectthedots.ai" target="_blank" style="color:var(--blue)">connectthedots.ai</a> or contact your CTD account manager.
         </div>
       </div>
       <div class="card-body">
@@ -1366,7 +1366,7 @@ code.inline {
             <button class="test-btn" onclick="runTest('ctd')">Check</button>
           </div>
           <div class="fix-block" id="fix-ctd">
-            <div class="fix-label">Verify the key and client ID are correct. If the key is missing or expired, contact jelena@ctd.ai.</div>
+            <div class="fix-label">Verify the key and client ID are correct. If the key is missing or expired, contact your CTD account manager.</div>
           </div>
         </div>
 

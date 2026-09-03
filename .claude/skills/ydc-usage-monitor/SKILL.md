@@ -35,7 +35,7 @@ signal, and ranks accounts by the Priority Lens.
 
 | Variable | Default if unset |
 |---|---|
-| `SFDC_USER_ID` | `005Vq000009j4ezIAA` (andrew.miller-mckeever@you.com) |
+| `SFDC_USER_ID` | `{SFDC_USER_ID}` (andrew.miller-mckeever@you.com) |
 
 Run all independent queries in parallel.
 
@@ -71,7 +71,7 @@ Triggered when no specific account name is given.
 
 **Owner** — check the prompt:
 
-- **No owner specified** → use default `SFDC_USER_ID` (`005Vq000009j4ezIAA`)
+- **No owner specified** → use default `SFDC_USER_ID` (`{SFDC_USER_ID}`)
 - **Raw Salesforce ID provided** (starts with `005`) → use it directly
 - **Name provided** (e.g. "check usage for Sarah") → look up by name:
 

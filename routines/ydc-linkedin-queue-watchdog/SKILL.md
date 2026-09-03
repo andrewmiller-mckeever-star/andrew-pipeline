@@ -14,7 +14,7 @@ Search Drive for all files matching `linkedin-queue-` using `mcp__b2f41a0b-70fb-
 Read each file. Check whether any contacts have `connect_sent_at` or `dm_sent_at` timestamps from today. Also check if all pending contacts have `connect_due_date` or `dm_due_date` in the future (meaning there was nothing to do today anyway).
 
 ## Step 3: Determine outcome
-- If contacts were processed today (any connect_sent_at or dm_sent_at = today): the run succeeded. Post a DM to Andrew (U0A4M1BAR08) via `mcp__440c028e-25dc-49ef-9cbd-6650b738bb3d__slack_send_message`: `✅ LinkedIn queue ran this morning. [N] connects sent, [N] DMs sent.` Then stop.
+- If contacts were processed today (any connect_sent_at or dm_sent_at = today): the run succeeded. Post a DM to Andrew ({SLACK_USER_ID}) via `mcp__440c028e-25dc-49ef-9cbd-6650b738bb3d__slack_send_message`: `✅ LinkedIn queue ran this morning. [N] connects sent, [N] DMs sent.` Then stop.
 - If no queue files exist OR all contacts are future-dated (nothing due today): post DM `✅ LinkedIn queue: nothing due today.` Then stop.
 - If there ARE contacts due today that still show `connect_status: "pending"` or `dm_status: "pending"`: the run failed or didn't fire. Proceed to Step 4.
 

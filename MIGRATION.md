@@ -22,9 +22,9 @@ In Claude Code web → your environment for `andrewmiller-mckeever-star/andrew-p
 | `CTD_CLIENT_ID` | `andrew.miller-mckeever@you.com` | same |
 | `AE_NAME` | `Andrew Miller-McKeever` | identity in briefs |
 | `AE_FIRST_NAME` | `Andrew` | identity |
-| `SFDC_USER_ID` | `005Vq000009j4ezIAA` | SOQL owner filters |
+| `SFDC_USER_ID` | `{SFDC_USER_ID}` | SOQL owner filters |
 | `GDRIVE_FOLDER_ID` | `1Fd2sMXvUnFVbAoh_BxqCrUI3R8snvp9u` | Drive fallback parent |
-| `SLACK_USER_ID` | `U0A4M1BAR08` | @-mentions |
+| `SLACK_USER_ID` | `{SLACK_USER_ID}` | @-mentions |
 
 **Network policy:** allow `api.you.com`, `api.apollo.io`, `api.ctd.ai`, `youdotcom-company-search-production.up.railway.app` (or use unrestricted).
 

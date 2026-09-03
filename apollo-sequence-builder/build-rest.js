@@ -3,8 +3,23 @@
 // Creates 4 sequences x 7 touches from a *-4seq-content.json file, fills content,
 // transfers ownership to Andrew, leaves SEQUENCE INACTIVE, individual steps active.
 const fs = require('fs');
+const path = require('path');
+// This repo is public. Account identifiers live in ae-config.md, which is gitignored.
+// Env wins; ae-config.md is the fallback.
+function aeConfig(key) {
+  if (process.env[key]) return process.env[key];
+  for (const base of [__dirname, path.join(__dirname, '..')]) {
+    const p = path.join(base, 'ae-config.md');
+    if (fs.existsSync(p)) {
+      const m = fs.readFileSync(p, 'utf8').match(new RegExp('^' + key + ':\\s*(.+)$', 'm'));
+      if (m) return m[1].trim().replace(/`/g, '');
+    }
+  }
+  console.error(`${key} is not set. Add it to ae-config.md or export it.`);
+  process.exit(1);
+}
 const KEY = process.env.APOLLO_API_KEY;
-const OWNER = '69c2b4822d0a4900117855af';
+const OWNER = aeConfig('APOLLO_USER_ID');
 const BASE = 'https://api.apollo.io/v1';
 const contentFile = process.argv[2];
 if (!KEY) { console.error('APOLLO_API_KEY not set'); process.exit(1); }

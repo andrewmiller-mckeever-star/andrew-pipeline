@@ -8,7 +8,7 @@ type: reference
 
 ## Connection Details
 - **Org:** ydc.my.salesforce.com
-- **User:** andrew.miller-mckeever@you.com (User ID: `005Vq000009j4ezIAA`)
+- **User:** andrew.miller-mckeever@you.com (User ID: `{SFDC_USER_ID}`)
 - **Org ID:** 00Dfo000003ZI8QEAW
 - **API Version:** 66.0
 - **Auth (laptop):** Salesforce CLI (`sf org login web`); MCP package `@salesforce/mcp` (via npx, toolsets: core,data,orgs,users), primary tool `run_soql_query`

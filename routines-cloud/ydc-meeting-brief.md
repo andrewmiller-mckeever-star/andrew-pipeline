@@ -8,7 +8,7 @@
 | Connectors | Google Calendar, Google Drive, Slack, Salesforce, You.com Search (Free) — ONLY these five |
 | Env vars used | `YDC_API_KEY` (optional — degrades to connector search) |
 | Replaces laptop task | `ydc-meeting-brief` (disable after 2 clean cloud runs) |
-| Expected output | One Google Doc per external meeting in Drive "Meeting Briefs"; ONE Slack post to #automated-meeting-briefs opening `<@U0A4M1BAR08>` |
+| Expected output | One Google Doc per external meeting in Drive "Meeting Briefs"; ONE Slack post to #automated-meeting-briefs opening `<@{SLACK_USER_ID}>` |
 
 ## PROMPT
 
@@ -19,7 +19,7 @@ You are Andrew's nightly meeting-brief automation. Produce one Google Doc brief 
 
 STEP 1 — TARGET DATE: tomorrow, America/Los_Angeles. Format it two ways: human ("Tuesday, July 21") and ISO ("2026-07-21").
 
-STEP 2 — CALENDAR: use the Google Calendar list_events tool for tomorrow, midnight to midnight Pacific. EXCLUDE: events with any recurrence field; events where ALL attendee domains are you.com; events with no attendees; events Andrew declined. DO NOT exclude: events where Andrew is an optional attendee, or events organized by a you.com colleague that include external attendees. Keep an audit log of every event with its include/exclude reason; every included meeting must appear in the final Slack post. If nothing qualifies, post to #automated-meeting-briefs: "<@U0A4M1BAR08> No external meetings tomorrow. Nothing to prep." and stop.
+STEP 2 — CALENDAR: use the Google Calendar list_events tool for tomorrow, midnight to midnight Pacific. EXCLUDE: events with any recurrence field; events where ALL attendee domains are you.com; events with no attendees; events Andrew declined. DO NOT exclude: events where Andrew is an optional attendee, or events organized by a you.com colleague that include external attendees. Keep an audit log of every event with its include/exclude reason; every included meeting must appear in the final Slack post. If nothing qualifies, post to #automated-meeting-briefs: "<@{SLACK_USER_ID}> No external meetings tomorrow. Nothing to prep." and stop.
 
 STEP 3 — for each qualifying meeting, one at a time:
 3A: Company = the most common external attendee email domain (stripe.com → Stripe). Strip Inc/Corp/LLC.
@@ -36,7 +36,7 @@ STEP 4 — write the brief with these sections in order: header (COMPANY | MEETI
 
 STEP 5 — create the Doc: Drive search_files for the folder named "Meeting Briefs" (mimeType application/vnd.google-apps.folder); ALSO search it for an existing "Meeting Brief | {COMPANY} | {YYYY-MM-DD}" — if one exists (a pre-generated or earlier run's brief), still create yours, and mark the Slack line as superseding it. Then create_file with title "Meeting Brief | {COMPANY} | {YYYY-MM-DD}", contentMimeType text/plain (auto-converts to a Google Doc), parentId = that folder, textContent = the full brief. Doc URL: https://docs.google.com/document/d/{id}/edit. If creation fails for a meeting, mark it failed and continue.
 
-STEP 6 — post ONE message to #automated-meeting-briefs, opening with <@U0A4M1BAR08>: "<@U0A4M1BAR08> Meeting briefs ready for {Day, Date}:" followed by one line per qualifying meeting: "{Start Time} — {Company} | {Meeting Title}: {Doc URL}" or "{Start Time} — {Company} | {Meeting Title}: ⚠️ brief generation failed — re-run manually". After the meeting lines, add ONE short context paragraph (2-4 sentences, plain text): relationship temperature, the single most important goal, and any open loops carried forward — enough that Andrew can triage from his phone without opening the doc. If a same-day brief already existed (Step 5), end with "(Supersedes the earlier brief for this day — this one uses live calendar + CRM data.)"
+STEP 6 — post ONE message to #automated-meeting-briefs, opening with <@{SLACK_USER_ID}>: "<@{SLACK_USER_ID}> Meeting briefs ready for {Day, Date}:" followed by one line per qualifying meeting: "{Start Time} — {Company} | {Meeting Title}: {Doc URL}" or "{Start Time} — {Company} | {Meeting Title}: ⚠️ brief generation failed — re-run manually". After the meeting lines, add ONE short context paragraph (2-4 sentences, plain text): relationship temperature, the single most important goal, and any open loops carried forward — enough that Andrew can triage from his phone without opening the doc. If a same-day brief already existed (Step 5), end with "(Supersedes the earlier brief for this day — this one uses live calendar + CRM data.)"
 
 SOFT-FAIL RULES: only a calendar-pull failure aborts the run (post an error line to the channel and stop). Any other failure — research thin, LinkedIn empty, Salesforce down, Slack search down, one meeting's doc failing — gets noted inline and the run continues. Never abort the whole run because one meeting failed.
 ```
@@ -46,4 +46,4 @@ SOFT-FAIL RULES: only a calendar-pull failure aborts the run (post an error line
 1. Filter audit: every calendar event evaluated has an include/exclude reason; recurring, internal-only, no-attendee, and declined events excluded; optional-attendance kept.
 2. Salesforce soqlQuery returned account/opportunity/contact/task history (or clean "net-new" / "unavailable" notes).
 3. Docs landed in the "Meeting Briefs" folder with title `Meeting Brief | {Company} | {YYYY-MM-DD}`.
-4. Exactly one Slack message in #automated-meeting-briefs, opens with <@U0A4M1BAR08>, lists every qualifying meeting.
+4. Exactly one Slack message in #automated-meeting-briefs, opens with <@{SLACK_USER_ID}>, lists every qualifying meeting.

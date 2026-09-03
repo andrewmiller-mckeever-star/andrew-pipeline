@@ -32,7 +32,7 @@ signal, and ranks accounts by the Priority Lens.
 
 - **Tool:** `mcp__Salesforce_DX__run_soql_query`
 - **Org:** `andrew.miller-mckeever@you.com`
-- **Default user:** `andrew.miller-mckeever@you.com` (User ID: `005Vq000009j4ezIAA`)
+- **Default user:** `andrew.miller-mckeever@you.com` (User ID: `{SFDC_USER_ID}`)
 
 Run all independent queries in parallel.
 
@@ -68,7 +68,7 @@ Triggered when no specific account name is given.
 
 **Owner** — check the prompt:
 
-- **No owner specified** → use default ID `005Vq000009j4ezIAA`
+- **No owner specified** → use default ID `{SFDC_USER_ID}`
 - **Raw Salesforce ID provided** (starts with `005`) → use it directly
 - **Name provided** (e.g. "check usage for Sarah") → look up by name:
 

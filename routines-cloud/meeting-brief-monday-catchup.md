@@ -27,7 +27,7 @@ STEP 2: Search #automated-meeting-briefs via the Slack connector search tool wit
 
 STEP 3: If no brief was posted, run the full brief workflow below in catch-up mode. It is the nightly workflow with one substitution applied throughout: the target date is TODAY (this Monday), not tomorrow.
 
-STEP 4 — CALENDAR: use the Google Calendar list_events tool for TODAY, midnight to midnight Pacific. EXCLUDE: events with any recurrence field; events where ALL attendee domains are you.com; events with no attendees; events Andrew declined. DO NOT exclude: events where Andrew is an optional attendee, or events organized by a you.com colleague that include external attendees. Keep an audit log of every event with its include/exclude reason; every included meeting must appear in the final Slack post. If nothing qualifies, post to #automated-meeting-briefs: "<@U0A4M1BAR08> No external meetings today. Nothing to prep." and stop.
+STEP 4 — CALENDAR: use the Google Calendar list_events tool for TODAY, midnight to midnight Pacific. EXCLUDE: events with any recurrence field; events where ALL attendee domains are you.com; events with no attendees; events Andrew declined. DO NOT exclude: events where Andrew is an optional attendee, or events organized by a you.com colleague that include external attendees. Keep an audit log of every event with its include/exclude reason; every included meeting must appear in the final Slack post. If nothing qualifies, post to #automated-meeting-briefs: "<@{SLACK_USER_ID}> No external meetings today. Nothing to prep." and stop.
 
 STEP 5 — for each qualifying meeting, one at a time:
 5A: Company = the most common external attendee email domain (stripe.com → Stripe). Strip Inc/Corp/LLC.
@@ -43,7 +43,7 @@ STEP 6 — write the brief with these sections in order: header (COMPANY | MEETI
 
 STEP 7 — create the Doc: Drive search_files for the folder named "Meeting Briefs" (mimeType application/vnd.google-apps.folder); then create_file with title "Meeting Brief | {COMPANY} | {YYYY-MM-DD}" (today's ISO date), contentMimeType text/plain (auto-converts to a Google Doc), parentId = that folder, textContent = the full brief. Doc URL: https://docs.google.com/document/d/{id}/edit. If creation fails for a meeting, mark it failed and continue.
 
-STEP 8 — post ONE message to #automated-meeting-briefs, opening with <@U0A4M1BAR08>: "<@U0A4M1BAR08> Meeting briefs ready for {today's Monday date, e.g. Monday, July 20}:" followed by one line per qualifying meeting: "{Start Time} — {Company} | {Meeting Title}: {Doc URL}" or "{Start Time} — {Company} | {Meeting Title}: ⚠️ brief generation failed — re-run manually".
+STEP 8 — post ONE message to #automated-meeting-briefs, opening with <@{SLACK_USER_ID}>: "<@{SLACK_USER_ID}> Meeting briefs ready for {today's Monday date, e.g. Monday, July 20}:" followed by one line per qualifying meeting: "{Start Time} — {Company} | {Meeting Title}: {Doc URL}" or "{Start Time} — {Company} | {Meeting Title}: ⚠️ brief generation failed — re-run manually".
 
 SOFT-FAIL RULES: only a calendar-pull failure aborts the run (post an error line to the channel and stop). Any other failure — research thin, LinkedIn empty, Salesforce down, Slack search down, one meeting's doc failing — gets noted inline and the run continues. Never abort the whole run because one meeting failed.
 ```

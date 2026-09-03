@@ -30,7 +30,7 @@ From the script output, extract:
 **If the script exits with "LinkedIn session expired":**
 Post to #automated-linkedin-outbound-summary (channel ID: C0B4LF2MPUJ):
 ```
-<@U0A4M1BAR08> LinkedIn session expired — tasks not processed.
+<@{SLACK_USER_ID}> LinkedIn session expired — tasks not processed.
 Fix: quit Chrome, run `node save-session.js` in the apollo-linkedin-connect directory, re-open Chrome, then re-run.
 ```
 Stop here.
@@ -38,14 +38,14 @@ Stop here.
 **If APOLLO_API_KEY is not set or script fails to start:**
 Post to #automated-linkedin-outbound-summary (channel ID: C0B4LF2MPUJ):
 ```
-<@U0A4M1BAR08> LinkedIn task run failed — APOLLO_API_KEY not set or script error. Check logs.
+<@{SLACK_USER_ID}> LinkedIn task run failed — APOLLO_API_KEY not set or script error. Check logs.
 ```
 Stop here.
 
 **If no tasks were pending:**
 Post to #automated-linkedin-outbound-summary (channel ID: C0B4LF2MPUJ):
 ```
-<@U0A4M1BAR08> LinkedIn tasks: nothing pending today.
+<@{SLACK_USER_ID}> LinkedIn tasks: nothing pending today.
 ```
 Stop here.
 
@@ -55,7 +55,7 @@ Post to #automated-linkedin-outbound-summary (channel ID: C0B4LF2MPUJ) using sla
 
 Format:
 ```
-<@U0A4M1BAR08> LinkedIn tasks done.
+<@{SLACK_USER_ID}> LinkedIn tasks done.
 Connects: {N sent} sent{, N skipped — cap if applicable}
 DMs: {N sent} sent
 {If unfilled placeholders: "⚠️ {N} DMs skipped — unfilled placeholder: [names]. Edit in Apollo and re-run."}
@@ -64,7 +64,7 @@ DMs: {N sent} sent
 
 ## Rules
 - Plain text only. No markdown formatting symbols.
-- Always open with <@U0A4M1BAR08>
+- Always open with <@{SLACK_USER_ID}>
 - Keep it short — one screen, no bullet walls
 - Today's date determined at runtime
 - APOLLO_API_KEY is available as $APOLLO_API_KEY env var — do not hardcode it

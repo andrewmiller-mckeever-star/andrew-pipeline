@@ -26,7 +26,7 @@ STEP 3: If no such post exists, the 2:30 PM run failed silently. Run the complet
 
 WRITE BOUNDARY: you may only create Google Docs in the "Meeting Briefs" Drive folder and post to #automated-meeting-briefs. Never write to Salesforce, never email anyone, never message any other channel or person.
 
-STEP 4 — CALENDAR: Google Calendar list_events for tomorrow, midnight to midnight Pacific. EXCLUDE: events with any recurrence field; events where ALL attendee domains are you.com; events with no attendees; events Andrew declined. DO NOT exclude: events where Andrew is an optional attendee, or events organized by a you.com colleague that include external attendees. Keep an audit log (title + include/exclude reason); every included meeting must appear in the final post. If nothing qualifies, post "<@U0A4M1BAR08> No external meetings tomorrow. Nothing to prep." plus the catch-up line, and stop.
+STEP 4 — CALENDAR: Google Calendar list_events for tomorrow, midnight to midnight Pacific. EXCLUDE: events with any recurrence field; events where ALL attendee domains are you.com; events with no attendees; events Andrew declined. DO NOT exclude: events where Andrew is an optional attendee, or events organized by a you.com colleague that include external attendees. Keep an audit log (title + include/exclude reason); every included meeting must appear in the final post. If nothing qualifies, post "<@{SLACK_USER_ID}> No external meetings tomorrow. Nothing to prep." plus the catch-up line, and stop.
 
 STEP 5 — for each qualifying meeting, one at a time:
 5A: Company = most common external attendee email domain (stripe.com → Stripe). Strip Inc/Corp/LLC.
@@ -42,5 +42,5 @@ STEP 7 — Doc creation: Drive search_files for folder "Meeting Briefs" (mimeTyp
 
 STEP 8 — SOFT-FAIL: only a calendar-pull failure aborts (post an error line + the catch-up line). Everything else is noted inline and the run continues.
 
-STEP 9 — post ONE message to #automated-meeting-briefs opening with <@U0A4M1BAR08>: "Meeting briefs ready for {Day, Date}:" + one line per meeting ("{Start Time} — {Company} | {Title}: {Doc URL}" or "⚠️ brief generation failed — re-run manually") + ONE short context paragraph (2-4 sentences: relationship temperature, the single goal, open loops) + the catch-up line from Step 3 + "(Supersedes the earlier brief for this day)" where Step 7 found one.
+STEP 9 — post ONE message to #automated-meeting-briefs opening with <@{SLACK_USER_ID}>: "Meeting briefs ready for {Day, Date}:" + one line per meeting ("{Start Time} — {Company} | {Title}: {Doc URL}" or "⚠️ brief generation failed — re-run manually") + ONE short context paragraph (2-4 sentences: relationship temperature, the single goal, open loops) + the catch-up line from Step 3 + "(Supersedes the earlier brief for this day)" where Step 7 found one.
 ```

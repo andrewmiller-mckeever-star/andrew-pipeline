@@ -100,3 +100,9 @@ SESSION_CONTEXT_*.md
 
 # Contains hardcoded credentials — do not publish (ROTATE the key)
 score_missed_events.py
+
+# One-off ABM doc-fill scripts. Payload is real exec rosters (names, emails,
+# LinkedIn URLs, deal status) for named accounts. Kept locally, never published.
+fill-abm-doc.js
+fix-abm-doc.js
+fill-all-abm.js

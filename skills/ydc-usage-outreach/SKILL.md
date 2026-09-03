@@ -91,7 +91,7 @@ SELECT Email__c, Domain__c, Account__c, Account__r.Name, Account__r.Type,
        API_Calls_Last_7_Days__c, API_Calls_Last_30_Days__c,
        API_Calls_per_User_All_Time__c, Email_Free_Provider__c
 FROM Product_User__c
-WHERE Account__r.OwnerId = '005Vq000009j4ezIAA'
+WHERE Account__r.OwnerId = '{SFDC_USER_ID}'
 AND Email_Free_Provider__c = false
 AND (
   Signup_Date__c >= LAST_N_DAYS:120
@@ -111,7 +111,7 @@ SELECT Email__c, Domain__c, Account__c, Account__r.Name, Account__r.Type,
 FROM Product_User__c
 WHERE Signup_Date__c >= LAST_N_DAYS:120
 AND Email_Free_Provider__c = false
-AND Account__r.OwnerId = '005Vq000009j4ezIAA'
+AND Account__r.OwnerId = '{SFDC_USER_ID}'
 ORDER BY Signup_Date__c DESC
 LIMIT 300
 ```
@@ -273,23 +273,23 @@ YDC USAGE OUTREACH — REVIEW LIST  |  {today's date}
 DATABRICKS  [Customer]  ·  13 users
 ───────────────────────────────────────────────────────────────
   → Seq D (Customer New Signup):
-    ali.saberi@databricks.com        Signed up Apr 12  ·  0 calls
-    priya.nair@databricks.com        Signed up Apr 10  ·  0 calls
-    tom.chen@databricks.com          Signed up Apr 8   ·  142 calls/30d
+    first.user@exampledata.com        Signed up Apr 12  ·  0 calls
+    second.user@exampledata.com        Signed up Apr 10  ·  0 calls
+    third.user@exampledata.com          Signed up Apr 8   ·  142 calls/30d
 
   → Seq F (Customer Existing User):
-    wei.zhang@databricks.com         Active 890 calls/7d  ·  never contacted
+    fourth.user@exampledata.com         Active 890 calls/7d  ·  never contacted
     ⚑ SLACK FLAG: #esl-api-sales active thread Apr 14 — review before enrolling
 
 ───────────────────────────────────────────────────────────────
 DAGSTER LABS  [Prospect]  ·  3 users
 ───────────────────────────────────────────────────────────────
   → Seq B (Active Tester):
-    ali@dagster.io                   2,270 calls/7d  ·  7,695/30d
+    lead@exampledev.io                   2,270 calls/7d  ·  7,695/30d
     RECLASSIFY: remove from "YDC | Dagster | Seq A: Engineering Leader"
 
   → Seq A (New Signup, No Calls):
-    ben@dagster.io                   Signed up Apr 15  ·  0 calls
+    second@exampledev.io                   Signed up Apr 15  ·  0 calls
 
 ───────────────────────────────────────────────────────────────
 [... continue per account ...]
@@ -307,7 +307,7 @@ MOVING OUT OF ANOTHER SEQUENCE — included in "go":
 ⚠️  AWAITING YOUR REVIEW — prior/active interaction ≤90 days, NOT auto-enrolled:
 ───────────────────────────────────────────────────────────────
   john.smith@acme.com  (Acme)  [Seq B]  — emailed back Apr 1 (19 days ago)
-  ethan@reflection.ai  (Reflection AI)  [Seq B]  — meeting on calendar Jun 18 + Slack #api-gtm-team Jun 12
+  dana@example-ai.com  (Example AI)  [Seq B]  — meeting on calendar Jun 18 + Slack #api-gtm-team Jun 12
   slack.user@co.com    (Co)    [Seq D]  — Slack thread in #esl-api-sales Apr 18 (2 days ago)
 
   (Each line cites the channel(s) and who at You.com had the contact.)
@@ -909,7 +909,7 @@ Use the structure below as the content reference when building sequences via Apo
 ## Salesforce Notes
 
 - `Email_Free_Provider__c = false` filters personal emails (Gmail, Yahoo, etc.). Always apply.
-- `Account__r.OwnerId = '005Vq000009j4ezIAA'` scopes to Andrew's accounts only.
+- `Account__r.OwnerId = '{SFDC_USER_ID}'` scopes to Andrew's accounts only.
 - `Account__r.Type IN ('Customer', 'Partner')` identifies customer accounts for Seq D/F.
 - `LAST_N_DAYS:120` and `LAST_N_DAYS:90` are native SOQL date literals.
 - If query exceeds 500 results, add `AND API_Calls_Last_30_Days__c > 0` to trim inactive users first, then run a second pass for signups with 0 calls.
@@ -928,7 +928,7 @@ Use the structure below as the content reference when building sequences via Apo
 | Date | Change | Reason |
 |------|--------|--------|
 | 2026-09-01 | **Foreign-sequence policy reversed: move, do not hold.** Anyone live in a sequence that is not Andrew's is removed from it and enrolled in the usage sequence on a plain "go". New `reclassify_from_foreign` field; Step 10 covers both reclassify paths and must VERIFY the removal by re-reading the contact; a failed removal still enrolls (with `sequence_active_in_other_campaigns: true`) and is reported by name. `flagged_conflict` now means only "the move failed mechanically". New "go, leave {email}" opt-out. Supersedes the cross-rep hold added 2026-07-17. | Andrew's call. Joe Hindle's "product user journey" campaign took alex.w@example.com 43 minutes after the 08-28 review said he was clean, so the best signup on the book was getting another rep's cold email while Andrew's "go" sat held. |
-| 2026-06-22 | Step 2 rewritten to check interaction across ALL channels (SFDC EmailMessage, all SFDC Tasks incl. LinkedIn, SFDC Events, Google Calendar, Slack threads/DMs by name+email, Gmail). Cold buckets reachable only when every channel is empty. | Contacts with calendar meetings, Slack DMs, or SFDC LinkedIn tasks (e.g. ethan@reflection.ai) were tagged "never contacted" and routed to cold sequences — calendar was never queried, Slack was domain-only, and the Task filter excluded LinkedIn/upcoming activity |
+| 2026-06-22 | Step 2 rewritten to check interaction across ALL channels (SFDC EmailMessage, all SFDC Tasks incl. LinkedIn, SFDC Events, Google Calendar, Slack threads/DMs by name+email, Gmail). Cold buckets reachable only when every channel is empty. | Contacts with calendar meetings, Slack DMs, or SFDC LinkedIn tasks (e.g. dana@example-ai.com) were tagged "never contacted" and routed to cold sequences — calendar was never queried, Slack was domain-only, and the Task filter excluded LinkedIn/upcoming activity |
 | 2026-06-02 | Changelog initialized | Tracking all skill changes going forward |
 | (prior) | Added `awaiting_review` classification for contacts with active two-way conversation | Contacts with recent real conversations (email reply, meeting, Slack) were being auto-enrolled; now require explicit opt-in |
 | (prior) | Added Seq E (Re-engagement) and Seq F (Customer Existing User) | Initial version had 4 sequences; re-engagement and customer-existing-user patterns needed distinct copy and flow |

@@ -77,4 +77,25 @@ CTD_API_KEY: YOUR_CTD_API_KEY
 CTD_CLIENT_ID: YOUR_EMAIL@you.com
 ```
 
-> Used by the ydc-ctd-warmintro skill to find warm intro paths. Get your key from jelena@ctd.ai.
+> Used by the ydc-ctd-warmintro skill to find warm intro paths. Get your key from your CTD account manager.
+
+---
+
+## Account identifiers
+
+```
+SFDC_USER_ID: YOUR_SALESFORCE_USER_ID
+APOLLO_USER_ID: YOUR_APOLLO_USER_ID
+APOLLO_EMAIL_ACCOUNT_ID: YOUR_APOLLO_SENDING_ACCOUNT_ID
+SLACK_USER_ID: YOUR_SLACK_USER_ID
+SLACK_CHANNEL_ID: YOUR_DEFAULT_SLACK_CHANNEL_ID
+```
+
+> The repo is public, so no real IDs live in tracked files. Skills reference them as
+> `{SFDC_USER_ID}`, `{APOLLO_USER_ID}`, and so on, and resolve them from this file.
+> The Python and Node scripts read the environment first, then fall back to this file.
+>
+> `SFDC_USER_ID` is your Salesforce User record ID, used in SOQL owner filters.
+> `APOLLO_USER_ID` must be sent as `user_id` in the ownership PUT after sequence
+> creation, or the sequence stays owned by the API service account and is invisible
+> in your Apollo UI. `APOLLO_EMAIL_ACCOUNT_ID` is your sending mailbox.

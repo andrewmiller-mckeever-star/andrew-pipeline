@@ -14,13 +14,13 @@ curl -s -X POST "https://api.apollo.io/api/v1/tasks/search" \
   -d '{"sort_by_field":"task_due_at","sort_ascending":true,"per_page":100}'
 ```
 
-Filter client-side: `user_id === "69c2b4822d0a4900117855af"` AND type in `["linkedin_step_connect", "linkedin_step_message"]` AND `status === "scheduled"`.
+Filter client-side: `user_id === "{APOLLO_USER_ID}"` AND type in `["linkedin_step_connect", "linkedin_step_message"]` AND `status === "scheduled"`.
 
 ## Step 2: Determine outcome
 
 **If 0 pending tasks:** Post to #automated-linkedin-outbound-summary (channel ID: C0B4LF2MPUJ):
 ```
-<@U0A4M1BAR08> LinkedIn watchdog: queue is clear. Morning run completed successfully.
+<@{SLACK_USER_ID}> LinkedIn watchdog: queue is clear. Morning run completed successfully.
 ```
 Stop here.
 
@@ -40,7 +40,7 @@ Capture full stdout/stderr.
 If script exits with "LinkedIn session expired":
 Post to #automated-linkedin-outbound-summary (channel ID: C0B4LF2MPUJ):
 ```
-<@U0A4M1BAR08> LinkedIn watchdog: 9 AM run missed + session expired. Tasks not processed.
+<@{SLACK_USER_ID}> LinkedIn watchdog: 9 AM run missed + session expired. Tasks not processed.
 Fix: quit Chrome, run `node save-session.js` in the apollo-linkedin-connect directory, re-open Chrome, then re-run manually.
 ```
 Stop here.
@@ -49,7 +49,7 @@ Stop here.
 
 Post to #automated-linkedin-outbound-summary (channel ID: C0B4LF2MPUJ):
 ```
-<@U0A4M1BAR08> LinkedIn watchdog: 9 AM run missed — re-ran at 2 PM.
+<@{SLACK_USER_ID}> LinkedIn watchdog: 9 AM run missed — re-ran at 2 PM.
 Connects: {N} sent
 DMs: {N} sent
 {If unfilled placeholders: "⚠️ {N} DMs skipped — unfilled placeholder: [names]. Edit in Apollo and re-run."}
@@ -58,5 +58,5 @@ DMs: {N} sent
 
 ## Rules
 - Plain text only. No markdown formatting symbols.
-- Always open with <@U0A4M1BAR08>
+- Always open with <@{SLACK_USER_ID}>
 - APOLLO_API_KEY is available as $APOLLO_API_KEY env var — do not hardcode it

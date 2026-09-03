@@ -36,7 +36,7 @@ Output: `ydc_account_rankings_{YYYY-MM-DD}.csv` uploaded to the **accountplans f
 
 | Variable | Default if unset |
 |---|---|
-| `SFDC_USER_ID` | `005Vq000009j4ezIAA` |
+| `SFDC_USER_ID` | `{SFDC_USER_ID}` |
 | `CTD_API_KEY` | (none — Step 4 skipped) |
 | `CTD_CLIENT_ID` | `andrew.miller-mckeever@you.com` |
 | `YDC_API_KEY` | (none — Step 5 verification falls back to WebSearch) |

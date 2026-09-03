@@ -27,8 +27,8 @@ Enrollment happens on the next enroll run after his Slack reply — or he can ru
 
 | Variable | Default if unset |
 |---|---|
-| `SFDC_USER_ID` | `005Vq000009j4ezIAA` |
-| `SLACK_USER_ID` | `U0A4M1BAR08` |
+| `SFDC_USER_ID` | `{SFDC_USER_ID}` |
+| `SLACK_USER_ID` | `{SLACK_USER_ID}` |
 | `SLACK_CHANNEL_ID` | `C0AUKK58U73` (#my-accounts-api-users-daily) |
 | `APOLLO_API_KEY` | (none — triggers conservative fallback in Scan Step 3.2) |
 | `AE_EMAIL` | `andrew.miller-mckeever@you.com` |
@@ -399,10 +399,10 @@ Hold the full pending structure in memory for now (it is written to Drive in Ste
   ],
   "awaiting_review": [
     {
-      "email": "ethan@reflection.ai",
+      "email": "dana@example-ai.com",
       "first_name": "Ethan",
       "last_name": "Doe",
-      "company": "Reflection AI",
+      "company": "Example AI",
       "sequence": "B",
       "reason": "348K calls/7d — but meeting on calendar Jun 18 + Slack thread #api-gtm-team Jun 12",
       "has_interaction": true,
@@ -469,7 +469,7 @@ MOVING OUT OF ANOTHER SEQUENCE (included in "go"):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ⚠️ AWAITING YOUR REVIEW — prior/active interaction, not auto-enrolled:
   jane@acme.com  [Seq B]  — emailed back Apr 15 (5 days ago)
-  ethan@reflection.ai [Seq B] — meeting on calendar Jun 18 + Slack thread #api-gtm-team Jun 12
+  dana@example-ai.com [Seq B] — meeting on calendar Jun 18 + Slack thread #api-gtm-team Jun 12
   slack@co.com   [Seq D]  — Slack thread in #esl-api-sales Apr 18 (2 days ago)
 
   (Each line cites the channel(s) and who at You.com had the contact.)
@@ -778,7 +778,7 @@ marker is present.
 | 2026-07-17 | Cloud port created from skills/ydc-usage-outreach-daily (skill.md → SKILL.md) | Migration to Claude Code Routines: SOQL via Salesforce connector `soqlQuery` (sf CLI token helper and /Users/andrew/.nvm path removed), SFDC Contact creation + LinkedIn_URL__c updates converted to flagged deferred payloads posted in the Slack thread (hosted connector is read-only), Apollo writes via Apollo.io connector tools with the "go" gate unchanged, `$APOLLO_API_KEY` direct REST kept for cross-rep campaign resolution with conservative hold fallback if unset, PushNotification removed (Slack-only alerts), pending file now written after the Slack post since the Drive connector cannot update files in place, scheduling moved to Claude Code Routines |
 | 2026-07-17 (2) | Never judge a membership from contact-side `status` alone: resolve every campaign (direct REST `GET /emailer_campaigns/{id}` works cross-rep) and read its `archived`/`active` flags. Added mandatory enroll-time re-verification (ENROLL Step 3C) — state mutates between scan and "go". Added `membership_snapshot` audit field recorded at every decision. | Ludovic Gasc's "go" was blocked: his only membership showed contact-side status "active", but the campaign itself was ARCHIVED at go-time. The hold never fetched the campaign. Later the other rep re-ran the campaign, so a fresh read showed active — proving decisions and disputes need evidence snapshotted at decision time. |
 | 2026-07-17 | Step 3 now classifies membership by LIVE vs archived/finished (reads `contact_campaign_statuses[]` + active usage campaign IDs) instead of name-only. Archived/finished memberships are ignored so those users stay candidates. Added `flagged_conflict` for live cross-rep/non-usage memberships (held on plain "go") plus a "go anyway" / "go, force" override that force-enrolls with `sequence_active_in_other_campaigns: true`. New Slack section + `conflict`/`usage_membership` schema fields; numbering spans enroll + flagged lists. | New user (Ludovic Gasc) was in an archived sequence, got silently dropped at Step 3 (name-only match), never appeared in the post, so "go" couldn't enroll him. Andrew only cares about active sequences; a "go" must enroll, period. |
-| 2026-06-22 | Step 4 rewritten to check interaction across ALL channels (SFDC EmailMessage, all SFDC Tasks incl. LinkedIn, SFDC Events, Google Calendar, Slack threads/DMs by name+email, Gmail). Classification now reaches cold buckets only when every channel is empty. | Contacts with calendar meetings, Slack DMs, or SFDC LinkedIn tasks (e.g. ethan@reflection.ai) were tagged "never contacted" and routed to cold sequences — calendar was never queried, Slack was domain-only across 4 channels, and the Task filter excluded LinkedIn/upcoming activity |
+| 2026-06-22 | Step 4 rewritten to check interaction across ALL channels (SFDC EmailMessage, all SFDC Tasks incl. LinkedIn, SFDC Events, Google Calendar, Slack threads/DMs by name+email, Gmail). Classification now reaches cold buckets only when every channel is empty. | Contacts with calendar meetings, Slack DMs, or SFDC LinkedIn tasks (e.g. dana@example-ai.com) were tagged "never contacted" and routed to cold sequences — calendar was never queried, Slack was domain-only across 4 channels, and the Task filter excluded LinkedIn/upcoming activity |
 | 2026-06-02 | Changelog initialized | Tracking all skill changes going forward |
 | (prior) | Added Step 0 readiness check (SF token, Slack, Apollo) with failure Slack alert | Scheduled runs were silently failing when SF token expired; Slack alert ensures missed scans are caught |
 | (prior) | Added Salesforce SOQL helper (Bash curl) instead of MCP tool for SOQL | SF MCP tool was unavailable at scheduled run time; Bash curl with `sf org display` token is more reliable |

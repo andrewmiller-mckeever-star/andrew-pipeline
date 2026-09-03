@@ -13,7 +13,7 @@ Search `#my-accounts-api-users-daily` (channel C0AUKK58U73) using `mcp__440c028e
 
 Look for a message posted today that starts with `📋 YDC Usage Outreach`. This is the message the daily scan posts when it completes.
 
-## Step 3: Send Slack DM to Andrew (U0A4M1BAR08) via `mcp__440c028e-25dc-49ef-9cbd-6650b738bb3d__slack_send_message`
+## Step 3: Send Slack DM to Andrew ({SLACK_USER_ID}) via `mcp__440c028e-25dc-49ef-9cbd-6650b738bb3d__slack_send_message`
 
 If a matching message IS found from today:
 ```

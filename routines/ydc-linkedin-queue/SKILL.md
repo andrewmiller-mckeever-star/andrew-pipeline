@@ -15,7 +15,7 @@ curl -s -X POST "https://api.apollo.io/api/v1/tasks/search" \
 ```
 
 Filter client-side:
-- `user_id === "69c2b4822d0a4900117855af"`
+- `user_id === "{APOLLO_USER_ID}"`
 - `type` in `["linkedin_step_connect", "linkedin_step_message"]`
 - `status === "complete"` (or `"completed"` — accept either)
 - `completed_at` date matches today (2026-05-28 or whatever today's date is at runtime)
@@ -33,7 +33,7 @@ Post to #automated-linkedin-outbound-summary (channel ID: C0B4LF2MPUJ) via slack
 
 If tasks were completed:
 ```
-<@U0A4M1BAR08> LinkedIn morning summary — {today's date}
+<@{SLACK_USER_ID}> LinkedIn morning summary — {today's date}
 Connects sent: {N}
   {First Last} @ {Company}
   ...
@@ -44,12 +44,12 @@ DMs sent: {N}
 
 If nothing completed yet (0 results):
 ```
-<@U0A4M1BAR08> LinkedIn morning summary — {today's date}
+<@{SLACK_USER_ID}> LinkedIn morning summary — {today's date}
 Nothing completed yet. 2pm watchdog will re-run if tasks are still pending.
 ```
 
 ## Rules
 - Plain text only. No markdown formatting symbols.
-- Always open with <@U0A4M1BAR08>
+- Always open with <@{SLACK_USER_ID}>
 - Keep it short — one screen
 - APOLLO_API_KEY is available as $APOLLO_API_KEY env var — do not hardcode it

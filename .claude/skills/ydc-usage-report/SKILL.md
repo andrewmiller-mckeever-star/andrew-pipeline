@@ -30,7 +30,7 @@ Combines two data paths so nothing is missed:
 
 | Variable | Default if unset |
 |---|---|
-| `SFDC_USER_ID` | `005Vq000009j4ezIAA` (andrew.miller-mckeever@you.com) |
+| `SFDC_USER_ID` | `{SFDC_USER_ID}` (andrew.miller-mckeever@you.com) |
 
 ---
 

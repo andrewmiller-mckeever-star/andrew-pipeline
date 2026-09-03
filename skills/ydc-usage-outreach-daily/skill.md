@@ -115,7 +115,7 @@ Variables to use for all subsequent SOQL calls:
 **If Salesforce token OR Slack OR Apollo is unavailable:**
 1. Note exactly what failed (e.g. "Salesforce token", "Apollo").
 2. If Slack IS available, post to channel C0AUKK58U73 (#my-accounts-api-users-daily):
-   `⚠️ <@U0A4M1BAR08> Usage outreach scan failed ({today}) — {missing_names} not available at startup. Run /ydc-usage-outreach-daily manually to catch up.`
+   `⚠️ <@{SLACK_USER_ID}> Usage outreach scan failed ({today}) — {missing_names} not available at startup. Run /ydc-usage-outreach-daily manually to catch up.`
 3. Also call `PushNotification` with title `"⚠️ Usage Outreach Scan Failed"` and body
    `"{missing_names} not available. Scan aborted — run /ydc-usage-outreach-daily manually."`
 4. Abort. Do not proceed to Step 1.
@@ -149,7 +149,7 @@ SELECT Email__c, Domain__c, Account__c, Account__r.Name, Account__r.Type,
        API_Calls_Last_7_Days__c, API_Calls_Last_30_Days__c,
        API_Calls_per_User_All_Time__c, Email_Free_Provider__c
 FROM Product_User__c
-WHERE Account__r.OwnerId = '005Vq000009j4ezIAA'
+WHERE Account__r.OwnerId = '{SFDC_USER_ID}'
 AND Email_Free_Provider__c = false
 AND Signup_Date__c >= LAST_N_DAYS:{lookback_days}
 ORDER BY Signup_Date__c DESC
@@ -163,7 +163,7 @@ SELECT Email__c, Domain__c, Account__c, Account__r.Name, Account__r.Type,
        API_Calls_Last_7_Days__c, API_Calls_Last_30_Days__c,
        API_Calls_per_User_All_Time__c, Email_Free_Provider__c
 FROM Product_User__c
-WHERE Account__r.OwnerId = '005Vq000009j4ezIAA'
+WHERE Account__r.OwnerId = '{SFDC_USER_ID}'
 AND Email_Free_Provider__c = false
 AND First_API_Call_Date__c >= LAST_N_DAYS:{lookback_days}
 AND Signup_Date__c < LAST_N_DAYS:{lookback_days}
@@ -397,10 +397,10 @@ Create `daily-pending-{today}.json` in the accountplans folder via `mcp__b2f41a0
   ],
   "awaiting_review": [
     {
-      "email": "ethan@reflection.ai",
+      "email": "dana@example-ai.com",
       "first_name": "Ethan",
       "last_name": "Doe",
-      "company": "Reflection AI",
+      "company": "Example AI",
       "sequence": "B",
       "reason": "348K calls/7d — but meeting on calendar Jun 18 + Slack thread #api-gtm-team Jun 12",
       "has_interaction": true,
@@ -433,7 +433,7 @@ Save the returned `ts` (thread timestamp) to the pending file as `slack_thread_t
 
 **If candidates list is empty (no one to enroll, no reclassifications, no awaiting review):**
 ```
-<@U0A4M1BAR08> 📋 YDC Usage Outreach | {today} | {lookback} day lookback
+<@{SLACK_USER_ID}> 📋 YDC Usage Outreach | {today} | {lookback} day lookback
 
 All clear — no new users to enroll today.
 
@@ -445,7 +445,7 @@ Skipped (already active in usage sequence): {N}
 Each candidate in the main enroll list gets a sequential number. Numbers are assigned in the order contacts appear in the post, across all companies. Use these numbers in your Slack reply to skip or target specific contacts without typing full emails.
 
 ```
-<@U0A4M1BAR08> 📋 YDC Usage Outreach | {today} | {lookback} day lookback
+<@{SLACK_USER_ID}> 📋 YDC Usage Outreach | {today} | {lookback} day lookback
 
 {N} to enroll  ·  {N} moved from another sequence  ·  {N} awaiting review  ·  {N} skipped
 
@@ -466,7 +466,7 @@ MOVING OUT OF ANOTHER SEQUENCE (included in "go"):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ⚠️ AWAITING YOUR REVIEW — prior/active interaction, not auto-enrolled:
   jane@acme.com  [Seq B]  — emailed back Apr 15 (5 days ago)
-  ethan@reflection.ai [Seq B] — meeting on calendar Jun 18 + Slack thread #api-gtm-team Jun 12
+  dana@example-ai.com [Seq B] — meeting on calendar Jun 18 + Slack thread #api-gtm-team Jun 12
   slack@co.com   [Seq D]  — Slack thread in #esl-api-sales Apr 18 (2 days ago)
 
   (Each line cites the channel(s) and who at You.com had the contact.)
@@ -769,7 +769,7 @@ creation time.
 | 2026-09-01 | **ENROLL Step 1 now processes EVERY open pending scan, oldest first**, instead of only the most recently created file. Open = `enrolled` false AND no `daily-enrolled-{scan_date}.txt` marker. Added a `createdTime > {8 days ago}` bound to the Drive query. Steps 2-9 run once per open scan against that scan's own thread. | Andrew replied "Go" in the 08-26, 08-27 and 08-28 threads on 09-01. The newest pending file was 09-01, whose thread had no reply, so both the enroll mode and the watcher read that file, found nothing, and exited. Three approvals sat unactioned and the last enrollment marker was 08-25. Andrew replies in whichever thread he is reading, so newest-file-only can never work. |
 | 2026-07-17 (2) | Never judge a membership from contact-side `status` alone: resolve every campaign (direct REST `GET /emailer_campaigns/{id}` works cross-rep) and read its `archived`/`active` flags. Added mandatory enroll-time re-verification (ENROLL Step 3C) — state mutates between scan and "go". Added `membership_snapshot` audit field recorded at every decision. | Ludovic Gasc's "go" was blocked: his only membership showed contact-side status "active", but the campaign itself was ARCHIVED at go-time. The hold never fetched the campaign. Later the other rep re-ran the campaign, so a fresh read showed active — proving decisions and disputes need evidence snapshotted at decision time. |
 | 2026-07-17 | Step 3 now classifies membership by LIVE vs archived/finished (reads `contact_campaign_statuses[]` + active usage campaign IDs) instead of name-only. Archived/finished memberships are ignored so those users stay candidates. Added `flagged_conflict` for live cross-rep/non-usage memberships (held on plain "go") plus a "go anyway" / "go, force" override that force-enrolls with `sequence_active_in_other_campaigns: true`. New Slack section + `conflict`/`usage_membership` schema fields; numbering spans enroll + flagged lists. | New user (Ludovic Gasc) was in an archived sequence, got silently dropped at Step 3 (name-only match), never appeared in the post, so "go" couldn't enroll him. Andrew only cares about active sequences; a "go" must enroll, period. |
-| 2026-06-22 | Step 4 rewritten to check interaction across ALL channels (SFDC EmailMessage, all SFDC Tasks incl. LinkedIn, SFDC Events, Google Calendar, Slack threads/DMs by name+email, Gmail). Classification now reaches cold buckets only when every channel is empty. | Contacts with calendar meetings, Slack DMs, or SFDC LinkedIn tasks (e.g. ethan@reflection.ai) were tagged "never contacted" and routed to cold sequences — calendar was never queried, Slack was domain-only across 4 channels, and the Task filter excluded LinkedIn/upcoming activity |
+| 2026-06-22 | Step 4 rewritten to check interaction across ALL channels (SFDC EmailMessage, all SFDC Tasks incl. LinkedIn, SFDC Events, Google Calendar, Slack threads/DMs by name+email, Gmail). Classification now reaches cold buckets only when every channel is empty. | Contacts with calendar meetings, Slack DMs, or SFDC LinkedIn tasks (e.g. dana@example-ai.com) were tagged "never contacted" and routed to cold sequences — calendar was never queried, Slack was domain-only across 4 channels, and the Task filter excluded LinkedIn/upcoming activity |
 | 2026-06-02 | Changelog initialized | Tracking all skill changes going forward |
 | (prior) | Added Step 0 readiness check (SF token, Slack, Apollo) with failure Slack alert | Scheduled runs were silently failing when SF token expired; Slack alert ensures missed scans are caught |
 | (prior) | Added Salesforce SOQL helper (Bash curl) instead of MCP tool for SOQL | SF MCP tool was unavailable at scheduled run time; Bash curl with `sf org display` token is more reliable |

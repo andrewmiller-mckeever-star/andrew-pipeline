@@ -25,7 +25,7 @@ Step 3: Search Drive for `territory-progress.json` (parent folder ID 1EVcyF2Jk3e
 Step 4: Post to C0B4RRF3FC0 via the Slack connector slack_send_message tool.
 
 If marker says "completed at {time}":
-<@U0A4M1BAR08> ✅ Territory Pipeline — {today}
+<@{SLACK_USER_ID}> ✅ Territory Pipeline — {today}
 Completed at {time}
 Accounts processed tonight:
 • {Co1} — {N} contacts enrolled, {N} CTD paths found
@@ -34,20 +34,20 @@ Pipeline progress: {X}/{total} accounts complete.
 Review Touch 1 drafts in Apollo. CTD referral emails in Apollo Tasks > Manual Emails.
 
 If marker says "started at {time}" (stuck or crashed mid-run):
-<@U0A4M1BAR08> ⚠️ Territory Pipeline — {today}
+<@{SLACK_USER_ID}> ⚠️ Territory Pipeline — {today}
 STUCK or FAILED — started at {time} but never completed.
 Accounts that completed before failure: {list from progress file with today's date, or "None"}
 To re-run: find territory-nightly-running-{today}.txt in Drive and change content to "watchdog-cleared at {now}". The laptop's retry watchdog will then proceed.
 
 If marker says "failed at {time}" (completed but 0 accounts processed):
-<@U0A4M1BAR08> ⚠️ Territory Pipeline — {today}
+<@{SLACK_USER_ID}> ⚠️ Territory Pipeline — {today}
 Marker says completed but 0 accounts were processed tonight — completed at {time} suspiciously fast.
 Pipeline progress: {X}/{total} (no change from yesterday).
 Next batch queued: {pipeline.next_batch names, or "none"}
 The laptop's 3pm retry watchdog should have already retried. Check this channel for retry status.
 
 If the marker file does not exist (pipeline never started):
-<@U0A4M1BAR08> ⚠️ Territory Pipeline — {today}
+<@{SLACK_USER_ID}> ⚠️ Territory Pipeline — {today}
 DID NOT RUN — no running marker found in Drive.
 The 2:00 PM laptop run did not fire. Check that the ydc-territory-nightly scheduled task is still enabled on the laptop.
 ```

@@ -19,7 +19,7 @@ Send to channel `C0B4RRF3FC0` via `mcp__440c028e-25dc-49ef-9cbd-6650b738bb3d__sl
 
 If marker says `completed at {time}`:
 ```
-<@U0A4M1BAR08> ✅ Territory Pipeline — {today}
+<@{SLACK_USER_ID}> ✅ Territory Pipeline — {today}
 Completed at {time}
 
 Accounts processed tonight:
@@ -33,7 +33,7 @@ Review Touch 1 drafts in Apollo. CTD referral emails in Apollo Tasks > Manual Em
 
 If marker says `started at {time}` (stuck or crashed mid-run):
 ```
-<@U0A4M1BAR08> ⚠️ Territory Pipeline — {today}
+<@{SLACK_USER_ID}> ⚠️ Territory Pipeline — {today}
 STUCK or FAILED — started at {time} but never completed.
 
 Accounts that completed before failure:
@@ -44,7 +44,7 @@ To re-run: find territory-nightly-running-{today}.txt in Drive and change conten
 
 If marker says `failed at {time}` (completed but 0 accounts processed):
 ```
-<@U0A4M1BAR08> ⚠️ Territory Pipeline — {today}
+<@{SLACK_USER_ID}> ⚠️ Territory Pipeline — {today}
 Marker says completed but 0 accounts were processed tonight — completed at {time} suspiciously fast.
 
 Pipeline progress: {X}/{total} (no change from yesterday).
@@ -55,7 +55,7 @@ The 3pm watchdog (ydc-territory-watchdog-10pm) should have already retried. Chec
 
 If marker file does not exist (pipeline never started):
 ```
-<@U0A4M1BAR08> ⚠️ Territory Pipeline — {today}
+<@{SLACK_USER_ID}> ⚠️ Territory Pipeline — {today}
 DID NOT RUN — no running marker found in Drive.
 
 The 2:00 PM scheduled run did not fire. Check that the ydc-territory-nightly scheduled task is still enabled.

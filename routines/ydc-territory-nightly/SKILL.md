@@ -26,7 +26,7 @@ If a file ID was found in the search, pass it as the `fileId` to overwrite it in
 
 Search Drive for `territory-progress.json` using `mcp__b2f41a0b-70fb-4b72-b711-0dfd9cfb9ff8__search_files` with query `title = 'territory-progress.json' and parentId = '1EVcyF2Jk3ee-ejGQ7xlHU_giQJDfhFnv'` (targets "Account Plans, Lists & Personalized Sequences/" only).
 
-If not found: send Slack DM to Andrew (U0A4M1BAR08):
+If not found: send Slack DM to Andrew ({SLACK_USER_ID}):
 `⚠️ Nightly pipeline: territory-progress.json not found in Drive. Run "territory pipeline status" to initialize it.`
 Then exit.
 
@@ -75,7 +75,7 @@ And last touch date (Andrew's activities only):
 ```sql
 SELECT ActivityDate FROM Task
 WHERE AccountId IN (SELECT Id FROM Account WHERE Name = '{Company}')
-AND OwnerId = '005Vq000009j4ezIAA'
+AND OwnerId = '{SFDC_USER_ID}'
 AND ActivityDate != null
 ORDER BY ActivityDate DESC LIMIT 1
 ```
@@ -84,7 +84,7 @@ If no results from the above (Andrew has never logged activity here), also run a
 ```sql
 SELECT ActivityDate, Owner.Name FROM Task
 WHERE AccountId IN (SELECT Id FROM Account WHERE Name = '{Company}')
-AND OwnerId != '005Vq000009j4ezIAA'
+AND OwnerId != '{SFDC_USER_ID}'
 AND ActivityDate != null
 ORDER BY ActivityDate DESC LIMIT 1
 ```
@@ -151,7 +151,7 @@ For each account:
 Send to channel C0B4RRF3FC0 (#automated-outbound-skills-and-routines):
 
 ```
-<@U0A4M1BAR08> 🌙 Nightly Pipeline — {today}
+<@{SLACK_USER_ID}> 🌙 Nightly Pipeline — {today}
 
 Processed {N}/3 accounts:
 
@@ -189,7 +189,7 @@ Count how many accounts were processed tonight: `accounts_processed` = number of
 → Update the running marker in Drive to: `failed at {ISO timestamp} (0 of {N} accounts processed)`.
 → Post to C0B4RRF3FC0 (#automated-outbound-skills-and-routines):
 ```
-<@U0A4M1BAR08> ⚠️ Territory Pipeline — {today}
+<@{SLACK_USER_ID}> ⚠️ Territory Pipeline — {today}
 Run completed marker written but 0 of {N} queued accounts were processed. Marker set to "failed at" so the 3pm watchdog will detect and retry tonight.
 Batch was: {account names}
 ```

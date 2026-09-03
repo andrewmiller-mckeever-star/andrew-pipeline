@@ -7,7 +7,7 @@
 | Repository | andrewmiller-mckeever-star/andrew-pipeline |
 | Connectors | Slack |
 | Replaces laptop task | `ydc-usage-outreach-watchdog` |
-| Expected output | One DM to Andrew (U0A4M1BAR08), success or failure |
+| Expected output | One DM to Andrew ({SLACK_USER_ID}), success or failure |
 
 ## PROMPT
 
@@ -18,7 +18,7 @@ Step 1: Get today's date in YYYY-MM-DD format.
 
 Step 2: Search #my-accounts-api-users-daily (channel C0AUKK58U73) via the Slack connector search tool (slack_search_public_and_private) with query "in:#my-accounts-api-users-daily YDC Usage Outreach". Look for a message posted today that starts with "📋 YDC Usage Outreach" — that is the message the daily scan posts when it completes.
 
-Step 3: Send a Slack DM to Andrew (user U0A4M1BAR08) via the Slack connector slack_send_message tool.
+Step 3: Send a Slack DM to Andrew (user {SLACK_USER_ID}) via the Slack connector slack_send_message tool.
 
 If a matching message IS found from today:
 ✅ Usage outreach scan ran at 9am — {today}.

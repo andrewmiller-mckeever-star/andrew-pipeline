@@ -21,7 +21,26 @@ import json, os, sys, time, urllib.request, urllib.error
 
 API = "https://api.apollo.io/v1"
 KEY = os.environ["APOLLO_API_KEY"]
-ANDREW = "69c2b4822d0a4900117855af"
+
+
+# This repo is public. Account identifiers live in ae-config.md, which is gitignored.
+# Env wins; ae-config.md is the fallback.
+def ae_config(key):
+    v = os.environ.get(key)
+    if v:
+        return v
+    here = os.path.dirname(os.path.abspath(__file__))
+    for base in (here, os.path.join(here, "..")):
+        path = os.path.join(base, "ae-config.md")
+        if os.path.isfile(path):
+            with open(path, encoding="utf-8") as fh:
+                for line in fh:
+                    if line.strip().startswith(key + ":"):
+                        return line.split(":", 1)[1].strip().strip("`")
+    sys.exit(f"{key} is not set. Add it to ae-config.md or export it.")
+
+
+ANDREW = ae_config("APOLLO_USER_ID")
 
 TYPE_MAP = {
     "automatic_email": "auto_email",

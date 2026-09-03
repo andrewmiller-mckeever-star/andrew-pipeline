@@ -28,9 +28,9 @@ Read these environment variables (set in the Claude Code cloud environment). Eve
 | `YDC_API_KEY` | (none — triggers connector fallback in Step 3B) |
 | `YDC_RESEARCH_ENDPOINT` | `https://api.you.com/v1/research` |
 | `YDC_SEARCH_ENDPOINT` | `https://api.you.com/v1/search` |
-| `SFDC_USER_ID` | `005Vq000009j4ezIAA` |
+| `SFDC_USER_ID` | `{SFDC_USER_ID}` |
 | `GDRIVE_FOLDER_ID` | `1Fd2sMXvUnFVbAoh_BxqCrUI3R8snvp9u` |
-| `SLACK_USER_ID` | `U0A4M1BAR08` |
+| `SLACK_USER_ID` | `{SLACK_USER_ID}` |
 
 Calculate the target date. By default this is tomorrow. If explicitly invoked in catch-up mode (e.g., a watchdog instructed to brief today's meetings), use today's date instead.
 
@@ -56,11 +56,11 @@ Use the Google Calendar connector tool `list_events` to fetch all events for the
 
 **What remains** = meetings that need a brief.
 
-**Audit log (keep in memory):** For every event evaluated, record the title and filter outcome — e.g., "Atlassian x You.com Visit — INCLUDED (external: vratthinam@atlassian.com)" or "Weekly Standup — EXCLUDED (recurring)" or "All-hands — EXCLUDED (all attendees @you.com)". You will reference this list in Step 6 to ensure every qualifying meeting appears in the Slack post.
+**Audit log (keep in memory):** For every event evaluated, record the title and filter outcome — e.g., "Example Corp x You.com Visit — INCLUDED (external: contact@examplecorp.com)" or "Weekly Standup — EXCLUDED (recurring)" or "All-hands — EXCLUDED (all attendees @you.com)". You will reference this list in Step 6 to ensure every qualifying meeting appears in the Slack post.
 
 If nothing remains after filtering, post this message to `#automated-meeting-briefs` via the Slack connector tool `slack_send_message`:
 
-> <@U0A4M1BAR08> No external meetings tomorrow. Nothing to prep.
+> <@{SLACK_USER_ID}> No external meetings tomorrow. Nothing to prep.
 
 (Use "today" instead of "tomorrow" if running in catch-up mode.)
 
@@ -269,11 +269,11 @@ https://docs.google.com/document/d/{file.id}/edit
 
 After all meetings are processed, post ONE message to `#automated-meeting-briefs` using the Slack connector tool `slack_send_message`.
 
-**Always open with `<@U0A4M1BAR08>`** so the message triggers an unread notification.
+**Always open with `<@{SLACK_USER_ID}>`** so the message triggers an unread notification.
 
 Format:
 ```
-<@U0A4M1BAR08> Meeting briefs ready for {Day, Date}:
+<@{SLACK_USER_ID}> Meeting briefs ready for {Day, Date}:
 
 {Start Time} — {Company} | {Meeting Title}: {Google Doc URL}
 {Start Time} — {Company} | {Meeting Title}: {Google Doc URL}

@@ -30,7 +30,7 @@ Read the file content via `mcp__b2f41a0b-70fb-4b72-b711-0dfd9cfb9ff8__read_file_
 Post to channel C0B4RRF3FC0 (#automated-outbound-skills-and-routines) via `mcp__440c028e-25dc-49ef-9cbd-6650b738bb3d__slack_send_message`:
 
 ```
-<@U0A4M1BAR08> 🚨 Territory pipeline final safety net (7pm): neither the 2pm nor 3pm runs completed tonight. Running the pipeline now — will post results when done.
+<@{SLACK_USER_ID}> 🚨 Territory pipeline final safety net (7pm): neither the 2pm nor 3pm runs completed tonight. Running the pipeline now — will post results when done.
 ```
 
 If a marker file was found, overwrite it via `mcp__b2f41a0b-70fb-4b72-b711-0dfd9cfb9ff8__create_file` using the file ID: content = `watchdog-2am-cleared at {ISO timestamp}`.
@@ -46,7 +46,7 @@ Run the full pipeline — same as ydc-territory-nightly Steps 2–7:
 5. If an account fails: set status to `"failed"` with error note, continue to next
 6. Post the standard summary to C0B4RRF3FC0 (#automated-outbound-skills-and-routines):
    ```
-   <@U0A4M1BAR08> 🌙 Nightly Pipeline (7pm retry) — {today}
+   <@{SLACK_USER_ID}> 🌙 Nightly Pipeline (7pm retry) — {today}
    Processed {N}/5 accounts: ...
    ```
 7. Run pre-flight for tomorrow's batch, store in `pipeline.next_batch`
