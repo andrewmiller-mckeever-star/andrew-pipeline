@@ -10,6 +10,13 @@ node_modules/
 # API keys and personal config — never publish
 ae-config.md
 
+# Repo is PUBLIC. These hold internal deal, territory, and cost data.
+# andrew-voice-guide.md quotes supplier pricing and customer revenue.
+# AIX file names the Aug 12 rep split. sequences/ names live prospect targets.
+andrew-voice-guide.md
+AIX_investor_intro_wedges.md
+sequences/
+
 # Customer account data — never publish
 *.docx
 *_Account_Plan*

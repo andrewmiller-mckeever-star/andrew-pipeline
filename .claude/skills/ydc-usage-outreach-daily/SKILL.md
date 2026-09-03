@@ -72,9 +72,16 @@ Enrollment happens on the next enroll run after his Slack reply — or he can ru
   flag for reclassification — do not auto-remove. Andrew confirms via Slack reply.
 - **Only LIVE sequence memberships (active/paused/not_sent on a non-archived campaign)
   block or reclassify.** Archived and finished memberships are ignored — those users are
-  normal candidates. A user in another rep's live sequence is flagged (`flagged_conflict`)
-  and held on a plain "go", but Andrew's explicit "go anyway" / "go, force" overrides the
-  hold and force-enrolls them (`sequence_active_in_other_campaigns: true`).
+  normal candidates.
+- **Foreign-sequence policy (Andrew's call, 2026-09-01): move them, do not hold them.**
+  Anyone live in a sequence that is not Andrew's gets removed from that sequence and
+  enrolled in the correct usage sequence. That covers another rep's campaign, a campaign
+  sending from a mailbox that is not Andrew's, and any non-usage campaign. It happens on a
+  plain "go" with no force needed. `flagged_conflict` is retired as a default outcome: it
+  now fires only when the move cannot be completed (removal call fails, or the campaign
+  cannot be resolved), which is a mechanical failure, not a policy hold.
+- **A removal from another rep's sequence is visible to that rep.** Always name the rep and
+  the campaign in the Slack confirmation so Andrew knows who to tell.
 - **Sequence state is a moving target.** Campaigns get archived and un-archived between
   scan and enroll. Judge state at the moment of the decision (re-verify at enroll time,
   ENROLL Step 3C), snapshot the evidence into the pending file (`membership_snapshot`),
@@ -221,15 +228,20 @@ their contact-side status still says "active".**
   with a live `status`) → **skip** (already getting our emails). Record
   `usage_membership: "active"`. Do NOT add to candidates. (Overridable later by force.)
 - Live in a **non-usage** sequence that Andrew owns (the membership's
-  `send_email_from_email_address` is Andrew's mailbox) → keep as candidate and set
-  `reclassify_from: "{sequence name}"` (removed + re-enrolled in ENROLL Step 4, as today).
-- Live in a **non-usage** sequence owned by someone else, or any other live sequence we
-  can't safely move (`send_email_from_email_address` ≠ Andrew's) → keep as candidate but
-  set `action: "flagged_conflict"` and
-  `conflict: {sequence_name, campaign_id, owner_email, status}`. These are **held on a
-  plain "go"** and enroll only on an explicit force (`go anyway` / `go, force`). This
-  preserves the cross-rep safety (see the cross-rep double-enroll memory) while giving
-  Andrew the override he asked for.
+  `send_email_from_email_address` is Andrew's mailbox) → keep as candidate, set
+  `action: "enroll"` and `reclassify_from: "{sequence name}"`. Removed from the old
+  sequence and re-enrolled in ENROLL Step 4.
+- Live in **any sequence that is not Andrew's** (`send_email_from_email_address` ≠
+  Andrew's mailbox — another rep's campaign, a shared mailbox, anything) → keep as
+  candidate, set `action: "enroll"` and
+  `reclassify_from_foreign: {sequence_name, campaign_id, owner_email, status}`.
+  These enroll on a **plain "go"**. ENROLL Step 4 removes them from the foreign sequence
+  first, then enrolls them in the usage sequence. No force needed.
+
+  This reverses the earlier cross-rep hold. Andrew's instruction (2026-09-01): anyone in a
+  sequence that is not his comes out of it and goes into his. Do not hold these, do not ask
+  him to re-approve them, and do not treat the cross-rep double-enroll memory as still
+  governing — it predates this decision.
 - No live memberships (including "only dead memberships") → normal candidate.
   Record `usage_membership: "archived"` if a dead usage membership existed, else `"none"`.
 
@@ -370,6 +382,7 @@ Hold the full pending structure in memory for now (it is written to Drive in Ste
       "action": "enroll",
       "slack_flag": null,
       "reclassify_from": null,
+      "reclassify_from_foreign": null,
       "usage_membership": "none",
       "conflict": null,
       "membership_snapshot": null,
@@ -404,9 +417,11 @@ Hold the full pending structure in memory for now (it is written to Drive in Ste
 ```
 
 **Field notes (added for the archived-vs-active fix):**
-- `action`: `"enroll"` (normal), `"flagged_conflict"` (live in another sequence — held on plain "go", enroll only on force), or `"awaiting_review"`.
+- `action`: `"enroll"` (normal, and the value used for BOTH reclassify paths), `"awaiting_review"`, or `"flagged_conflict"` (reserved for a move that could not be completed — see below).
 - `usage_membership`: `"none"` (never in a usage sequence), `"archived"` (only dead usage memberships — treated as none, still enrolled on "go"), or `"active"` (live usage membership — genuinely skipped).
-- `conflict`: `null`, or `{ "sequence_name", "campaign_id", "owner_email", "status" }` for a live non-usage / cross-rep membership. Present only when `action` is `"flagged_conflict"`.
+- `reclassify_from`: `null`, or the name of a live sequence **Andrew owns** that this person is being moved out of.
+- `reclassify_from_foreign`: `null`, or `{ "sequence_name", "campaign_id", "owner_email", "status" }` for a live sequence that is **not Andrew's**. They are moved out of it and into the usage sequence on a plain "go". This replaces the old `conflict` hold.
+- `conflict`: `null`, or the same shape as above, set ONLY when the move mechanically failed (removal call errored, or the campaign could not be resolved). `action` becomes `"flagged_conflict"` and the person is reported to Andrew rather than enrolled blind.
 - `membership_snapshot`: `null`, or the evidence recorded at decision time (Step 3.4): `{ "campaign_id", "campaign_name", "campaign_active", "campaign_archived", "contact_status", "owner_mailbox", "checked_at" }`. Updated again at enroll time (ENROLL Step 3C). This is the audit trail — state disputes are settled by the snapshot, not by re-querying later.
 
 #### Step 7: Post Slack review list, then save the pending file
@@ -431,7 +446,7 @@ Each candidate in the main enroll list gets a sequential number. Numbers are ass
 ```
 <@{SLACK_USER_ID}> 📋 YDC Usage Outreach | {today} | {lookback} day lookback
 
-{N} to enroll  ·  {N} reclassifications  ·  {N} in another sequence  ·  {N} awaiting review  ·  {N} skipped
+{N} to enroll  ·  {N} moved from another sequence  ·  {N} awaiting review  ·  {N} skipped
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ACME  [Prospect]
@@ -444,10 +459,12 @@ RECLASSIFY:
   user@co.com — move from "YDC | Territory | Seq A" → Seq B
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-⚠️ IN ANOTHER ACTIVE SEQUENCE — held; reply "go, force N" to enroll anyway:
-  5.  carlos@co.com  [→ Seq B]  — active in "YDC | Territory | Seq C" (another rep's mailbox)
+MOVING OUT OF ANOTHER SEQUENCE (included in "go"):
+  4.  user@co.com    [→ Seq B]  — out of "YDC | Territory | Seq A" (your mailbox)
+  5.  carlos@co.com  [→ Seq B]  — out of "product user journey" (Joe Hindle), step 3 of 5
 
-  (Not enrolled on a plain "go". Numbers continue from the enroll list above.)
+  (These enroll on a plain "go". Numbers continue from the enroll list above.
+   Anyone sending from a mailbox that is not yours is named here so you know who to tell.)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ⚠️ AWAITING YOUR REVIEW — prior/active interaction, not auto-enrolled:
@@ -465,12 +482,12 @@ SKIPPED — Already ACTIVE in usage sequence (getting emails now):
   (Archived/finished memberships are NOT skipped — those users appear in the enroll list.)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Reply "go" — enroll all (does NOT include the "in another sequence" list)
+Reply "go" — enroll all, including everyone being moved out of another sequence
 "go, skip 2 3" — skip by number
 "go, only 1 2" — enroll only these numbers
 "go, include jane@acme.com" — add from AWAITING REVIEW
-"go anyway" / "go, force all" — also enroll the "in another sequence" list
-"go, force 5" / "go, force carlos@co.com" — force one, even if in another live sequence
+"go, leave 5" — leave 5 where they are, do not move them out of the other sequence
+"go, force 5" — enroll 5 even if they are already live in one of your own usage sequences
 Then run /ydc-usage-outreach-daily enroll (or the auto-watcher picks up within ~15 min). T1 schedules automatically.
 NOTE: SFDC contact creation is read-only in cloud — any needed SFDC payloads will be posted in this thread at enroll time for manual execution.
 ```
@@ -485,13 +502,36 @@ NOTE: SFDC contact creation is read-only in cloud — any needed SFDC payloads w
 
 #### Step 1: Read pending file from Drive
 
-Get today's date in YYYY-MM-DD format.
+**Process EVERY open pending scan, oldest first. Never just the newest one.**
 
-Search Google Drive for recent pending files using the Drive connector tool `search_files` with query `title contains 'daily-pending-'`. Take the most recently created file. If none found → abort: "No pending scan found. Run `/ydc-usage-outreach-daily` first."
+Andrew replies in whichever thread he is looking at, and that is often a thread from two or
+three days ago. A run that only reads the newest pending file will never see those replies,
+and the approvals pile up invisibly. (2026-09-01: three "go" replies on the 08-26, 08-27 and
+08-28 threads went unactioned for days because of exactly this.)
 
-Read its content via the Drive connector tool `read_file_content` using the file ID. Extract `scan_date` from the file.
+Get today's date in YYYY-MM-DD, and the RFC 3339 timestamp for 8 days ago.
 
-Check if enrollment already happened for this scan: search Drive for `daily-enrolled-{scan_date}.txt`. If found → abort: "Already enrolled for scan {scan_date}. Nothing to do."
+Search Drive via the Drive connector tool `search_files` with query
+`title contains 'daily-pending-' and createdTime > '{8_days_ago_rfc3339}'`. The field is
+`title`, not `name` (`name` is not a supported query field). The `createdTime` bound matters:
+a bare `title contains` query is not ordered by creation time and has dropped the newest file
+off page 1 before.
+
+Then build the **open list**:
+
+1. Read each returned file via the Drive connector tool `read_file_content` and extract `scan_date`, `slack_thread_ts`, `enrolled`, `candidates`, `awaiting_review`.
+2. Drop any file where `enrolled` is `true`.
+3. Search Drive for `daily-enrolled-{scan_date}.txt`. Drop any file that has a marker — the marker is the authoritative double-enroll guard.
+4. Drop any file with a null/missing `slack_thread_ts`, or with both `candidates` and `awaiting_review` empty.
+5. Drop any file whose `scan_date` is more than 7 days old. Report those as expired rather than enrolling them.
+
+Sort the open list by `scan_date`, **oldest first**.
+
+If the open list is empty → abort: "No open pending scans. Nothing to enroll."
+
+**Run Steps 2 through 9 once per open scan, in that order**, each against its own
+`slack_thread_ts` and its own candidate list. A scan with no "go" reply is skipped quietly
+and left open; it does not stop the scans after it. Deduplicate across scans by email.
 
 If `enrolled` is already `true` in the file → abort: "Already enrolled on {scan_date}. Nothing to do."
 If `scan_date` is more than 7 days old → warn but ask Andrew if he wants to proceed.
@@ -503,29 +543,34 @@ If `slack_thread_ts` is set, read the thread via the Slack connector tool
 
 Look for Andrew's reply. Parse for (all forms are case-insensitive, "go" prefix is optional):
 
-- "go" with no modifiers → enroll all `candidates` EXCEPT those with
-  `action: "flagged_conflict"` (reclassify candidates are still enrolled);
-  `awaiting_review` NOT enrolled; **`flagged_conflict` candidates NOT enrolled**
+- "go" with no modifiers → enroll every candidate with `action: "enroll"`. **That includes
+  everyone carrying `reclassify_from` or `reclassify_from_foreign`** — they are moved out of
+  their current sequence and into the usage sequence. `awaiting_review` NOT enrolled.
 - "go, skip 2 3" or "skip 2 3" → exclude candidates by their number (n field)
 - "go, only 1 2" or "only 1 2" → enroll ONLY the listed numbers, skip all others
 - "go, exclude {email}" or "exclude {email}" → exclude by email address
 - "go, include {email}" → add from `awaiting_review` (explicit opt-in required)
-- "go anyway" or "go, force all" → in addition to the normal enroll list, also enroll
-  every `flagged_conflict` candidate. Mark each as `force: true`.
-- "go, force 5" / "go, force carlos@co.com" → force-enroll the named/numbered ones even
-  if they are in another live sequence (or already active in a usage sequence). Numbers
-  resolve against the `n` field (which spans enroll + flagged lists); emails may reference
-  a `flagged_conflict` or a skipped entry. Mark each resolved candidate `force: true`.
-- Multiple modifiers allowed: "go, skip 3 4, include jane@acme.com, force 5"
-- "skip" or "hold" (alone, no numbers) → abort enrollment, notify Andrew
+- "go, leave 5" / "go, leave carlos@co.com" → do NOT move this person out of the sequence
+  they are in, and do not enroll them. The opt-out for the move policy.
+- "go, force 5" / "go, force carlos@co.com" → enroll even if they are already live in one of
+  **Andrew's own** usage sequences (the one remaining genuine skip). Mark `force: true`.
+- "go anyway" / "go, force all" → still accepted for backward compatibility. Under the move
+  policy a plain "go" already covers foreign sequences, so this now only adds anyone skipped
+  for a live membership in Andrew's own usage sequence.
+- Multiple modifiers allowed: "go, skip 3 4, include jane@acme.com, leave 5"
+- "skip" or "hold" (alone, no numbers) → abort enrollment for THIS scan, notify Andrew,
+  and continue to the next open scan
 
 When resolving number references, look up the candidate with matching `n` field in the pending file.
 Treat "mailto:foo@bar.com" the same as "foo@bar.com" when parsing exclusions (strip the mailto: prefix).
 
 **Force semantics:** a `force: true` candidate enrolls regardless of ANY membership state
-(active usage, cross-rep, archived, finished). It is the literal "if I say go anyway, enroll
-them, period." Force is what carries a `flagged_conflict` candidate through to enrollment;
-without it they stay held.
+(active usage, foreign, archived, finished). It is the literal "if I say go anyway, enroll
+them, period."
+
+Force is no longer needed for a foreign sequence — the move policy handles those on a plain
+"go". Force now only covers the one case still skipped by default: someone already live in
+one of Andrew's own `YDC | Usage |` sequences.
 
 **`awaiting_review` users are NEVER enrolled unless explicitly named in a "go, include" reply.**
 If Andrew says "go" without naming them, they stay out. Do not prompt Andrew to include them.
@@ -542,20 +587,24 @@ Print the final enrollment list before proceeding. Give Andrew one last chance t
 - **3C — Re-verify sequence state at enroll time (MANDATORY):** the scan snapshot is
   hours or days old and sequence state mutates between scan and "go" (reps archive and
   un-archive campaigns; automations enroll contacts). For every candidate on the approved
-  list AND every held/`flagged_conflict` candidate:
+  list:
   1. Re-fetch the contact (`apollo_contacts_search`) and re-read `contact_campaign_statuses[]`.
   2. For any live-looking membership, fetch the campaign by ID via the REST GET in Scan
      Step 3.2 (works cross-rep; requires `$APOLLO_API_KEY` — if unset, apply the same
      conservative fallback: unresolvable = hold as `flagged_conflict`, never guess dead)
      and read `archived` / `active` **as of right now**.
   3. Apply the same dead/live rules as Scan Steps 3.2–3.3:
-     - Blocking campaign is archived or inactive NOW → the block is void. The contact is
-       NOT getting emails from it. Enroll on the existing "go" — do not make Andrew
-       re-approve someone he already approved, and do not report them as "in a sequence."
-     - A previously-clean candidate is now live in a genuinely live campaign → convert to
-       `flagged_conflict`, hold, and reply in the Slack thread with the FULL snapshot
-       (campaign name + id, `archived`/`active` values, contact status, owner mailbox,
-       checked_at). Andrew's "go anyway" / "go, force" in the thread clears it.
+     - Campaign is archived or inactive NOW → dead membership. Nothing to move. Enroll on
+       the existing "go" and do not report them as "in a sequence."
+     - A previously-clean candidate is now live in a campaign that is **not Andrew's** →
+       this is the common case, since another rep's automation can grab a signup within
+       the hour. Do NOT hold. Convert them to a foreign move: set
+       `reclassify_from_foreign` from the fresh read and carry them through Step 4. Say so
+       in the Slack reply with the full snapshot (campaign name + id, `archived`/`active`,
+       contact status, owner mailbox, checked_at) so Andrew knows the move happened and
+       whose sequence it came out of.
+     - Now live in one of **Andrew's own** `YDC | Usage |` sequences → genuine skip, unless
+       `force: true`.
   4. Update each candidate's `membership_snapshot` with the enroll-time values (carried in
      memory and reflected in the Slack summary; the Drive pending file is not rewritten).
 
@@ -564,12 +613,29 @@ Print the final enrollment list before proceeding. Give Andrew one last chance t
   decide. (2026-07-17: a "go" was blocked exactly this way — the blocking campaign was
   archived at go-time, but the hold only read the contact-side status.)
 
-#### Step 4: Handle reclassifications first
+#### Step 4: Move people out of their current sequence first
 
-For any user with `reclassify_from` set:
-1. Get their Apollo contact ID
-2. Apollo.io connector tool `apollo_emailer_campaigns_remove_or_stop_contact_ids` — remove from current sequence
-3. Log confirmation before enrolling in new sequence
+Runs for both `reclassify_from` (Andrew's own sequence) and `reclassify_from_foreign`
+(anyone else's). Same mechanic, different reporting.
+
+For each such user:
+1. Get their Apollo contact ID.
+2. Apollo.io connector tool `apollo_emailer_campaigns_remove_or_stop_contact_ids` against the
+   campaign ID they are leaving.
+3. **Verify the removal actually landed.** Re-fetch the contact and re-read
+   `contact_campaign_statuses[]`. The old membership must now be gone or in a dead status
+   (`removed` / `finished` / `completed`). Do not trust the call's return value alone.
+4. Log the before and after state.
+
+**If the removal fails or does not verify** (most likely on another rep's campaign, where
+Andrew's API user may not have write access):
+- Still enroll them in the usage sequence, with `sequence_active_in_other_campaigns: true`.
+- Set `action: "flagged_conflict"` and fill `conflict` with the campaign we could not remove
+  them from.
+- Report it plainly in the Slack thread: the person, the campaign, the owner, and the fact
+  that they are now in **both** sequences until that rep removes them. Name the rep.
+
+That double-send window is the one real cost of this policy. Never let it pass silently.
 
 #### Step 5: SFDC contacts — PREPARE PAYLOADS ONLY (⚠️ write not performed in cloud)
 
@@ -616,8 +682,10 @@ For each approved user:
 **7.2 — Enroll in sequence** via the Apollo.io connector tool `apollo_emailer_campaigns_add_contact_ids`:
 - `emailer_campaign_id`: correct sequence ID from Step 3B
 - `send_email_from_email_account_id`: from Step 3A
-- `sequence_active_in_other_campaigns`: **`true` if this candidate is `force: true`, else `false`.**
-  (Force must set `true` or Apollo will refuse to add a contact who is active in another campaign.)
+- `sequence_active_in_other_campaigns`: **`true` if the candidate is `force: true`, OR had
+  `reclassify_from_foreign` set, OR their Step 4 removal did not verify. Else `false`.**
+  (Apollo refuses to add a contact who is active in another campaign unless this is `true`,
+  and a removal can lag, so any move out of a foreign sequence sets it.)
 - `sequence_no_email: false`
 
 Treat `contacts_already_exists_in_current_campaign` as success.
@@ -705,6 +773,8 @@ marker is present.
 
 | Date | Change | Reason |
 |------|--------|--------|
+| 2026-09-01 (2) | **Foreign-sequence policy reversed: move, do not hold.** Anyone live in a sequence that is not Andrew's is now removed from it and enrolled in the usage sequence on a plain "go". `flagged_conflict` is retired as a default and now means only "the move failed mechanically". New `reclassify_from_foreign` field; Step 4 removes from either sequence type and must VERIFY the removal by re-reading the contact; a failed removal still enrolls (with `sequence_active_in_other_campaigns: true`) and is reported by name in Slack. New "go, leave N" opt-out. | Andrew's call. Joe Hindle's "product user journey" campaign took alex.w@example.com 43 minutes after the 08-28 review post said he was clean, so the best signup on the book was getting another rep's cold email while Andrew's "go" sat held. Supersedes the cross-rep hold added 2026-07-17. |
+| 2026-09-01 | **ENROLL Step 1 now processes EVERY open pending scan, oldest first**, instead of only the most recently created file. Open = `enrolled` false AND no `daily-enrolled-{scan_date}.txt` marker. Added a `createdTime > {8 days ago}` bound to the Drive query. Steps 2-9 run once per open scan against that scan's own thread. | Andrew replied "Go" in the 08-26, 08-27 and 08-28 threads on 09-01. The newest pending file was 09-01, whose thread had no reply, so both enroll mode and the watcher read that file, found nothing, and exited. Three approvals sat unactioned and the last enrollment marker was 08-25. |
 | 2026-07-17 | Cloud port created from skills/ydc-usage-outreach-daily (skill.md → SKILL.md) | Migration to Claude Code Routines: SOQL via Salesforce connector `soqlQuery` (sf CLI token helper and /Users/andrew/.nvm path removed), SFDC Contact creation + LinkedIn_URL__c updates converted to flagged deferred payloads posted in the Slack thread (hosted connector is read-only), Apollo writes via Apollo.io connector tools with the "go" gate unchanged, `$APOLLO_API_KEY` direct REST kept for cross-rep campaign resolution with conservative hold fallback if unset, PushNotification removed (Slack-only alerts), pending file now written after the Slack post since the Drive connector cannot update files in place, scheduling moved to Claude Code Routines |
 | 2026-07-17 (2) | Never judge a membership from contact-side `status` alone: resolve every campaign (direct REST `GET /emailer_campaigns/{id}` works cross-rep) and read its `archived`/`active` flags. Added mandatory enroll-time re-verification (ENROLL Step 3C) — state mutates between scan and "go". Added `membership_snapshot` audit field recorded at every decision. | Ludovic Gasc's "go" was blocked: his only membership showed contact-side status "active", but the campaign itself was ARCHIVED at go-time. The hold never fetched the campaign. Later the other rep re-ran the campaign, so a fresh read showed active — proving decisions and disputes need evidence snapshotted at decision time. |
 | 2026-07-17 | Step 3 now classifies membership by LIVE vs archived/finished (reads `contact_campaign_statuses[]` + active usage campaign IDs) instead of name-only. Archived/finished memberships are ignored so those users stay candidates. Added `flagged_conflict` for live cross-rep/non-usage memberships (held on plain "go") plus a "go anyway" / "go, force" override that force-enrolls with `sequence_active_in_other_campaigns: true`. New Slack section + `conflict`/`usage_membership` schema fields; numbering spans enroll + flagged lists. | New user (Ludovic Gasc) was in an archived sequence, got silently dropped at Step 3 (name-only match), never appeared in the post, so "go" couldn't enroll him. Andrew only cares about active sequences; a "go" must enroll, period. |

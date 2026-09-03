@@ -224,11 +224,16 @@ of decision time. Then, from the LIVE memberships only, note:
 - `is_in_usage_sequence`: true only if actively (live status) in a `YDC | Usage |` campaign
   in `live_usage_campaign_ids`
 - `is_in_other_sequence`: true only if actively in a non-usage sequence
-- `conflict`: null, or `{sequence_name, campaign_id, owner_email, status}` when the live
-  non-usage membership is owned by someone else (`send_email_from_email_address` ≠ Andrew's)
-  or is otherwise unsafe to move — these become `action: "flagged_conflict"` (held unless forced)
 - `reclassify_from`: the sequence name when the live non-usage membership is one Andrew owns
-  (safe to remove + re-enroll)
+  (removed + re-enrolled)
+- `reclassify_from_foreign`: null, or `{sequence_name, campaign_id, owner_email, status}` when
+  the live membership is in a sequence that is **not Andrew's**
+  (`send_email_from_email_address` ≠ Andrew's mailbox). **These are moved, not held**: removed
+  from that sequence and enrolled in the usage sequence on a plain "go". `action` stays
+  `"enroll"`. Andrew's call, 2026-09-01: anyone in a sequence that is not his comes out of it
+  and goes into his. This supersedes the cross-rep hold added 2026-07-17.
+- `conflict`: null, or the same shape, set ONLY when the move fails mechanically (the removal
+  call errors or does not verify). That is the only remaining `action: "flagged_conflict"`.
 
 Users **actively** in the correct usage sequence → skip (no action needed). Users whose only
 usage membership is archived/finished → treat as not enrolled (normal candidate).
@@ -240,14 +245,15 @@ usage membership is archived/finished → treat as not enrolled (normal candidat
 Apply the classification priority from the 6-sequence table above. For each user, output:
 - `sequence`: A / B / C / D / E / F / awaiting_review
 - `reason`: one-line reason (e.g., "Active 2.3K calls/7d, prospect account, no prior interaction")
-- `action`: enroll / reclassify (remove from X, enroll in Y) / flagged_conflict (live in another sequence — held unless forced) / awaiting_review / skip
+- `action`: enroll (includes both reclassify paths: remove from X, enroll in Y) / awaiting_review / skip / flagged_conflict (reserved for a move that failed mechanically)
 - `has_interaction`: true/false
 - `last_interaction_date`: if has_interaction is true
 - `days_since_contact`: integer
 - `contact_channels`: list, e.g. ["calendar", "slack"]
 - `who_at_youcom`: Owner.Name / "inbound email" / Slack handle (if has_interaction)
-- `reclassify_from`: name of current sequence to remove them from (if reclassifying)
-- `conflict`: null, or `{sequence_name, campaign_id, owner_email, status}` when `action` is `flagged_conflict`
+- `reclassify_from`: name of Andrew's own sequence to remove them from, if any
+- `reclassify_from_foreign`: null, or `{sequence_name, campaign_id, owner_email, status}` for a sequence that is not Andrew's — moved on a plain "go"
+- `conflict`: null, or the same shape, only when the move failed mechanically (`action` becomes `flagged_conflict`)
 
 ---
 
@@ -289,12 +295,13 @@ DAGSTER LABS  [Prospect]  ·  3 users
 [... continue per account ...]
 
 ───────────────────────────────────────────────────────────────
-⚠️  IN ANOTHER ACTIVE SEQUENCE — held; say "go, force email@co.com" to enroll anyway:
+MOVING OUT OF ANOTHER SEQUENCE — included in "go":
 ───────────────────────────────────────────────────────────────
-  carlos@co.com  (Co)  [→ Seq B]  — active in "YDC | Territory | Seq C" (another rep's mailbox)
+  carlos@co.com  (Co)  [→ Seq B]  — out of "YDC | Territory | Seq C" (Jane Doe's mailbox)
 
-  (Not enrolled on a plain "go". Archived/finished memberships are NOT listed here — those
-   users are in the normal enroll list above.)
+  (These ARE enrolled on a plain "go": removed from the sequence above, then enrolled in the
+   usage sequence. Say "go, leave carlos@co.com" to leave one where they are. Archived and
+   finished memberships are not listed here — those users are in the normal enroll list.)
 
 ───────────────────────────────────────────────────────────────
 ⚠️  AWAITING YOUR REVIEW — prior/active interaction ≤90 days, NOT auto-enrolled:
@@ -315,15 +322,18 @@ SKIPPED — No signal (signed up > 120 days, no recent calls):
 ═══════════════════════════════════════════════════════════════
 Proceed with enrollment? Remove anyone or include anyone from AWAITING REVIEW before confirming.
 To exclude: remove from list above. To include a review-hold user: say "go, include email@co.com"
-To enroll someone in another live sequence anyway: "go anyway" (all) or "go, force email@co.com" (one)
+To leave someone in the sequence they are in now: "go, leave email@co.com"
 ```
 
 **Wait for Andrew's confirmation before continuing.**
 Andrew may remove individual users or explicitly include awaiting_review users. Respect all instructions exactly.
 Never enroll awaiting_review users unless Andrew names them with "include".
-Never enroll `flagged_conflict` users on a plain "go" — only when Andrew says "go anyway" (all
-flagged) or "go, force {email}" (that one). A forced user enrolls regardless of any membership
-state; set `sequence_active_in_other_campaigns: true` for them at Step 11.2.
+
+**Foreign sequences are moved on a plain "go", not held** (Andrew's call, 2026-09-01). Anyone
+live in a sequence that is not Andrew's is removed from it and enrolled in the usage sequence.
+Set `sequence_active_in_other_campaigns: true` for them at Step 11.2, because a removal can lag.
+"go, leave {email}" is the opt-out. Force is now only for someone already live in one of
+Andrew's own usage sequences.
 
 ---
 
@@ -397,25 +407,36 @@ executed manually for these.
 
 ### Step 10: Reclassify — remove from old sequences
 
-For any user flagged as `reclassify_from` in Step 4:
+For any user carrying `reclassify_from` (Andrew's own sequence) **or**
+`reclassify_from_foreign` (anyone else's) from Step 4:
+
 Call `mcp__apollo__apollo_emailer_campaigns_remove_or_stop_contact_ids` with:
 - The current sequence ID
 - The contact ID
 
-Confirm removal before enrolling in the new sequence.
+**Verify the removal landed.** Re-fetch the contact and re-read
+`contact_campaign_statuses[]`. The old membership must be gone or in a dead status
+(`removed` / `finished` / `completed`). Do not trust the call's return value alone.
+
+If the removal fails or does not verify (most likely on another rep's campaign, where
+Andrew's API user may lack write access): still enroll them, with
+`sequence_active_in_other_campaigns: true`; set `action: "flagged_conflict"` and fill
+`conflict`; and tell Andrew plainly that the person is in **both** sequences until the
+owning rep removes them. Name the rep and the campaign. Never let that pass silently.
 
 ---
 
 ### Step 11: Create Apollo contacts and enroll
 
 **Re-verify sequence state first (MANDATORY):** hours or days may have passed since
-Step 3. For every approved or held user, re-read `contact_campaign_statuses[]` and
-re-fetch any blocking campaign by ID (Step 3's REST GET) to check `archived`/`active`
-NOW. A block whose campaign is archived/inactive now is void — enroll on the approval
-already given. A previously-clean user now live in a genuinely live campaign → hold as
-`flagged_conflict` and show Andrew the full snapshot; his "go anyway" / "go, force"
-clears it. Update `membership_snapshot` with enroll-time values. Never hold on
-contact-side `status` alone.
+Step 3. For every approved user, re-read `contact_campaign_statuses[]` and re-fetch any
+live-looking campaign by ID (Step 3's REST GET) to check `archived`/`active` NOW. A
+campaign that is archived or inactive now is a dead membership — nothing to move, enroll
+on the approval already given. A previously-clean user now live in a campaign that is NOT
+Andrew's → do not hold; set `reclassify_from_foreign` from the fresh read and move them at
+Step 10, reporting the snapshot to Andrew. Now live in one of Andrew's own usage sequences
+→ genuine skip unless forced. Update `membership_snapshot` with enroll-time values. Never
+decide on contact-side `status` alone.
 
 For each approved user:
 
@@ -430,9 +451,10 @@ For each approved user:
 - `emailer_campaign_id`: correct sequence ID from Step 7B
 - `send_email_from_email_account_id`: from Step 7A
 - `sequence_same_company_in_same_campaign: true`
-- `sequence_active_in_other_campaigns`: **`true` for a forced (`go anyway` / `go, force`)
-  contact, else `false`.** Force must set `true` or Apollo refuses to add a contact who is
-  active in another campaign.
+- `sequence_active_in_other_campaigns`: **`true` for a forced contact, for anyone carrying
+  `reclassify_from_foreign`, and for anyone whose Step 10 removal did not verify. Else
+  `false`.** Apollo refuses to add a contact who is active in another campaign unless this
+  is `true`, and a removal can lag.
 - `sequence_no_email: false`
 
 Process sequentially. Treat `contacts_already_exists_in_current_campaign` as success.
@@ -905,6 +927,7 @@ Use the structure below as the content reference when building sequences via Apo
 
 | Date | Change | Reason |
 |------|--------|--------|
+| 2026-09-01 | **Foreign-sequence policy reversed: move, do not hold.** Anyone live in a sequence that is not Andrew's is removed from it and enrolled in the usage sequence on a plain "go". New `reclassify_from_foreign` field; Step 10 covers both reclassify paths and must VERIFY the removal by re-reading the contact; a failed removal still enrolls (with `sequence_active_in_other_campaigns: true`) and is reported by name. `flagged_conflict` now means only "the move failed mechanically". New "go, leave {email}" opt-out. Supersedes the cross-rep hold added 2026-07-17. | Andrew's call. Joe Hindle's "product user journey" campaign took alex.w@example.com 43 minutes after the 08-28 review said he was clean, so the best signup on the book was getting another rep's cold email while Andrew's "go" sat held. |
 | 2026-06-22 | Step 2 rewritten to check interaction across ALL channels (SFDC EmailMessage, all SFDC Tasks incl. LinkedIn, SFDC Events, Google Calendar, Slack threads/DMs by name+email, Gmail). Cold buckets reachable only when every channel is empty. | Contacts with calendar meetings, Slack DMs, or SFDC LinkedIn tasks (e.g. ethan@reflection.ai) were tagged "never contacted" and routed to cold sequences — calendar was never queried, Slack was domain-only, and the Task filter excluded LinkedIn/upcoming activity |
 | 2026-06-02 | Changelog initialized | Tracking all skill changes going forward |
 | (prior) | Added `awaiting_review` classification for contacts with active two-way conversation | Contacts with recent real conversations (email reply, meeting, Slack) were being auto-enrolled; now require explicit opt-in |

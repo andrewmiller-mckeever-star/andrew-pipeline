@@ -171,6 +171,40 @@ Based on solution delivery patterns, these are the use case categories that reso
 
 ---
 
+## Account-Fit Use Case Lenses
+
+When researching a company, run it through these two lenses on top of the industry patterns above. They capture the two dominant ways companies consume web retrieval for AI. Most accounts map to one or both. Use them to sharpen which problem to lead with, not as a menu to pitch from. (Internal note: distilled from the 5 Search API use cases in the Highlights proposal. Lens 1 folds in RAG grounding and agent tool calls. Lens 2 folds in search-result UI cards, competitive/market monitoring, and dataset construction. Keep feature names, pricing tiers, and competitor comparisons out of prospect-facing copy.)
+
+### Lens 1: Grounding AI agents and assistants
+
+What it is: The company is building an AI system that reads retrieved content and reasons over it. Chatbots, RAG assistants, autonomous agents, copilots. The retrieval feeds an LLM prompt or an agent tool call. They need cited, token-efficient results they can drop into a context window without blowing cost or latency. Autonomous agents also use a per-source relevance signal to decide which sources to follow up on.
+
+Company signals to look for:
+- Building or shipping an AI assistant, copilot, chatbot, or agent (customer-facing or internal)
+- Job posts for AI/ML, RAG, agent, or LLM application engineering roles
+- Public mention of hallucination problems, grounding, or citation needs
+- An agent product that makes many tool calls and needs fast, small, per-source answers to decide what to dig into next
+
+Why You.com fits: Search API returns long, cited, LLM-ready snippets built for machine reasoning, not human browsing. For agent tool calls, results are token-efficient and fast enough to sit inside a loop. Research API fits when the agent needs deep, multi-step, cited answers rather than raw retrieval.
+
+Messaging angle: lead with grounding and accuracy. "When your agent reasons over web content, the retrieval layer decides whether the answer holds up." Reference Windsurf or Harvey when the fit is agent accuracy and citations.
+
+### Lens 2: Surfacing evidence to people and pipelines
+
+What it is: The company puts relevant passages in front of a human or into a data pipeline, not straight into an LLM's reasoning loop. Search result UIs with inline evidence, competitive and market monitoring, and building training or evaluation datasets at scale. The consumer is a person reading a result card, an analyst scanning for on-topic passages, or a dataset the team filters by relevance.
+
+Company signals to look for:
+- A search or discovery UI where users read an excerpt and decide whether to click through
+- Recurring monitoring workflows (competitors, brands, markets, regulation) where precision matters because a human may act on a false positive
+- Teams building training data, eval sets, or knowledge bases at scale, where cost per query and relevance filtering matter
+- Consumer or B2B products that show "why this result" evidence under each hit
+
+Why You.com fits: Search API returns rich, relevant, cited snippets that read well out of context and carry the freshness monitoring use cases need. High precision and real-time updates matter more here than deep multi-step synthesis. Contents API fits when they need full page text pulled at scale.
+
+Messaging angle: lead with precision and freshness. "The passage a user reads under a result has to be the right one, and current." For monitoring, emphasize real-time freshness and filtering out the noise. Reference DuckDuckGo for freshness and high-volume consumer search.
+
+---
+
 ## Objection Handling (From Product Knowledge)
 
 ### "We can build search in-house"

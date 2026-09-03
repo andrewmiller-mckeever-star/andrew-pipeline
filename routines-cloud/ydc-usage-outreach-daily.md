@@ -42,8 +42,8 @@ and read emailer_campaign.name, .active, .archived, .user_id. If $APOLLO_API_KEY
 A membership is DEAD (ignore entirely) if ANY of: status is finished/completed/removed; the campaign has archived: true (confirmed, not guessed); the campaign has active: false. Exception: if an inactive campaign is a non-usage sequence Andrew owns, still set reclassify_from so the user is removed at enroll time (prevents a double-send if it is later reactivated).
 3.3: classify from LIVE memberships only:
 - Live in a "YDC | Usage |" sequence (campaign in live_usage_campaign_ids, live status) → SKIP (already getting our emails). Record usage_membership: "active". Not a candidate (force-overridable at enroll time).
-- Live in a non-usage sequence Andrew owns (membership's send_email_from_email_address is Andrew's mailbox) → keep as candidate, set reclassify_from: "{sequence name}" (removed + re-enrolled at enroll time).
-- Live in a non-usage sequence owned by someone else, or any live sequence we can't safely move (send mailbox ≠ Andrew's) → keep as candidate, set action: "flagged_conflict" and conflict: {sequence_name, campaign_id, owner_email, status}. Held on a plain "go"; enrolls only on an explicit "go anyway" / "go, force".
+- Live in a non-usage sequence Andrew owns (membership's send_email_from_email_address is Andrew's mailbox) → keep as candidate, set action: "enroll" and reclassify_from: "{sequence name}" (removed + re-enrolled at enroll time).
+- Live in ANY sequence that is not Andrew's (send mailbox ≠ Andrew's — another rep's campaign, a shared mailbox, anything) → keep as candidate, set action: "enroll" and reclassify_from_foreign: {sequence_name, campaign_id, owner_email, status}. MOVE THEM, DO NOT HOLD THEM: at enroll time they are removed from that sequence and enrolled in the usage sequence, on a plain "go", no force needed. Andrew's call 2026-09-01: anyone in a sequence that is not his comes out of it and goes into his. This supersedes the cross-rep hold added 2026-07-17. flagged_conflict now fires ONLY when the move fails mechanically (removal errors or does not verify, or the campaign cannot be resolved). A removal from another rep's sequence is visible to that rep, so always name the rep and campaign in the Slack post.
 - No live memberships (including only-dead ones) → normal candidate. usage_membership: "archived" if a dead usage membership existed, else "none".
 3.4: for every skip / reclassify / flagged_conflict decision, record a membership_snapshot on the candidate: {"campaign_id", "campaign_name", "campaign_active", "campaign_archived", "contact_status", "owner_mailbox", "checked_at"}. Sequence state is a moving target; the snapshot is the record of what was true at decision time and settles later disputes — never a fresh re-query.
 
@@ -64,8 +64,8 @@ STEP 5 — CLASSIFY (top rule wins; cold buckets A/B/C/D/F are reachable only wh
 4. No interaction, Account NOT Customer/Partner: 0 calls and signed up in last 120 days → Seq A; calls in last 90 days → Seq B; had calls but last call 30–120 days ago → Seq C
 5. No interaction and no usage signal → skip
 
-STEP 6 — BUILD THE PENDING STRUCTURE in memory (written to Drive only AFTER the Slack post, because the Drive connector cannot update a file in place). Assign each candidate a 1-based sequential number "n" in Slack-post order; numbering spans BOTH the normal enroll list and the flagged_conflict list (so "go, force 5" can target a flagged one by number). awaiting_review and skipped entries are addressed by email only. Top-level JSON fields (exact names): scan_date (YYYY-MM-DD), lookback_days, slack_channel ("my-accounts-api-users-daily"), slack_thread_ts (null until Step 7b), enrolled (false), candidates, awaiting_review, skipped.
-Each candidates[] entry: n, email, first_name, last_name, company, account_id, account_type, sequence ("A".."F"), reason, action ("enroll" | "flagged_conflict"), slack_flag, reclassify_from, usage_membership ("none" | "archived" | "active"), conflict (null or {sequence_name, campaign_id, owner_email, status}), membership_snapshot (null or the Step 3.4 object), calls_7d, calls_30d, signup_date, last_call_date, has_interaction, last_interaction_date, days_since_contact, contact_channels, who_at_youcom.
+STEP 6 — BUILD THE PENDING STRUCTURE in memory (written to Drive only AFTER the Slack post, because the Drive connector cannot update a file in place). Assign each candidate a 1-based sequential number "n" in Slack-post order; numbering spans BOTH the normal enroll list and the moved-from-another-sequence list (so "go, leave 5" can target a moved one by number). awaiting_review and skipped entries are addressed by email only. Top-level JSON fields (exact names): scan_date (YYYY-MM-DD), lookback_days, slack_channel ("my-accounts-api-users-daily"), slack_thread_ts (null until Step 7b), enrolled (false), candidates, awaiting_review, skipped.
+Each candidates[] entry: n, email, first_name, last_name, company, account_id, account_type, sequence ("A".."F"), reason, action ("enroll" | "awaiting_review" | "flagged_conflict", the last reserved for a move that failed mechanically), slack_flag, reclassify_from (Andrew's own sequence), reclassify_from_foreign (null or {sequence_name, campaign_id, owner_email, status} for a sequence that is NOT Andrew's — moved on a plain "go"), usage_membership ("none" | "archived" | "active"), conflict (null, or the same shape, only when the move failed), membership_snapshot (null or the Step 3.4 object), calls_7d, calls_30d, signup_date, last_call_date, has_interaction, last_interaction_date, days_since_contact, contact_channels, who_at_youcom.
 Each awaiting_review[] entry: email, first_name, last_name, company, sequence, reason (must cite the channel(s) and dates), has_interaction, last_interaction_date, days_since_contact, contact_channels, who_at_youcom.
 
 STEP 7a — POST TO SLACK (channel C0AUKK58U73) via slack_send_message. ALWAYS post, even with zero candidates — the post proves the scan ran, and the 10am watchdog greps this channel for the literal string "📋 YDC Usage Outreach", so the first line must contain it verbatim.
@@ -78,7 +78,7 @@ Skipped (already active in usage sequence): {N}
 Otherwise use this format (omit any empty section; numbers continue across companies and into the conflict list):
 <@U0A4M1BAR08> 📋 YDC Usage Outreach | {today} | {lookback} day lookback
 
-{N} to enroll  ·  {N} reclassifications  ·  {N} in another sequence  ·  {N} awaiting review  ·  {N} skipped
+{N} to enroll  ·  {N} moved from another sequence  ·  {N} awaiting review  ·  {N} skipped
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 {COMPANY NAME}  [{Account Type}]
@@ -91,10 +91,11 @@ RECLASSIFY:
   {email} — move from "{old sequence name}" → Seq {X}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-⚠️ IN ANOTHER ACTIVE SEQUENCE — held; reply "go, force N" to enroll anyway:
-  {n}.  {email}  [→ Seq {X}]  — active in "{sequence name}" ({owner detail})
+MOVING OUT OF ANOTHER SEQUENCE (included in "go"):
+  {n}.  {email}  [→ Seq {X}]  — out of "{sequence name}" ({owner detail})
 
-  (Not enrolled on a plain "go". Numbers continue from the enroll list above.)
+  (These enroll on a plain "go". Numbers continue from the enroll list above.
+   Anyone sending from a mailbox that is not yours is named here so you know who to tell.)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ⚠️ AWAITING YOUR REVIEW — prior/active interaction, not auto-enrolled:
@@ -110,12 +111,12 @@ SKIPPED — Already ACTIVE in usage sequence (getting emails now):
   (Archived/finished memberships are NOT skipped — those users appear in the enroll list.)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Reply "go" — enroll all (does NOT include the "in another sequence" list)
+Reply "go" — enroll all, including everyone being moved out of another sequence
 "go, skip 2 3" — skip by number
 "go, only 1 2" — enroll only these numbers
 "go, include jane@acme.com" — add from AWAITING REVIEW
-"go anyway" / "go, force all" — also enroll the "in another sequence" list
-"go, force 5" / "go, force carlos@co.com" — force one, even if in another live sequence
+"go, leave 5" — leave 5 where they are, do not move them out of the other sequence
+"go, force 5" — enroll 5 even if they are already live in one of your own usage sequences
 Then run /ydc-usage-outreach-daily enroll (or the auto-watcher picks up within ~15 min). T1 schedules automatically.
 NOTE: SFDC contact creation is read-only in cloud — any needed SFDC payloads will be posted in this thread at enroll time for manual execution.
 

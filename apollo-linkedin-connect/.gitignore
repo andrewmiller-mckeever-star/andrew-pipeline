@@ -1,0 +1,17 @@
+# Live LinkedIn auth tokens. Never commit.
+storageState.json
+storageState.json.bak
+
+# Per-prospect DM copy and research output. Customer data, never commit.
+dm-overrides.json
+founders.json
+founder-connection-results.json
+*.log
+
+# Local run state
+linkedin-run-stats.json
+node_modules/
+package-lock.json
+
+# Timestamped local backups
+*.bak-*

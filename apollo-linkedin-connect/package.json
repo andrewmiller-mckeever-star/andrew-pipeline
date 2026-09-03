@@ -1,0 +1,13 @@
+{
+  "name": "apollo-linkedin-connect",
+  "version": "1.0.0",
+  "description": "Automates LinkedIn connect requests and direct messages from Apollo task queue",
+  "main": "apollo-linkedin-connect.js",
+  "scripts": {
+    "start": "node apollo-linkedin-connect.js",
+    "dry-run": "DRY_RUN=true node apollo-linkedin-connect.js"
+  },
+  "dependencies": {
+    "playwright": "^1.59.1"
+  }
+}
