@@ -39,7 +39,7 @@ Enrollment happens on the next enroll run after his Slack reply — or he can ru
 
 1. **9am weekday:** Scheduled scan runs (Claude Code Routine), posts classified list to #my-accounts-api-users-daily
 2. **Andrew replies** "go" (or "go, exclude ali@example.com") in Slack
-3. **Auto-enroll watcher** routine runs every 15 min (Mon–Fri 7am–8pm), detects the reply, enrolls automatically
+3. **Auto-enroll watcher** routine runs 3x/day (8:30am, 1:30pm, 6:30pm Mon–Fri), detects the reply, enrolls automatically
 4. **OR:** Andrew runs `/ydc-usage-outreach-daily enroll` for immediate enrollment
 5. **Enrolls approved users.** T1 auto-schedules (all sequences are active).
 
@@ -488,7 +488,7 @@ Reply "go" — enroll all, including everyone being moved out of another sequenc
 "go, include jane@acme.com" — add from AWAITING REVIEW
 "go, leave 5" — leave 5 where they are, do not move them out of the other sequence
 "go, force 5" — enroll 5 even if they are already live in one of your own usage sequences
-Then run /ydc-usage-outreach-daily enroll (or the auto-watcher picks up within ~15 min). T1 schedules automatically.
+Then run /ydc-usage-outreach-daily enroll (or the auto-watcher picks up at its next 8:30am/1:30pm/6:30pm run). T1 schedules automatically.
 NOTE: SFDC contact creation is read-only in cloud — any needed SFDC payloads will be posted in this thread at enroll time for manual execution.
 ```
 
@@ -739,7 +739,7 @@ recurring routine with:
 - schedule: `0 9 * * 1-5`
 - prompt: `/ydc-usage-outreach-daily`
 
-The auto-enroll watcher is a separate routine (every 15 min, Mon–Fri 7am–8pm) that runs
+The auto-enroll watcher is a separate routine (3x/day: 8:30am, 1:30pm, 6:30pm Mon–Fri) that runs
 `/ydc-usage-outreach-daily enroll` when a "go" reply exists and no `daily-enrolled-{scan_date}.txt`
 marker is present.
 

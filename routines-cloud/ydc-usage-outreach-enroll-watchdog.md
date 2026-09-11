@@ -1,6 +1,6 @@
 # Routine: ydc-usage-outreach-enroll-watchdog (alert-only)
 
-End-of-day check for the enroll-watcher: catches the case where Andrew replied "go" but no enrollment ever happened (e.g., every 15-min watcher run failed silently). ALERT ONLY — enrollment writes stay exclusively in the enroll-watcher, never here.
+End-of-day check for the enroll-watcher: catches the case where Andrew replied "go" but no enrollment ever happened (e.g., a watcher run failed silently). ALERT ONLY — enrollment writes stay exclusively in the enroll-watcher, never here.
 
 | Field | Value |
 |---|---|

@@ -18,7 +18,7 @@ One file per cloud Routine. Each file contains everything needed to create the R
 | ydc-linkedin-queue (9:30 AM) | `ydc-linkedin-queue-watchdog-cloud.md` (11:30 AM) | Self-heals: re-runs the report |
 | ydc-usage-outreach-daily (9 AM) | `ydc-usage-outreach-watchdog.md` (10 AM) | Alerts (DM); scan too heavy to duplicate |
 | granola-archive-sync (Mon 11 AM) | `granola-archive-sync-watchdog.md` (Thu 11 AM) | Self-heals: full catch-up sync |
-| enroll-watcher (every 15-30 min) | `ydc-usage-outreach-enroll-watchdog.md` (8:45 PM) | Alerts (DM) if a "go" went un-actioned; never enrolls |
+| enroll-watcher (8:30 AM, 1:30 PM, 6:30 PM) | `ydc-usage-outreach-enroll-watchdog.md` (8:45 PM) | Alerts (DM) if a "go" went un-actioned; never enrolls |
 
 `ydc-territory-watchdog.md` remains the special case: it watches the LAPTOP territory pipeline (not migrating) — a cloud status post is the only laptop-closed detection for it. Recommended.
 

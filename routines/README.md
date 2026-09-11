@@ -11,7 +11,7 @@ All times are local (America/Denver). Schedules as of 2026-07-17.
 | ydc-territory-watchdog-10pm | `0 15 * * 1-5` | 3pm Mon-Fri | yes | If the 2pm pipeline didn't complete, resets the marker and re-runs it |
 | ydc-territory-watchdog-2am | `0 19 * * 1-5` | 7pm Mon-Fri | yes | Final safety net re-run if pipeline and first watchdog both failed |
 | ydc-usage-outreach-daily | `0 9 * * 1-5` | 9am Mon-Fri | yes | Scans new API signups and active users, classifies them, posts review list to Slack |
-| ydc-usage-outreach-enroll-watcher | `*/15 7-20 * * 1-5` | every 15 min, 7am-9pm Mon-Fri | yes | Watches the review channel for a "go" reply and auto-enrolls approved contacts |
+| ydc-usage-outreach-enroll-watcher | `30 8,13,18 * * 1-5` | 8:30am, 1:30pm, 6:30pm Mon-Fri | yes | Watches the review channel for a "go" reply and auto-enrolls approved contacts (cut from every-15-min to reduce cost) |
 | ydc-usage-outreach-watchdog | `0 10 * * 1-5` | 10am Mon-Fri | yes | Confirms the 9am usage scan ran; alerts if it didn't |
 | ydc-linkedin-apollo-tasks-daily | `0 9 * * 1-5` | 9am Mon-Fri | yes | Processes pending Apollo LinkedIn connect/DM tasks via script, posts results |
 | linkedin-tasks-check | `0 14 * * 1-5` | 2pm Mon-Fri | yes | Watchdog for the 9am LinkedIn run; re-runs if tasks still pending |

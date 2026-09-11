@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Schedule | `*/15 7-20 * * 1-5` — every 15 min, 7:00–20:45 Mon–Fri. If the Routines UI doesn't allow 15-minute cadence, use `0,30 7-20 * * 1-5` (every 30 min) — the only cost is enrollment latency, since enrollment is idempotent and approval-gated. |
+| Schedule | `30 8,13,18 * * 1-5` — 8:30am, 1:30pm, 6:30pm Mon–Fri. Cut from every-15-min (2026-09-11, cost reduction) — the only cost of the lower cadence is enrollment latency, since enrollment is idempotent, approval-gated, and the open-list logic looks back 7-8 days regardless of when a run fires. |
 | Timezone | America/Denver |
 | Repository | andrewmiller-mckeever-star/andrew-pipeline |
 | Connectors | Google Drive, Slack, Apollo.io, Salesforce (read-only, for the contact-payload check) |
