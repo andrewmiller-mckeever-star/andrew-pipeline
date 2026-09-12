@@ -4,6 +4,59 @@ Dated log of changes to the pipeline code, skills, and routines. Newest first.
 
 Format: one entry per change. Say what broke or what changed, what the fix was, and how it was verified.
 
+## 2026-09-12
+
+### Changed: Cut automation cost ~$300+/week — enroll-watcher frequency and watchdog redundancy
+
+**What happened.** Finance and IT flagged Andrew's account for the week's highest Claude usage.
+A cost analysis of local session logs found `ydc-usage-outreach-enroll-watcher` — a Slack-polling
+task that checks for Andrew's "go" reply and auto-enrolls approved contacts — running every 15
+minutes, 7am-8pm Mon-Fri (~274 runs/week), accounting for roughly half of all automation spend.
+
+**Root cause.** The watcher is almost always a no-op (exit silently, nothing to enroll), but every
+fire still costs money, so a 15-minute polling interval multiplied a cheap-per-run task into the
+single largest cost line by sheer volume. Separately, the territory pipeline and meeting-brief
+jobs had accumulated more monitoring layers than the work they watched: territory pipeline carried
+3 stacked watchdogs (3pm check, 3pm rerun, 7pm final safety net) around 1 real job; meeting-brief
+carried a same-day monitor plus 3 near-identical Monday catch-up watchdogs (7am/8am/9:30am) around
+1 real job.
+
+**Fix.**
+- `ydc-usage-outreach-enroll-watcher`: cadence cut in two steps — every 15 min → 3x/day
+  (8:30am/1:30pm/6:30pm) → 1x/day (4pm), all Mon-Fri. Safe because the watcher's own open-list
+  logic already looks back 7-8 days for an un-actioned "go" reply — a slower cadence only delays
+  enrollment, it never drops one.
+- `ydc-territory-watchdog`: consolidated from 3 tasks into 1, now firing once at 5pm. Checks
+  whether the 2pm pipeline completed, self-heals (resets the marker and reruns) if it didn't, and
+  posts pass/fail either way. Trade-off: previously two chances at a same-day retry (3pm and 7pm);
+  now one. It explicitly alerts if its own retry also fails, since no second watchdog is left to
+  catch that.
+- `meeting-brief-monday-watchdog`: consolidated from 3 tasks (7am/8am/9:30am) into 1, firing once
+  at 9am.
+- Deleted the 5 now-redundant scheduled tasks (`ydc-territory-watchdog-10pm`,
+  `ydc-territory-watchdog-2am`, `meeting-brief-monday-watchdog-7am`/`-8am`/`-930am`) and synced
+  every doc reference across `routines/`, `routines-cloud/`, and both copies of the
+  `ydc-usage-outreach-daily` skill (repo + global `~/.claude/skills/`).
+
+**Methodology note — the cost-analysis tooling had a real bug, now fixed.** Local Claude Code
+transcripts (`~/.claude/projects/.../*.jsonl`) log one line per content block in a response
+(thinking block, each tool call, etc.), and every line for the same response repeats the *same*
+`usage` object — usage is billed once per response, not once per block. An initial pass summed
+`usage` per line and overstated cost by roughly 2.3x as a result (a burst of N parallel tool calls
+in one turn got counted N times). Corrected method: dedupe by `message.id` before summing. This
+matters for any future cost analysis run against local logs — always dedupe by `message.id`, never
+assume one transcript line equals one billed call.
+
+**Verified.** `list_scheduled_tasks` confirms the final state: `ydc-usage-outreach-enroll-watcher`
+at `0 16 * * 1-5`, `ydc-territory-watchdog` at `0 17 * * 1-5` (merged prompt: check + repair +
+post), `meeting-brief-monday-watchdog` at `0 9 * * 1` (new task, run history for the retired ones
+archived not deleted). Corrected 14-day cost breakdown (deduped by `message.id`) put the
+enroll-watcher at $1.29/run average — ~$320/week at the old 15-min cadence, projecting to ~$19/week
+at 3x/day and ~$6.45/week at 1x/day. Watchdog consolidation removes ~$9.38/week (territory) and
+~$2.26/week (meeting-brief) of pure monitoring overhead. Net: automation spend projected to drop
+from ~$390/week (blended) to well under $100/week, pending a full week under the new schedules to
+confirm against the Console's own usage numbers.
+
 ## 2026-08-27
 
 ### Fixed: Apollo sequence builds dead-ended on an expired Playwright session

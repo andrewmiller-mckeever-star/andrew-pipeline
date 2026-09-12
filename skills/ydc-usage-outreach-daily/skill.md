@@ -14,7 +14,7 @@ Enrollment happens automatically within ~30 min of his Slack reply — or he can
 
 1. **9am weekday:** Scheduled scan runs, posts classified list to #my-accounts-api-users-daily
 2. **Andrew replies** "go" (or "go, exclude ali@example.com") in Slack
-3. **Auto-enroll watcher** runs 3x/day (8:30am, 1:30pm, 6:30pm Mon–Fri), detects the reply, enrolls automatically
+3. **Auto-enroll watcher** runs 1x/day (4pm Mon–Fri), detects the reply, enrolls automatically
 4. **OR:** Andrew runs `/ydc-usage-outreach-daily enroll` in Claude Code for immediate enrollment
 5. **Enrolls approved users.** T1 auto-schedules (all sequences are active).
 
@@ -485,7 +485,7 @@ Reply "go" — enroll all, including everyone being moved out of another sequenc
 "go, include jane@acme.com" — add from AWAITING REVIEW
 "go, leave 5" — leave 5 where they are, do not move them out of the other sequence
 "go, force 5" — enroll 5 even if they are already live in one of your own usage sequences
-Then run /ydc-usage-outreach-daily enroll (or the auto-watcher picks up at its next 8:30am/1:30pm/6:30pm run). T1 schedules automatically.
+Then run /ydc-usage-outreach-daily enroll (or the auto-watcher picks up at its next 4pm run). T1 schedules automatically.
 ```
 
 **STOP. Andrew reviews in Slack and replies "go" when ready.**

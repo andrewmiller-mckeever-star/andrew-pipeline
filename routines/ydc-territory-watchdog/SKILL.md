@@ -1,9 +1,9 @@
 ---
 name: ydc-territory-watchdog
-description: 3pm watchdog — checks if nightly territory pipeline ran, posts pass/fail status to #automated-outbound-skills-and-routines
+description: 5pm watchdog — checks if the nightly territory pipeline ran; if it didn't, resets the marker and reruns it, then posts pass/fail to #automated-outbound-skills-and-routines. Consolidated from 3 watchdogs (3pm check, 3pm rerun, 7pm final safety net) into this 1, 2026-09-12, to cut redundant monitoring cost.
 ---
 
-You are a watchdog for the nightly territory pipeline. Check whether it ran successfully tonight and post a status message to #automated-outbound-skills-and-routines so Andrew can see at a glance whether it worked. Always post — success and failure both get a message.
+You are the watchdog for the nightly territory pipeline. You now cover both jobs a 3-watchdog trio used to split across 3pm/3pm/7pm: confirm whether tonight's 2pm run completed, self-heal by rerunning it if it didn't, and always post the outcome to #automated-outbound-skills-and-routines (C0B4RRF3FC0) so Andrew can see it at a glance. There is no second watchdog after you anymore — if your rerun also fails, say so clearly so it doesn't go unnoticed.
 
 ## Step 1: Get today's date
 Get today's date in YYYY-MM-DD format.
@@ -11,13 +11,10 @@ Get today's date in YYYY-MM-DD format.
 ## Step 2: Check the running marker in Drive
 Search Drive for `territory-nightly-running-{today}.txt` using `mcp__b2f41a0b-70fb-4b72-b711-0dfd9cfb9ff8__search_files` with query `title = 'territory-nightly-running-{today}.txt'`. If found, read its content via `mcp__b2f41a0b-70fb-4b72-b711-0dfd9cfb9ff8__read_file_content`.
 
-## Step 3: Read progress file for account details
-Search Drive for `territory-progress.json` using `mcp__b2f41a0b-70fb-4b72-b711-0dfd9cfb9ff8__search_files` with query `title = 'territory-progress.json' and parentId = '1EVcyF2Jk3ee-ejGQ7xlHU_giQJDfhFnv'`. Read its content via `mcp__b2f41a0b-70fb-4b72-b711-0dfd9cfb9ff8__read_file_content`. Find all accounts with `date = {today}`.
-
-## Step 4: Post status to #automated-outbound-skills-and-routines
-Send to channel `C0B4RRF3FC0` via `mcp__440c028e-25dc-49ef-9cbd-6650b738bb3d__slack_send_message`.
-
-If marker says `completed at {time}`:
+## Step 3: If it completed — post success and stop
+If marker content starts with `completed at {time}`:
+1. Search Drive for `territory-progress.json` (query `title = 'territory-progress.json' and parentId = '1EVcyF2Jk3ee-ejGQ7xlHU_giQJDfhFnv'`) and read it via `mcp__b2f41a0b-70fb-4b72-b711-0dfd9cfb9ff8__read_file_content`. Find all accounts with `date = {today}`.
+2. Post to C0B4RRF3FC0 via `mcp__440c028e-25dc-49ef-9cbd-6650b738bb3d__slack_send_message`:
 ```
 <@{SLACK_USER_ID}> ✅ Territory Pipeline — {today}
 Completed at {time}
@@ -30,33 +27,39 @@ Accounts processed tonight:
 Pipeline progress: {X}/{total} accounts complete.
 Review Touch 1 drafts in Apollo. CTD referral emails in Apollo Tasks > Manual Emails.
 ```
+3. Stop — do not proceed to Step 4.
 
-If marker says `started at {time}` (stuck or crashed mid-run):
+## Step 4: If it didn't complete — repair and rerun
+This covers three cases: marker says `started at` (stuck mid-run), marker says `failed at` (completed but 0 accounts processed), or the marker file is missing entirely (2pm run never fired).
+
+1. Post to C0B4RRF3FC0:
 ```
 <@{SLACK_USER_ID}> ⚠️ Territory Pipeline — {today}
-STUCK or FAILED — started at {time} but never completed.
+Tonight's 2pm run didn't complete (reason: {stuck / failed / never started}). Restarting now — will post results when done.
+```
+2. If a marker file was found, overwrite it via `mcp__b2f41a0b-70fb-4b72-b711-0dfd9cfb9ff8__create_file` using the file ID (replace in place): content = `watchdog-cleared at {ISO timestamp}`. If no marker was found, skip this — nothing to clear.
+3. Run the full pipeline — same as ydc-territory-nightly Steps 2–6:
+   a. Search Drive for `territory-progress.json` (same query as above) and read it.
+   b. Use `pipeline.next_batch` if populated; otherwise run the Pre-Flight Validation procedure from ydc-territory-nightly to find up to 5 valid accounts.
+   c. Run ydc-territory-pipeline for each account sequentially.
+   d. After each account: update `territory-progress.json` in Drive (status, date, sequences, contacts_enrolled, use_case_selected; increment pipeline.processed).
+   e. If an account fails: set status to `"failed"` with an error note, continue to the next account.
+4. Post the retry summary to C0B4RRF3FC0:
+```
+<@{SLACK_USER_ID}> 🌙 Territory Pipeline (5pm retry) — {today}
+Processed {N}/{attempted} accounts: ...
+```
+5. Update the running marker to `completed at {ISO timestamp}`.
+6. Run pre-flight for tomorrow's batch, store in `pipeline.next_batch`.
 
-Accounts that completed before failure:
-{list from progress file with today's date, or "None"}
-
-To re-run: find territory-nightly-running-{today}.txt in Drive and change content to "watchdog-cleared at {now}". The next scheduled run will then proceed.
+## Step 5: If the rerun itself fails
+Post to C0B4RRF3FC0:
+```
+<@{SLACK_USER_ID}> 🚨 Territory Pipeline — {today}
+The 5pm retry also failed: {error details}. This pipeline has now missed a full day — no further automatic retry tonight. Needs manual attention.
 ```
 
-If marker says `failed at {time}` (completed but 0 accounts processed):
-```
-<@{SLACK_USER_ID}> ⚠️ Territory Pipeline — {today}
-Marker says completed but 0 accounts were processed tonight — completed at {time} suspiciously fast.
-
-Pipeline progress: {X}/{total} (no change from yesterday).
-Next batch queued: {pipeline.next_batch names, or "none"}
-
-The 3pm watchdog (ydc-territory-watchdog-10pm) should have already retried. Check #automated-outbound-skills-and-routines for retry status.
-```
-
-If marker file does not exist (pipeline never started):
-```
-<@{SLACK_USER_ID}> ⚠️ Territory Pipeline — {today}
-DID NOT RUN — no running marker found in Drive.
-
-The 2:00 PM scheduled run did not fire. Check that the ydc-territory-nightly scheduled task is still enabled.
-```
+## Rules
+- NEVER activate sequences — sequence toggle always left INACTIVE. Individual steps should be ACTIVE (build-sequences.js handles this).
+- NEVER send emails
+- NEVER skip the LinkedIn queue file — must be written for every account

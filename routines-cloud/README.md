@@ -18,7 +18,7 @@ One file per cloud Routine. Each file contains everything needed to create the R
 | ydc-linkedin-queue (9:30 AM) | `ydc-linkedin-queue-watchdog-cloud.md` (11:30 AM) | Self-heals: re-runs the report |
 | ydc-usage-outreach-daily (9 AM) | `ydc-usage-outreach-watchdog.md` (10 AM) | Alerts (DM); scan too heavy to duplicate |
 | granola-archive-sync (Mon 11 AM) | `granola-archive-sync-watchdog.md` (Thu 11 AM) | Self-heals: full catch-up sync |
-| enroll-watcher (8:30 AM, 1:30 PM, 6:30 PM) | `ydc-usage-outreach-enroll-watchdog.md` (8:45 PM) | Alerts (DM) if a "go" went un-actioned; never enrolls |
+| enroll-watcher (4 PM) | `ydc-usage-outreach-enroll-watchdog.md` (8:45 PM) | Alerts (DM) if a "go" went un-actioned; never enrolls |
 
 `ydc-territory-watchdog.md` remains the special case: it watches the LAPTOP territory pipeline (not migrating) — a cloud status post is the only laptop-closed detection for it. Recommended.
 
@@ -26,7 +26,7 @@ One file per cloud Routine. Each file contains everything needed to create the R
 |---|---|
 | ydc-meeting-brief | → `ydc-meeting-brief.md` (PILOT — LIVE in cloud 2026-07-21) |
 | meeting-brief-monitor | RETIRE (watchdog; Runs panel replaces it). File kept as optional. |
-| meeting-brief-monday-watchdog-7am/-8am/-930am | RETIRE (existed only because the laptop was closed on Sundays) |
+| meeting-brief-monday-watchdog-7am/-8am/-930am | Consolidated 2026-09-12 into one `meeting-brief-monday-watchdog` (9am) on the laptop, ahead of a full cloud migration decision. Still RETIRE-recommended once the cloud Sunday run is trusted (existed only because the laptop was closed on Sundays). |
 | ydc-territory-watchdog | OPTIONAL cloud Routine — watches the LAPTOP territory pipeline, which is not migrating; a cloud status post is the only laptop-closed detection for it |
 | ydc-usage-outreach-watchdog | RETIRE (watchdog; Runs panel replaces it). File kept as optional. |
 | ydc-linkedin-queue | → `ydc-linkedin-queue.md` (wave 2, needs APOLLO_API_KEY env var) |
@@ -36,8 +36,8 @@ One file per cloud Routine. Each file contains everything needed to create the R
 | granola-archive-sync-watchdog | RETIRE (catch-up for missed laptop Mondays; cloud doesn't miss Mondays). File kept as optional. |
 | ydc-linkedin-queue-watchdog | already disabled — do not migrate |
 | ydc-territory-nightly | STAYS ON LAPTOP (Playwright/Apollo UI) |
-| ydc-territory-watchdog-10pm (3pm retry) | STAYS ON LAPTOP (re-runs browser pipeline) |
-| ydc-territory-watchdog-2am (7pm retry) | STAYS ON LAPTOP (re-runs browser pipeline) |
+| ydc-territory-watchdog-10pm (3pm retry) | RETIRED 2026-09-12 — merged into `ydc-territory-watchdog` (now 5pm, checks + self-heals + posts in one run) |
+| ydc-territory-watchdog-2am (7pm retry) | RETIRED 2026-09-12 — merged into `ydc-territory-watchdog` (now 5pm, checks + self-heals + posts in one run) |
 | ydc-linkedin-apollo-tasks-daily | STAYS ON LAPTOP (Playwright/LinkedIn session) |
 | linkedin-tasks-check | STAYS ON LAPTOP (re-runs browser script) |
 

@@ -1,6 +1,6 @@
 ---
 name: ydc-usage-outreach-enroll-watcher
-description: Watch #my-accounts-api-users-daily for Andrew's "go" reply and auto-enroll. Runs 3x/day (8:30am, 1:30pm, 6:30pm Mon-Fri) — cut from every 15 min to reduce cost; the open-list logic looks back 7-8 days so nothing is missed, just delayed.
+description: Watch #my-accounts-api-users-daily for Andrew's "go" reply and auto-enroll. Runs 1x/day (4pm Mon-Fri) — cut from every 15 min, then 3x/day, then this, 2026-09-12, to reduce cost; the open-list logic looks back 7-8 days so nothing is missed, just delayed.
 ---
 
 You are the YDC usage outreach auto-enroll watcher. Run silently and exit if there is nothing to do.

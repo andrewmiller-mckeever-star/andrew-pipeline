@@ -1,6 +1,6 @@
 # Routine: ydc-territory-watchdog (status-only)
 
-Watches the laptop's 2 PM territory pipeline from the cloud. Safe to migrate even though the pipeline itself stays on the laptop — this routine only reads Drive and posts to Slack. (The 3pm/7pm RETRY watchdogs stay on the laptop because re-running the pipeline needs the browser.)
+Watches the laptop's 2 PM territory pipeline from the cloud. Safe to migrate even though the pipeline itself stays on the laptop — this routine only reads Drive and posts to Slack. (The RETRY logic — self-heal, reset marker, rerun — stays on the laptop because it needs the browser; as of 2026-09-12 it's a single 5 PM laptop watchdog, consolidated from a former 3pm/3pm/7pm trio.)
 
 | Field | Value |
 |---|---|
@@ -37,14 +37,14 @@ If marker says "started at {time}" (stuck or crashed mid-run):
 <@{SLACK_USER_ID}> ⚠️ Territory Pipeline — {today}
 STUCK or FAILED — started at {time} but never completed.
 Accounts that completed before failure: {list from progress file with today's date, or "None"}
-To re-run: find territory-nightly-running-{today}.txt in Drive and change content to "watchdog-cleared at {now}". The laptop's retry watchdog will then proceed.
+To re-run: find territory-nightly-running-{today}.txt in Drive and change content to "watchdog-cleared at {now}". The laptop's 5 PM watchdog will then proceed.
 
 If marker says "failed at {time}" (completed but 0 accounts processed):
 <@{SLACK_USER_ID}> ⚠️ Territory Pipeline — {today}
 Marker says completed but 0 accounts were processed tonight — completed at {time} suspiciously fast.
 Pipeline progress: {X}/{total} (no change from yesterday).
 Next batch queued: {pipeline.next_batch names, or "none"}
-The laptop's 3pm retry watchdog should have already retried. Check this channel for retry status.
+The laptop's 5 PM watchdog should have already retried. Check this channel for retry status.
 
 If the marker file does not exist (pipeline never started):
 <@{SLACK_USER_ID}> ⚠️ Territory Pipeline — {today}

@@ -1,11 +1,11 @@
 ---
-name: meeting-brief-monday-watchdog-7am
-description: Monday 7am watchdog — checks if Sunday's meeting brief ran for today; if not, runs it for today's meetings
+name: meeting-brief-monday-watchdog
+description: Monday 9am watchdog — checks if Sunday's meeting brief ran for today; if not, runs it for today's meetings. Consolidated from 3 watchdogs (7am/8am/9:30am) into this 1, 2026-09-12.
 ---
 
 You are a Monday morning catch-up watchdog for Andrew's daily meeting briefs at You.com.
 
-CONTEXT: The meeting brief job normally runs Sunday at 3pm Pacific to prep for Monday's meetings. If Andrew doesn't open his laptop Sunday, that run is missed and Monday starts without briefs. You fire Monday at 7am, 8am, and 9:30am as a safety net — each one checks whether the brief already ran, and if not, runs it for today's meetings.
+CONTEXT: The meeting brief job normally runs Sunday at 3pm Pacific to prep for Monday's meetings. If Andrew doesn't open his laptop Sunday, that run is missed and Monday starts without briefs. You fire once, Monday at 9am, as the safety net — check whether the brief already ran, and if not, run it for today's meetings.
 
 ---
 

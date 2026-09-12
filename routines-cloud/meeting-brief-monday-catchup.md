@@ -1,6 +1,6 @@
 # Routine: meeting-brief-monday-catchup (OPTIONAL)
 
-**Recommendation: don't create this.** The three laptop Monday watchdogs (7am/8am/9:30am) existed only because the Sunday 3 PM run was missed whenever the laptop was closed. A cloud Routine runs every Sunday regardless. Create this single catch-up only if you want belt-and-suspenders insurance during the first weeks; retire it once you trust the Sunday run.
+**Recommendation: don't create this.** The laptop's Monday watchdog (one consolidated task as of 2026-09-12, previously three at 7am/8am/9:30am) exists only because the Sunday 3 PM run was missed whenever the laptop was closed. A cloud Routine runs every Sunday regardless. Create this single catch-up only if you want belt-and-suspenders insurance during the first weeks; retire it once you trust the Sunday run.
 
 | Field | Value |
 |---|---|
@@ -9,7 +9,7 @@
 | Repository | andrewmiller-mckeever-star/andrew-pipeline |
 | Connectors | Google Calendar, Google Drive, Slack, Salesforce, You.com Search (Free) |
 | Env vars used | `YDC_API_KEY` (optional — degrades to connector search) |
-| Replaces laptop tasks | `meeting-brief-monday-watchdog-7am`, `-8am`, `-930am` (retire all three) |
+| Replaces laptop task | `meeting-brief-monday-watchdog` (consolidated 2026-09-12 from the former `-7am`/`-8am`/`-930am` trio; retire it once the cloud Sunday run is trusted) |
 | Expected output | Usually nothing (silent exit). If Sunday's run failed: briefs for TODAY + Slack post |
 
 ## PROMPT
