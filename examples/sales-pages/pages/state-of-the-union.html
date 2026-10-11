@@ -1,0 +1,1025 @@
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sam and Morgan 1:1</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter+Tight:wght@400;500;600;700&display=swap');
+
+/* State of the Union: example stylesheet. Tokens first, then layout, then components. */
+:root{
+  --bg:#f3f5f7; --surface:#ffffff; --surface-2:#eef1f4; --sunk:#e4e8ed;
+  --ink:#14202b; --ink-2:#3d4b58; --ink-3:#6b7884; --rule:#d6dce3; --rule-soft:#e7ebef;
+  --accent:#0d7a72; --accent-soft:#d8efec; --on-accent:#ffffff;
+  --go:#1d7f45; --go-soft:#dcf1e4; --amber:#b86a0b; --amber-soft:#fbecd6; --stop:#bf2f2f; --stop-soft:#f8dddd;
+  --mast:#101c27; --mast-2:#18293a; --mast-ink:#eef3f7; --mast-mute:#9fb0c0; --mast-rule:#2a3d50;
+  --shadow:0 1px 2px rgba(16,28,39,.06),0 4px 14px rgba(16,28,39,.05);
+  --radius:12px; --radius-sm:8px;
+  --sans:"Inter Tight",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --serif:"Fraunces",ui-serif,Georgia,"Times New Roman",serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c1218; --surface:#141c24; --surface-2:#1a242e; --sunk:#222e3a;
+    --ink:#e6edf3; --ink-2:#b5c1cc; --ink-3:#7f8e9b; --rule:#2b3845; --rule-soft:#212c37;
+    --accent:#3cc2b5; --accent-soft:#123a37; --on-accent:#06201d;
+    --go:#4cc07a; --go-soft:#143222; --amber:#e6a24a; --amber-soft:#3a2a12; --stop:#ef7272; --stop-soft:#3c1a1a;
+    --mast:#070c11; --mast-2:#101a23; --mast-ink:#eef3f7; --mast-mute:#8a9bab; --mast-rule:#22313f;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.25);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c1218; --surface:#141c24; --surface-2:#1a242e; --sunk:#222e3a;
+  --ink:#e6edf3; --ink-2:#b5c1cc; --ink-3:#7f8e9b; --rule:#2b3845; --rule-soft:#212c37;
+  --accent:#3cc2b5; --accent-soft:#123a37; --on-accent:#06201d;
+  --go:#4cc07a; --go-soft:#143222; --amber:#e6a24a; --amber-soft:#3a2a12; --stop:#ef7272; --stop-soft:#3c1a1a;
+  --mast:#070c11; --mast-2:#101a23; --mast-ink:#eef3f7; --mast-mute:#8a9bab; --mast-rule:#22313f;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.25);
+  color-scheme:dark;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.wrap{max-width:1240px;margin:0 auto;padding:0 24px}
+dl,dd{margin:0}
+h1,h2,h3,h4{margin:0}
+
+/* ---------- Masthead ---------- */
+.mast{background:linear-gradient(160deg,var(--mast) 0%,var(--mast-2) 100%);color:var(--mast-ink);padding:36px 0 30px;border-bottom:3px solid var(--accent)}
+.mast-row{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap}
+.mast-row>div{flex:1 1 420px;min-width:0}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mast-mute);font-weight:600}
+.mast h1{font-family:var(--serif);font-weight:600;font-size:clamp(32px,6vw,52px);line-height:1.05;margin:8px 0 10px;letter-spacing:-.01em}
+.sub{margin:0;max-width:62ch;color:var(--mast-mute);font-size:15px}
+.stamp{flex:none;font-size:12px;font-weight:600;padding:6px 12px;border:1px solid var(--mast-rule);border-radius:999px;color:var(--mast-ink);background:rgba(255,255,255,.04);white-space:nowrap}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:28px}
+.kpi{background:rgba(255,255,255,.045);border:1px solid var(--mast-rule);border-radius:var(--radius);padding:14px 16px;min-width:0}
+.kpi dt{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mast-mute);font-weight:600}
+.kpi dd{font-family:var(--serif);font-size:30px;font-weight:600;line-height:1.15;margin-top:4px;font-variant-numeric:tabular-nums}
+.kpi .note{font-size:12.5px;color:var(--mast-mute);margin-top:4px}
+.kpi .note b{color:var(--mast-ink)}
+.kpi .note a{color:var(--accent)}
+.bar{height:6px;border-radius:99px;background:var(--mast-rule);margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:inherit}
+
+/* ---------- Section labels ---------- */
+.sec-label{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:0 0 12px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.w-note{font-weight:500;letter-spacing:0;text-transform:none;font-size:13px;color:var(--ink-3)}
+
+/* ---------- Monogram ---------- */
+.mark{flex:none;width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:14px;letter-spacing:.02em}
+.mark-text{line-height:1}
+
+/* ---------- Key accounts ---------- */
+.whales{padding-top:32px;display:grid;gap:16px}
+.whale{background:var(--surface);border:1px solid var(--rule);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;border-top:4px solid var(--accent);min-width:0}
+.w-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.w-name{flex:1 1 200px;min-width:0}
+.w-name h3{font-family:var(--serif);font-size:22px;font-weight:600;line-height:1.2}
+.w-sub{font-size:13px;color:var(--ink-3)}
+.w-badge{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+.w-plan{font-size:13px;font-weight:600;padding:6px 12px;border-radius:var(--radius-sm);background:var(--accent);color:var(--on-accent);text-decoration:none}
+.w-plan:hover{filter:brightness(1.08)}
+.w-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:16px 0}
+.w-stat{background:var(--surface-2);border-radius:var(--radius-sm);padding:12px 14px;min-width:0}
+.w-stat dt{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.w-stat dd{font-size:20px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.w-stat p{margin:4px 0 0;font-size:13px;color:var(--ink-2)}
+.whale .block+.block{margin-top:12px}
+
+/* ---------- Agenda ---------- */
+.agenda{margin:36px 0 8px}
+.agenda ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;counter-reset:ag}
+.agenda li{counter-increment:ag;position:relative;background:var(--surface);border:1px solid var(--rule);border-radius:var(--radius);padding:14px 16px 14px 52px;box-shadow:var(--shadow);min-width:0}
+.agenda li::before{content:counter(ag);position:absolute;left:14px;top:14px;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;background:var(--band,var(--go));color:var(--surface)}
+.agenda li.moving{--band:var(--go)} .agenda li.watch{--band:var(--amber)} .agenda li.quiet{--band:var(--stop)}
+.ag-top{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+.ag-co{font-weight:700;font-size:16px}
+.ag-amt{font-weight:600;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.agenda p{margin:4px 0 0;font-size:14px;color:var(--ink-2)}
+
+/* ---------- Controls ---------- */
+.controls{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin:28px 0 8px;padding:14px 0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend i{width:10px;height:10px;border-radius:3px;flex:none}
+.l-moving{background:var(--go)} .l-watch{background:var(--amber)} .l-quiet{background:var(--stop)}
+.filters{display:flex;flex-wrap:wrap;gap:6px}
+.filters button{font:inherit;font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;border:1px solid var(--rule);background:var(--surface);color:var(--ink-2);cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+.filters button:hover{border-color:var(--accent);color:var(--ink)}
+.filters button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.filters .renewals-btn{border-style:dashed}
+.filters .renewals-btn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);border-style:solid}
+
+/* ---------- Board ---------- */
+.board{padding-bottom:12px}
+.quarter{margin-top:32px}
+.q-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:10px;border-bottom:2px solid var(--ink)}
+.q-head h2{font-family:var(--serif);font-size:30px;font-weight:600}
+.q-head h2 span{color:var(--ink-3);font-weight:500}
+.q-meta{display:flex;gap:6px 18px;flex-wrap:wrap;font-size:13px;color:var(--ink-3)}
+.q-meta b{color:var(--ink);font-variant-numeric:tabular-nums}
+.q-target{padding:2px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+.q-target b{color:inherit}
+.month{margin-top:20px}
+.month-head{display:flex;align-items:baseline;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.month-head h3{font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.month-head h3 span{margin-left:6px;color:var(--ink-3);font-weight:500}
+.month-meta{font-size:13px;color:var(--ink-3)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+.empty{display:none;text-align:center;padding:40px 16px;color:var(--ink-3);border:1px dashed var(--rule);border-radius:var(--radius);margin:24px 0}
+
+/* ---------- Deal card ---------- */
+.deal{--band:var(--amber);--band-soft:var(--amber-soft);position:relative;display:flex;flex-direction:column;gap:12px;background:var(--surface);border:1px solid var(--rule);border-radius:var(--radius);padding:16px 16px 14px 20px;box-shadow:var(--shadow);overflow:hidden;min-width:0}
+.deal::before{content:"";position:absolute;inset:0 auto 0 0;width:5px;background:var(--band)}
+.deal.moving{--band:var(--go);--band-soft:var(--go-soft)}
+.deal.watch{--band:var(--amber);--band-soft:var(--amber-soft)}
+.deal.quiet{--band:var(--stop);--band-soft:var(--stop-soft)}
+.deal-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.prob{display:inline-flex;align-items:baseline;gap:4px;font-size:12px;color:var(--ink-3)}
+.prob b{font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums}
+.band-pill{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:999px;background:var(--band-soft);color:var(--band)}
+.deal-id{display:flex;align-items:flex-start;gap:12px}
+.deal .mark{background:var(--band-soft);color:var(--band)}
+.deal-name{flex:1;min-width:0}
+.deal-name h4{font-size:17px;font-weight:700;line-height:1.25;overflow-wrap:anywhere}
+.tag{display:inline-block;vertical-align:middle;margin-left:6px;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:5px;background:var(--surface-2);color:var(--ink-2);border:1px solid var(--rule)}
+.stage{display:flex;align-items:center;gap:8px;margin-top:5px;font-size:12.5px;color:var(--ink-3)}
+.rail{display:inline-flex;gap:3px}
+.rail i{width:14px;height:5px;border-radius:2px;background:var(--sunk)}
+.rail i.on{background:var(--band)}
+.amt{flex:none;font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
+.paygo{font-size:12px;font-weight:600;padding:3px 8px;border-radius:6px;background:var(--surface-2);color:var(--ink-2)}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 0;border-top:1px solid var(--rule-soft);border-bottom:1px solid var(--rule-soft)}
+.facts>div{min-width:0}
+.facts dt,.block dt{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:3px}
+.facts dd{font-size:13.5px;font-weight:600;overflow-wrap:anywhere}
+.facts dd span{display:block;font-weight:400;font-size:12.5px;color:var(--ink-3)}
+.price-live{color:var(--go)}
+.price-none{color:var(--ink-3);font-weight:500!important;font-style:italic}
+.block p{margin:0;font-size:13.5px;color:var(--ink-2)}
+.block.stuck{padding:10px 12px;border-radius:var(--radius-sm);background:var(--surface-2)}
+.block.move{padding:10px 12px;border-radius:var(--radius-sm);background:var(--accent-soft)}
+.block.move dt{color:var(--accent)}
+.block.move p{color:var(--ink)}
+
+/* ---------- Task lists ---------- */
+.tasks dt{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.task-count{font-size:11px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-3);background:var(--surface-2);padding:1px 8px;border-radius:999px}
+.tasklist{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:4px}
+.tasklist li{position:relative;display:flex;align-items:flex-start;gap:6px;padding:6px 6px 6px 2px;border-radius:var(--radius-sm);border:1px solid transparent;background:var(--surface);transition:background .12s,opacity .12s}
+.tasklist li:hover{background:var(--surface-2)}
+.tasklist li.dragging{opacity:.45;border-style:dashed;border-color:var(--accent)}
+.tasklist li.drop-above{box-shadow:inset 0 3px 0 var(--accent)}
+.tasklist li.drop-below{box-shadow:inset 0 -3px 0 var(--accent)}
+.task-grip{flex:none;cursor:grab;color:var(--ink-3);font-size:11px;letter-spacing:-3px;line-height:20px;padding:0 6px 0 2px;user-select:none;opacity:.55}
+.tasklist li:hover .task-grip{opacity:1}
+.task-grip:active{cursor:grabbing}
+.tasklist label{flex:1;display:flex;gap:8px;align-items:flex-start;font-size:13.5px;cursor:pointer;min-width:0;overflow-wrap:anywhere}
+.tasklist input[type="checkbox"]{flex:none;width:16px;height:16px;margin:2px 0 0;accent-color:var(--accent);cursor:pointer}
+.task-owner{flex:none;font-size:11px;font-weight:600;padding:2px 7px;border-radius:999px;background:var(--surface-2);color:var(--ink-2);border:1px solid var(--rule-soft);max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.task-x{flex:none;font:inherit;font-size:16px;line-height:1;width:22px;height:22px;border:0;border-radius:6px;background:transparent;color:var(--ink-3);cursor:pointer;opacity:.5}
+.tasklist li:hover .task-x,.task-x:focus-visible{opacity:1}
+.task-x:hover{background:var(--stop-soft);color:var(--stop)}
+.tasklist li.done label span{text-decoration:line-through;color:var(--ink-3)}
+.tasklist li.done .task-owner{opacity:.5}
+.tasklist li.cancelled label span{text-decoration:line-through;text-decoration-color:var(--stop);color:var(--ink-3)}
+.tasklist li.cancelled{opacity:.55}
+.tasklist li.cancelled .task-x{opacity:1;color:var(--stop)}
+
+/* ---------- Deal footer ---------- */
+.deal-foot{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;margin-top:auto;padding-top:10px;border-top:1px solid var(--rule-soft);font-size:12px;color:var(--ink-3)}
+.deal-foot .cold{color:var(--stop);font-weight:600}
+.booked{color:var(--go);font-weight:600}
+.plan-link{color:inherit;text-decoration:none;border-bottom:1px dotted var(--ink-3)}
+.plan-link:hover{color:var(--accent);border-bottom-color:var(--accent)}
+.plan-foot{margin-left:auto;font-weight:600;color:var(--accent);text-decoration:none}
+.plan-foot::after{content:" \2192"}
+.plan-foot:hover{text-decoration:underline}
+
+/* ---------- Page footer ---------- */
+.foot{margin-top:40px;padding-top:20px;padding-bottom:48px;border-top:1px solid var(--rule);font-size:13px;color:var(--ink-3);line-height:1.6}
+.foot b{color:var(--ink-2)}
+
+/* ---------- Narrow screens ---------- */
+@media (max-width:640px){
+  .wrap{padding:0 16px}
+  .mast{padding:26px 0 22px}
+  .kpis{grid-template-columns:1fr 1fr;gap:8px}
+  .kpi{padding:12px}
+  .kpi dd{font-size:24px}
+  .kpis .kpi:last-child{grid-column:1/-1}
+  .grid{grid-template-columns:minmax(0,1fr)}
+  .w-stats{grid-template-columns:1fr 1fr}
+  .whale{padding:16px}
+  .facts{grid-template-columns:1fr}
+  .controls{flex-direction:column;align-items:stretch}
+  .q-head h2{font-size:26px}
+}
+@media (max-width:380px){
+  .w-stats,.kpis{grid-template-columns:minmax(0,1fr)}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}
+}
+@media print{
+  .filters,.task-x,.task-grip{display:none}
+  .mast{background:none;color:var(--ink)}
+}
+</style>
+
+<style>.plan-link{color:inherit;text-decoration:none;border-bottom:1px dotted var(--ink-3)}.plan-link:hover{color:var(--accent);border-bottom-color:var(--accent)}.plan-foot{margin-left:auto;color:var(--accent);text-decoration:none}.plan-foot:hover{text-decoration:underline}</style>
+
+<header class="mast">
+  <div class="wrap">
+    <div class="mast-row">
+      <div>
+        <div class="eyebrow">Sam &middot; Morgan &middot; weekly 1:1</div>
+        <h1>State of the Union</h1>
+        <p class="sub">Every open deal, ranked by how close it is to money. Green is furthest along with live pricing. Amber is moving but early or blocked. Red has gone quiet.</p>
+      </div>
+      <span class="stamp">As of October 9, 2026</span>
+    </div>
+
+    <dl class="kpis">
+      <div class="kpi"><dt>Total pipeline</dt><dd>$265K</dd>
+        <div class="note">$152K weighted by probability</div></div>
+      <div class="kpi"><dt>Open opps</dt><dd>7</dd>
+        <div class="note">3 moving &middot; 2 watch &middot; 2 quiet</div></div>
+      <div class="kpi"><dt>Close rate</dt><dd>67%</dd>
+        <div class="note">6 won vs 3 lost, excluding 5 that died in Discovery</div></div>
+      <div class="kpi"><dt>Year target</dt><dd>$600K</dd>
+        <div class="bar"><i style="width:52%"></i></div>
+        <div class="note">$312,400 closed won, 52% of target</div></div>
+      <div class="kpi"><dt>Quota split</dt><dd>$200K</dd>
+        <div class="note quota-note"><b>Q1:</b> $61,200 of $100K (61%). <b>Q2:</b> $118,900 of $150K (79%). <b>Q3:</b> $132,300 of $150K (88%). <b>Q4:</b> $0 of $200K so far.</div></div>
+    </dl>
+  </div>
+</header>
+
+<section class="wrap whales">
+    <div class="sec-label">Key accounts <span class="w-note">customers we are building out</span></div>
+    <article class="whale">
+    <header class="w-top">
+      <span class="mark"><span class="mark-text">NA</span></span>
+      <div class="w-name"><h3>Northwind Analytics</h3><div class="w-sub">Customer since Mar 3, 2026 &middot; $60K Search API annual commit plus PayGo overage. A $120K Research API expansion is in Agreement.</div></div>
+      <span class="w-badge">Key account</span>
+      <a class="w-plan" href="northwind-analytics.html" target="_blank" rel="noopener">Plan of attack</a>
+    </header>
+    <dl class="w-stats"><div class="w-stat"><dt>Billed so far</dt>
+      <dd>$84.2K invoiced</dd><p>$60K commit paid upfront in March. $24.2K in overage billed for July through September.</p></div><div class="w-stat"><dt>Contract rates</dt>
+      <dd>$2.40 / $2.10 CPM</dd><p>Search API. $2.40 up to 200 QPS, $2.10 above. Research API is not on paper yet.</p></div><div class="w-stat"><dt>Usage, last 30 days</dt>
+      <dd>18.6M calls</dd><p>Search API 18.1M from the pricing engine key. Research API trial key 512K calls.</p></div><div class="w-stat"><dt>Where it stalls</dt>
+      <dd>Procurement review</dd><p>The Research API order form has been with Ravi Mehta in procurement since 10/6. He wants the security questionnaire first.</p></div></dl>
+    <div class="block stuck w-why"><dt>Why it needs work</dt><p>Northwind is our best growth story. They went over their commit three months in a row. The Research API trial hit 87% on their own test set. If the expansion slips past Nov 20, it lands in their next budget year and could shrink.</p></div>
+    <div class="block tasks w-tasks">
+      <dt>Things to do<span class="task-count">4 open</span></dt>
+      <ul class="tasklist">
+        <li draggable="true" data-deal="006EXAMPLE000001" data-text="Send the security questionnaire to Ravi by 10/13">
+        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
+        <label><input type="checkbox" data-deal="006EXAMPLE000001" data-account="Northwind Analytics" data-text="Send the security questionnaire to Ravi by 10/13"><span>Send the security questionnaire to Ravi by 10/13</span></label>
+        <span class="task-owner" title="Slack #int-northwind 10/8">Sam Taylor / Leo Park</span>
+        <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000001" data-account="Northwind Analytics" data-text="Send the security questionnaire to Ravi by 10/13">&times;</button>
+      </li><li draggable="true" data-deal="006EXAMPLE000001" data-text="Confirm the commit start date of Dec 1 with Chris">
+        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
+        <label><input type="checkbox" data-deal="006EXAMPLE000001" data-account="Northwind Analytics" data-text="Confirm the commit start date of Dec 1 with Chris"><span>Confirm the commit start date of Dec 1 with Chris</span></label>
+        <span class="task-owner" title="Gmail thread with Ravi Mehta 10/7">Chris Wu</span>
+        <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000001" data-account="Northwind Analytics" data-text="Confirm the commit start date of Dec 1 with Chris">&times;</button>
+      </li><li draggable="true" data-deal="006EXAMPLE000001" data-text="Ask Elena for an intro to Grace Kim before signature">
+        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
+        <label><input type="checkbox" data-deal="006EXAMPLE000001" data-account="Northwind Analytics" data-text="Ask Elena for an intro to Grace Kim before signature"><span>Ask Elena for an intro to Grace Kim before signature</span></label>
+        <span class="task-owner" title="Call with Elena Brooks 10/8">Sam Taylor</span>
+        <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000001" data-account="Northwind Analytics" data-text="Ask Elena for an intro to Grace Kim before signature">&times;</button>
+      </li><li draggable="true" data-deal="006EXAMPLE000001" data-text="Plan the Contents API eval for the Pricing Intelligence team">
+        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
+        <label><input type="checkbox" data-deal="006EXAMPLE000001" data-account="Northwind Analytics" data-text="Plan the Contents API eval for the Pricing Intelligence team"><span>Plan the Contents API eval for the Pricing Intelligence team</span></label>
+        <span class="task-owner" title="Slack #int-northwind 10/2">Priya Nair</span>
+        <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000001" data-account="Northwind Analytics" data-text="Plan the Contents API eval for the Pricing Intelligence team">&times;</button>
+      </li>
+      </ul>
+    </div>
+  </article>
+<article class="whale">
+    <header class="w-top">
+      <span class="mark"><span class="mark-text">CA</span></span>
+      <div class="w-name"><h3>Contoso AI</h3><div class="w-sub">Customer since Nov 18, 2025 &middot; $150K Search API annual commit. Renews Dec 15, 2026.</div></div>
+      <span class="w-badge">Key account</span>
+      <a class="w-plan" href="contoso-ai-living-plan.html" target="_blank" rel="noopener">Plan of attack</a>
+    </header>
+    <dl class="w-stats"><div class="w-stat"><dt>Billed so far</dt>
+      <dd>$162.5K invoiced</dd><p>$150K commit paid in two parts. $12.5K in overage billed in August.</p></div><div class="w-stat"><dt>Contract rates</dt>
+      <dd>$2.75 CPM</dd><p>Flat Search API rate. They asked for $2.25 at renewal.</p></div><div class="w-stat"><dt>Usage, last 30 days</dt>
+      <dd>9.4M calls</dd><p>Down 22% from August. They moved one test workload to a cheaper vendor in September.</p></div><div class="w-stat"><dt>Where it stalls</dt>
+      <dd>Price ask</dd><p>Marcus wants $2.25 CPM and a 3-year option. Anything under $2.50 needs Morgan.</p></div></dl>
+    <div class="block stuck w-why"><dt>Why it needs work</dt><p>Contoso is our second largest account and the renewal is in 10 weeks. Usage is sliding and they are testing a cheaper vendor. We need a price answer fast or the moved workload becomes the new normal.</p></div>
+    <div class="block tasks w-tasks">
+      <dt>Things to do<span class="task-count">3 open</span></dt>
+      <ul class="tasklist">
+        <li draggable="true" data-deal="006EXAMPLE000002" data-text="Get Morgan&#x27;s call on a $2.35 floor for 3 years">
+        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
+        <label><input type="checkbox" data-deal="006EXAMPLE000002" data-account="Contoso AI" data-text="Get Morgan&#x27;s call on a $2.35 floor for 3 years"><span>Get Morgan&#x27;s call on a $2.35 floor for 3 years</span></label>
+        <span class="task-owner" title="Slack #deal-desk 10/7">Morgan Chen</span>
+        <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000002" data-account="Contoso AI" data-text="Get Morgan&#x27;s call on a $2.35 floor for 3 years">&times;</button>
+      </li><li draggable="true" data-deal="006EXAMPLE000002" data-text="Ask Marcus which workload moved and why">
+        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
+        <label><input type="checkbox" data-deal="006EXAMPLE000002" data-account="Contoso AI" data-text="Ask Marcus which workload moved and why"><span>Ask Marcus which workload moved and why</span></label>
+        <span class="task-owner" title="Usage dashboard 10/6">Sam Taylor</span>
+        <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000002" data-account="Contoso AI" data-text="Ask Marcus which workload moved and why">&times;</button>
+      </li><li draggable="true" data-deal="006EXAMPLE000002" data-text="Book a quality check with Priya on the moved workload">
+        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
+        <label><input type="checkbox" data-deal="006EXAMPLE000002" data-account="Contoso AI" data-text="Book a quality check with Priya on the moved workload"><span>Book a quality check with Priya on the moved workload</span></label>
+        <span class="task-owner" title="Slack #int-contoso 10/6">Priya Nair</span>
+        <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000002" data-account="Contoso AI" data-text="Book a quality check with Priya on the moved workload">&times;</button>
+      </li>
+      </ul>
+    </div>
+  </article>
+</section>
+
+<div class="wrap">
+  <section class="agenda">
+    <div class="sec-label">Open with these three</div>
+    <ol><li class="moving">
+  <div class="ag-top"><span class="ag-co"><a class="plan-link" href="northwind-analytics.html" target="_blank" rel="noopener">Northwind Analytics</a></span><span class="ag-amt">$120K</span></div>
+  <p>Order form is with procurement. The security questionnaire goes out 10/13. Call with Elena and Ravi on 10/14.</p>
+</li>
+<li class="watch">
+  <div class="ag-top"><span class="ag-co"><a class="plan-link" href="contoso-ai-living-plan.html" target="_blank" rel="noopener">Contoso AI</a></span><span class="ag-amt">$180K</span></div>
+  <p>Renewal. Marcus wants $2.25 CPM. Need your call on a $2.35 floor for a 3-year term by 10/15.</p>
+</li>
+<li class="moving">
+  <div class="ag-top"><span class="ag-co">Fabrikam Labs</span><span class="ag-amt">$60K</span></div>
+  <p>Eval is halfway. Contents API keys go live 10/10. Readout with Hannah on 10/16.</p>
+</li>
+</ol>
+  </section>
+
+  <div class="controls">
+    <div class="legend">
+      <span><i class="l-moving"></i>Furthest along, live pricing, recent contact</span>
+      <span><i class="l-watch"></i>Real movement, but early, small, or blocked</span>
+      <span><i class="l-quiet"></i>No contact in 45+ days, or stalled with no path</span>
+    </div>
+    <div class="filters" role="group" aria-label="Filter deals">
+      <button type="button" id="f-all" data-f="all" aria-pressed="true">All 7</button>
+      <button type="button" id="f-moving" data-f="moving" aria-pressed="false">Moving 3</button>
+      <button type="button" id="f-watch" data-f="watch" aria-pressed="false">Watch 2</button>
+      <button type="button" id="f-quiet" data-f="quiet" aria-pressed="false">Quiet 2</button>
+      <button type="button" id="f-renewals" data-f="renewals" class="renewals-btn" aria-pressed="false">Renewals 3</button>
+    </div>
+  </div>
+</div>
+
+<main class="wrap board" id="board-new">
+  <section class="quarter">
+  <div class="q-head">
+    <h2>Q4 <span>2026</span></h2>
+    <div class="q-meta">
+      <span><b>3</b> deals</span>
+      <span><b>$225K</b> booked value</span>
+      <span class="q-target"><b>$200K</b> quota</span>
+    </div>
+  </div>
+  <section class="month">
+  <div class="month-head">
+    <h3>Nov<span>2026</span></h3>
+    <span class="month-meta">2 deals &middot; $165K</span>
+  </div>
+  <div class="grid"><article class="deal moving" data-band="moving" data-renewal="0" data-score="110">
+  <header class="deal-top">
+    <span class="prob" title="Salesforce probability"><b>80%</b><span>win</span></span>
+    <span class="band-pill">Moving</span>
+  </header>
+  <div class="deal-id">
+    <span class="mark"><span class="mark-text">NA</span></span>
+    <div class="deal-name">
+      <h4><a class="plan-link" href="northwind-analytics.html" target="_blank" rel="noopener">Northwind Analytics</a></h4>
+      <div class="stage"><span class="rail"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>Agreement</div>
+    </div>
+    <div class="amt">$120K</div>
+  </div>
+  <dl class="facts">
+    <div><dt>Champion</dt><dd>Elena Brooks<span>VP Data Platform</span></dd></div>
+    <div><dt>Pricing</dt><dd class="price-live">Research API at $9 per 1,000 calls, $120K annual commit. Search API stays at $2.40 CPM, $2.10 above 200 QPS.</dd></div>
+  </dl>
+  <div class="block stuck">
+    <dt>Why we're stuck</dt>
+    <p>The order form has sat with Northwind procurement since 10/6. Ravi Mehta wants a security questionnaire back before he sends it to the CFO.</p>
+  </div>
+  <div class="block move">
+    <dt>Next step</dt>
+    <p>Send the finished security questionnaire by 10/13. Walk Elena and Ravi through it on the 10/14 call, then ask for a signature date.</p>
+  </div>
+  <div class="block tasks">
+    <dt>Outstanding<span class="task-count">3 open</span></dt>
+    <ul class="tasklist">
+      <li draggable="true" data-deal="006EXAMPLE000001" data-text="Finish the security questionnaire with Leo and send it to Ravi">
+        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
+        <label><input type="checkbox" data-deal="006EXAMPLE000001" data-account="Northwind Analytics" data-text="Finish the security questionnaire with Leo and send it to Ravi"><span>Finish the security questionnaire with Leo and send it to Ravi</span></label>
+        <span class="task-owner" title="Slack #int-northwind 10/8">Sam Taylor / Leo Park</span>
+        <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000001" data-account="Northwind Analytics" data-text="Finish the security questionnaire with Leo and send it to Ravi">&times;</button>
+      </li><li draggable="true" data-deal="006EXAMPLE000001" data-text="Confirm the $120K commit starts Dec 1, not on signature">
+        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
+        <label><input type="checkbox" data-deal="006EXAMPLE000001" data-account="Northwind Analytics" data-text="Confirm the $120K commit starts Dec 1, not on signature"><span>Confirm the $120K commit starts Dec 1, not on signature</span></label>
+        <span class="task-owner" title="Gmail thread with Ravi Mehta 10/7">Chris Wu</span>
+        <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000001" data-account="Northwind Analytics" data-text="Confirm the $120K commit starts Dec 1, not on signature">&times;</button>
+      </li><li draggable="true" data-deal="006EXAMPLE000001" data-text="Send Elena the 10/14 agenda and the trial results deck">
+        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
+        <label><input type="checkbox" data-deal="006EXAMPLE000001" data-account="Northwind Analytics" data-text="Send Elena the 10/14 agenda and the trial results deck"><span>Send Elena the 10/14 agenda and the trial results deck</span></label>
+        <span class="task-owner" title="Call with Elena Brooks 10/8">Sam Taylor</span>
+        <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000001" data-account="Northwind Analytics" data-text="Send Elena the 10/14 agenda and the trial results deck">&times;</button>
+      </li>
+    </ul>
+  </div>
+  <footer class="deal-foot">
+    <span>Close Nov 20</span>
+    <span class="">1 days since contact</span>
+    <span class="booked">Oct 14 booked</span>
+    <a class="plan-foot" href="northwind-analytics.html" target="_blank" rel="noopener">Plan of attack</a>
+  </footer>
+</article><article class="deal moving" data-band="moving" data-renewal="0" data-score="94">
+  <header class="deal-top">
+    <span class="prob" title="Salesforce probability"><b>60%</b><span>win</span></span>
+    <span class="band-pill">Moving</span>
+  </header>
+  <div class="deal-id">
+    <span class="mark"><span class="mark-text">LH</span></span>
+    <div class="deal-name">
+      <h4>Litware Health</h4>
+      <div class="stage"><span class="rail"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i></span>Proof of Value</div>
+    </div>
+    <div class="amt">$45K</div>
+  </div>
+  <dl class="facts">
+    <div><dt>Champion</dt><dd>Dr. Sara Patel<span>Director of Clinical Content</span></dd></div>
+    <div><dt>Pricing</dt><dd class="price-live">Contents API at $1.80 per 1,000 pages on a $45K annual commit. Sent 9/18.</dd></div>
+  </dl>
+  <div class="block stuck">
+    <dt>Why we're stuck</dt>
+    <p>Their legal team sent redlines on 10/2. Two asks need Dana: a data retention limit and a cap on liability.</p>
+  </div>
+  <div class="block move">
+    <dt>Next step</dt>
+    <p>Dana answers the two redlines by 10/10. Sam books a call with Sara and their counsel for 10/13.</p>
+  </div>
+  <div class="block tasks">
+    <dt>Outstanding<span class="task-count">2 open</span></dt>
+    <ul class="tasklist">
+      <li draggable="true" data-deal="006EXAMPLE000005" data-text="Answer the retention and liability redlines">
+        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
+        <label><input type="checkbox" data-deal="006EXAMPLE000005" data-account="Litware Health" data-text="Answer the retention and liability redlines"><span>Answer the retention and liability redlines</span></label>
+        <span class="task-owner" title="Gmail redlines from Litware legal 10/2">Dana Ruiz</span>
+        <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000005" data-account="Litware Health" data-text="Answer the retention and liability redlines">&times;</button>
+      </li><li draggable="true" data-deal="006EXAMPLE000005" data-text="Book the 10/13 call with Sara and their counsel">
+        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
+        <label><input type="checkbox" data-deal="006EXAMPLE000005" data-account="Litware Health" data-text="Book the 10/13 call with Sara and their counsel"><span>Book the 10/13 call with Sara and their counsel</span></label>
+        <span class="task-owner" title="Slack #int-litware 10/2">Sam Taylor</span>
+        <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000005" data-account="Litware Health" data-text="Book the 10/13 call with Sara and their counsel">&times;</button>
+      </li>
+    </ul>
+  </div>
+  <footer class="deal-foot">
+    <span>Close Nov 13</span>
+    <span class="">7 days since contact</span>
+    <span class="booked">Oct 13 booked</span>
+    
+  </footer>
+</article></div>
+</section>
+  <section class="month">
+  <div class="month-head">
+    <h3>Dec<span>2026</span></h3>
+    <span class="month-meta">1 deal &middot; $60K</span>
+  </div>
+  <div class="grid"><article class="deal moving" data-band="moving" data-renewal="0" data-score="85">
+  <header class="deal-top">
+    <span class="prob" title="Salesforce probability"><b>40%</b><span>win</span></span>
+    <span class="band-pill">Moving</span>
+  </header>
+  <div class="deal-id">
+    <span class="mark"><span class="mark-text">FL</span></span>
+    <div class="deal-name">
+      <h4>Fabrikam Labs</h4>
+      <div class="stage"><span class="rail"><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i></span>Tech Eval</div>
+    </div>
+    <div class="amt">$60K</div>
+  </div>
+  <dl class="facts">
+    <div><dt>Champion</dt><dd>Hannah Osei<span>Staff ML Engineer</span></dd></div>
+    <div><dt>Pricing</dt><dd class="price-live">Search API at $2.60 CPM shown on 9/30. They want a volume tier above 300 QPS.</dd></div>
+  </dl>
+  <div class="block stuck">
+    <dt>Why we're stuck</dt>
+    <p>The eval is halfway done. Hannah&#x27;s team ran 400 of 800 test queries. They are waiting on Contents API keys for the rest.</p>
+  </div>
+  <div class="block move">
+    <dt>Next step</dt>
+    <p>Leo turns on Contents API for their eval key by 10/10. Readout with Hannah on 10/16.</p>
+  </div>
+  <div class="block tasks">
+    <dt>Outstanding<span class="task-count">2 open</span></dt>
+    <ul class="tasklist">
+      <li draggable="true" data-deal="006EXAMPLE000003" data-text="Turn on Contents API for the Fabrikam eval key">
+        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
+        <label><input type="checkbox" data-deal="006EXAMPLE000003" data-account="Fabrikam Labs" data-text="Turn on Contents API for the Fabrikam eval key"><span>Turn on Contents API for the Fabrikam eval key</span></label>
+        <span class="task-owner" title="Slack #int-fabrikam 10/7">Leo Park</span>
+        <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000003" data-account="Fabrikam Labs" data-text="Turn on Contents API for the Fabrikam eval key">&times;</button>
+      </li><li draggable="true" data-deal="006EXAMPLE000003" data-text="Draft a 300+ QPS tier for Morgan to approve">
+        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
+        <label><input type="checkbox" data-deal="006EXAMPLE000003" data-account="Fabrikam Labs" data-text="Draft a 300+ QPS tier for Morgan to approve"><span>Draft a 300+ QPS tier for Morgan to approve</span></label>
+        <span class="task-owner" title="Call with Hannah Osei 9/30">Sam Taylor / Morgan Chen</span>
+        <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000003" data-account="Fabrikam Labs" data-text="Draft a 300+ QPS tier for Morgan to approve">&times;</button>
+      </li>
+    </ul>
+  </div>
+  <footer class="deal-foot">
+    <span>Close Dec 18</span>
+    <span class="">2 days since contact</span>
+    <span class="booked">Oct 16 booked</span>
+    
+  </footer>
+</article></div>
+</section>
+</section>
+  <section class="quarter">
+  <div class="q-head">
+    <h2>Q1 <span>2027</span></h2>
+    <div class="q-meta">
+      <span><b>4</b> deals</span>
+      <span><b>$40K</b> booked value</span>
+      
+    </div>
+  </div>
+  <section class="month">
+  <div class="month-head">
+    <h3>Jan<span>2027</span></h3>
+    <span class="month-meta">2 deals &middot; $15K</span>
+  </div>
+  <div class="grid"><article class="deal watch" data-band="watch" data-renewal="0" data-score="46">
+  <header class="deal-top">
+    <span class="prob" title="Salesforce probability"><b>20%</b><span>win</span></span>
+    <span class="band-pill">Watch</span>
+  </header>
+  <div class="deal-id">
+    <span class="mark"><span class="mark-text">TR</span></span>
+    <div class="deal-name">
+      <h4>Tailspin Robotics</h4>
+      <div class="stage"><span class="rail"><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i></span>Qualification</div>
+    </div>
+    <div class="amt"><span class="paygo">PayGo</span></div>
+  </div>
+  <dl class="facts">
+    <div><dt>Champion</dt><dd>Kenji Watanabe<span>Robotics Software Lead</span></dd></div>
+    <div><dt>Pricing</dt><dd class="price-none">No pricing discussed yet. They are on the free tier.</dd></div>
+  </dl>
+  <div class="block stuck">
+    <dt>Why we're stuck</dt>
+    <p>Kenji likes the results but has no budget owner. The team is small and spends on hardware first.</p>
+  </div>
+  <div class="block move">
+    <dt>Next step</dt>
+    <p>Ask Kenji who owns software spend. Offer a short PayGo start so usage can prove the case.</p>
+  </div>
+  <div class="block tasks">
+    <dt>Outstanding<span class="task-count">2 open</span></dt>
+    <ul class="tasklist">
+      <li draggable="true" data-deal="006EXAMPLE000004" data-text="Ask Kenji who signs software spend">
+        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
+        <label><input type="checkbox" data-deal="006EXAMPLE000004" data-account="Tailspin Robotics" data-text="Ask Kenji who signs software spend"><span>Ask Kenji who signs software spend</span></label>
+        <span class="task-owner" title="Gmail thread with Kenji Watanabe 9/24">Sam Taylor</span>
+        <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000004" data-account="Tailspin Robotics" data-text="Ask Kenji who signs software spend">&times;</button>
+      </li><li draggable="true" data-deal="006EXAMPLE000004" data-text="Send PayGo setup steps and the rate card">
+        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
+        <label><input type="checkbox" data-deal="006EXAMPLE000004" data-account="Tailspin Robotics" data-text="Send PayGo setup steps and the rate card"><span>Send PayGo setup steps and the rate card</span></label>
+        <span class="task-owner" title="Slack #int-tailspin 9/24">Sam Taylor</span>
+        <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000004" data-account="Tailspin Robotics" data-text="Send PayGo setup steps and the rate card">&times;</button>
+      </li>
+    </ul>
+  </div>
+  <footer class="deal-foot">
+    <span>Close Jan 29</span>
+    <span class="">15 days since contact</span>
+    
+    
+  </footer>
+</article><article class="deal quiet" data-band="quiet" data-renewal="0" data-score="24">
+  <header class="deal-top">
+    <span class="prob" title="Salesforce probability"><b>20%</b><span>win</span></span>
+    <span class="band-pill">Quiet</span>
+  </header>
+  <div class="deal-id">
+    <span class="mark"><span class="mark-text">PR</span></span>
+    <div class="deal-name">
+      <h4>Proseware</h4>
+      <div class="stage"><span class="rail"><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i></span>Qualification</div>
+    </div>
+    <div class="amt">$15K</div>
+  </div>
+  <dl class="facts">
+    <div><dt>Champion</dt><dd>Daniel Ibarra<span>CTO</span></dd></div>
+    <div><dt>Pricing</dt><dd class="price-none">Rate card sent 7/22. No reply on price.</dd></div>
+  </dl>
+  <div class="block stuck">
+    <dt>Why we're stuck</dt>
+    <p>Daniel stopped replying after 7/28. Their site says they are hiring a new head of product, so priorities may have moved.</p>
+  </div>
+  <div class="block move">
+    <dt>Next step</dt>
+    <p>Try the new head of product once they start. If nothing by 11/1, close it out.</p>
+  </div>
+  <div class="block tasks">
+    <dt>Outstanding<span class="task-count">2 open</span></dt>
+    <ul class="tasklist">
+      <li draggable="true" data-deal="006EXAMPLE000009" data-text="Find out who the new head of product is">
+        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
+        <label><input type="checkbox" data-deal="006EXAMPLE000009" data-account="Proseware" data-text="Find out who the new head of product is"><span>Find out who the new head of product is</span></label>
+        <span class="task-owner" title="Proseware careers page 10/1">Sam Taylor</span>
+        <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000009" data-account="Proseware" data-text="Find out who the new head of product is">&times;</button>
+      </li><li draggable="true" data-deal="006EXAMPLE000009" data-text="Close as lost on 11/1 if no path">
+        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
+        <label><input type="checkbox" data-deal="006EXAMPLE000009" data-account="Proseware" data-text="Close as lost on 11/1 if no path"><span>Close as lost on 11/1 if no path</span></label>
+        <span class="task-owner" title="Pipeline review 10/9">Sam Taylor</span>
+        <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000009" data-account="Proseware" data-text="Close as lost on 11/1 if no path">&times;</button>
+      </li>
+    </ul>
+  </div>
+  <footer class="deal-foot">
+    <span>Close Jan 15</span>
+    <span class="cold">73 days since contact</span>
+    
+    
+  </footer>
+</article></div>
+</section>
+  <section class="month">
+  <div class="month-head">
+    <h3>Feb<span>2027</span></h3>
+    <span class="month-meta">1 deal &middot; $25K</span>
+  </div>
+  <div class="grid"><article class="deal quiet" data-band="quiet" data-renewal="0" data-score="12">
+  <header class="deal-top">
+    <span class="prob" title="Salesforce probability"><b>10%</b><span>win</span></span>
+    <span class="band-pill">Quiet</span>
+  </header>
+  <div class="deal-id">
+    <span class="mark"><span class="mark-text">AF</span></span>
+    <div class="deal-name">
+      <h4>Adatum Finance</h4>
+      <div class="stage"><span class="rail"><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i></span>Discovery</div>
+    </div>
+    <div class="amt">$25K</div>
+  </div>
+  <dl class="facts">
+    <div><dt>Champion</dt><dd>Liam O&#x27;Connor<span>Head of Quant Research</span></dd></div>
+    <div><dt>Pricing</dt><dd class="price-none">No pricing discussed yet.</dd></div>
+  </dl>
+  <div class="block stuck">
+    <dt>Why we're stuck</dt>
+    <p>Liam went quiet after the first call on 8/11. Two follow ups got no reply.</p>
+  </div>
+  <div class="block move">
+    <dt>Next step</dt>
+    <p>Send one last note with the finance use case. If no reply by 10/24, close it out.</p>
+  </div>
+  <div class="block tasks">
+    <dt>Outstanding<span class="task-count">2 open</span></dt>
+    <ul class="tasklist">
+      <li draggable="true" data-deal="006EXAMPLE000006" data-text="Send a last note with the earnings news use case">
+        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
+        <label><input type="checkbox" data-deal="006EXAMPLE000006" data-account="Adatum Finance" data-text="Send a last note with the earnings news use case"><span>Send a last note with the earnings news use case</span></label>
+        <span class="task-owner" title="Salesforce activity 8/11">Sam Taylor</span>
+        <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000006" data-account="Adatum Finance" data-text="Send a last note with the earnings news use case">&times;</button>
+      </li><li draggable="true" data-deal="006EXAMPLE000006" data-text="Close as lost on 10/24 if no reply">
+        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
+        <label><input type="checkbox" data-deal="006EXAMPLE000006" data-account="Adatum Finance" data-text="Close as lost on 10/24 if no reply"><span>Close as lost on 10/24 if no reply</span></label>
+        <span class="task-owner" title="Pipeline review 10/9">Sam Taylor</span>
+        <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000006" data-account="Adatum Finance" data-text="Close as lost on 10/24 if no reply">&times;</button>
+      </li>
+    </ul>
+  </div>
+  <footer class="deal-foot">
+    <span>Close Feb 26</span>
+    <span class="cold">59 days since contact</span>
+    
+    
+  </footer>
+</article></div>
+</section>
+  <section class="month">
+  <div class="month-head">
+    <h3>Mar<span>2027</span></h3>
+    <span class="month-meta">1 deal</span>
+  </div>
+  <div class="grid"><article class="deal watch" data-band="watch" data-renewal="0" data-score="38">
+  <header class="deal-top">
+    <span class="prob" title="Salesforce probability"><b>10%</b><span>win</span></span>
+    <span class="band-pill">Watch</span>
+  </header>
+  <div class="deal-id">
+    <span class="mark"><span class="mark-text">WD</span></span>
+    <div class="deal-name">
+      <h4>Wingtip Data</h4>
+      <div class="stage"><span class="rail"><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i></span>Discovery</div>
+    </div>
+    <div class="amt"><span class="paygo">PayGo</span></div>
+  </div>
+  <dl class="facts">
+    <div><dt>Champion</dt><dd>Rosa Delgado<span>Product Manager, Data Feeds</span></dd></div>
+    <div><dt>Pricing</dt><dd class="price-none">No pricing discussed yet.</dd></div>
+  </dl>
+  <div class="block stuck">
+    <dt>Why we're stuck</dt>
+    <p>Rosa is still writing the use case. She has not shared call volume or a test set.</p>
+  </div>
+  <div class="block move">
+    <dt>Next step</dt>
+    <p>Get a rough monthly call count from Rosa and a list of 20 sample queries.</p>
+  </div>
+  <div class="block tasks">
+    <dt>Outstanding<span class="task-count">2 open</span></dt>
+    <ul class="tasklist">
+      <li draggable="true" data-deal="006EXAMPLE000007" data-text="Ask Rosa for monthly call volume and 20 sample queries">
+        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
+        <label><input type="checkbox" data-deal="006EXAMPLE000007" data-account="Wingtip Data" data-text="Ask Rosa for monthly call volume and 20 sample queries"><span>Ask Rosa for monthly call volume and 20 sample queries</span></label>
+        <span class="task-owner" title="Call with Rosa Delgado 9/30">Sam Taylor</span>
+        <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000007" data-account="Wingtip Data" data-text="Ask Rosa for monthly call volume and 20 sample queries">&times;</button>
+      </li><li draggable="true" data-deal="006EXAMPLE000007" data-text="Share the Contents API docs page with Rosa">
+        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
+        <label><input type="checkbox" data-deal="006EXAMPLE000007" data-account="Wingtip Data" data-text="Share the Contents API docs page with Rosa"><span>Share the Contents API docs page with Rosa</span></label>
+        <span class="task-owner" title="Slack #int-wingtip 9/30">Priya Nair</span>
+        <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000007" data-account="Wingtip Data" data-text="Share the Contents API docs page with Rosa">&times;</button>
+      </li>
+    </ul>
+  </div>
+  <footer class="deal-foot">
+    <span>Close Mar 19</span>
+    <span class="">9 days since contact</span>
+    
+    
+  </footer>
+</article></div>
+</section>
+</section>
+</main>
+<div class="wrap"><p class="empty" id="empty">No deals match that filter.</p></div>
+<main class="wrap board" id="board-renewals" hidden>
+  <section class="quarter">
+  <div class="q-head">
+    <h2>Q4 <span>2026</span></h2>
+    <div class="q-meta">
+      <span><b>3</b> deals</span>
+      <span><b>$224K</b> booked value</span>
+      
+    </div>
+  </div>
+  <section class="month">
+  <div class="month-head">
+    <h3>Oct<span>2026</span></h3>
+    <span class="month-meta">1 deal &middot; $36K</span>
+  </div>
+  <div class="grid"><article class="deal moving" data-band="moving" data-renewal="1" data-score="113">
+  <header class="deal-top">
+    <span class="prob" title="Salesforce probability"><b>90%</b><span>win</span></span>
+    <span class="band-pill">Moving</span>
+  </header>
+  <div class="deal-id">
+    <span class="mark"><span class="mark-text">WR</span></span>
+    <div class="deal-name">
+      <h4>Woodgrove Retail <span class="tag">Renewal</span></h4>
+      <div class="stage"><span class="rail"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>Agreement</div>
+    </div>
+    <div class="amt">$36K</div>
+  </div>
+  <dl class="facts">
+    <div><dt>Champion</dt><dd>Megan Fox-Reid<span>Engineering Manager, Search</span></dd></div>
+    <div><dt>Pricing</dt><dd class="price-live">Same rate as last year. $2.80 CPM on a $36K annual commit.</dd></div>
+  </dl>
+  <div class="block stuck">
+    <dt>Why we're stuck</dt>
+    <p>Nothing is blocking it. The renewal form is in their signing tool. It waits on the CFO&#x27;s next batch.</p>
+  </div>
+  <div class="block move">
+    <dt>Next step</dt>
+    <p>Check on 10/20 that the form is signed. Send the new invoice date to Chris.</p>
+  </div>
+  <div class="block tasks">
+    <dt>Outstanding<span class="task-count">2 open</span></dt>
+    <ul class="tasklist">
+      <li draggable="true" data-deal="006EXAMPLE000008" data-text="Check the renewal form is signed">
+        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
+        <label><input type="checkbox" data-deal="006EXAMPLE000008" data-account="Woodgrove Retail" data-text="Check the renewal form is signed"><span>Check the renewal form is signed</span></label>
+        <span class="task-owner" title="Gmail thread with Megan Fox-Reid 10/5">Sam Taylor</span>
+        <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000008" data-account="Woodgrove Retail" data-text="Check the renewal form is signed">&times;</button>
+      </li><li draggable="true" data-deal="006EXAMPLE000008" data-text="Set up the new invoice for Nov 1">
+        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
+        <label><input type="checkbox" data-deal="006EXAMPLE000008" data-account="Woodgrove Retail" data-text="Set up the new invoice for Nov 1"><span>Set up the new invoice for Nov 1</span></label>
+        <span class="task-owner" title="Slack #int-woodgrove 10/5">Chris Wu</span>
+        <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000008" data-account="Woodgrove Retail" data-text="Set up the new invoice for Nov 1">&times;</button>
+      </li>
+    </ul>
+  </div>
+  <footer class="deal-foot">
+    <span>Close Oct 30</span>
+    <span class="">4 days since contact</span>
+    
+    
+  </footer>
+</article></div>
+</section>
+  <section class="month">
+  <div class="month-head">
+    <h3>Dec<span>2026</span></h3>
+    <span class="month-meta">2 deals &middot; $188K</span>
+  </div>
+  <div class="grid"><article class="deal watch" data-band="watch" data-renewal="1" data-score="104">
+  <header class="deal-top">
+    <span class="prob" title="Salesforce probability"><b>70%</b><span>win</span></span>
+    <span class="band-pill">Watch</span>
+  </header>
+  <div class="deal-id">
+    <span class="mark"><span class="mark-text">CA</span></span>
+    <div class="deal-name">
+      <h4><a class="plan-link" href="contoso-ai-living-plan.html" target="_blank" rel="noopener">Contoso AI</a> <span class="tag">Renewal</span></h4>
+      <div class="stage"><span class="rail"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span>Agreement</div>
+    </div>
+    <div class="amt">$180K</div>
+  </div>
+  <dl class="facts">
+    <div><dt>Champion</dt><dd>Marcus Lee<span>Head of AI Platform</span></dd></div>
+    <div><dt>Pricing</dt><dd class="price-live">Renewal quote at $2.50 CPM on a $180K annual commit. Marcus asked for $2.25 and a 3-year option.</dd></div>
+  </dl>
+  <div class="block stuck">
+    <dt>Why we're stuck</dt>
+    <p>Marcus wants $2.25 CPM. Anything under $2.50 needs Morgan to sign off. Usage also dipped 22% after they moved a test workload in September.</p>
+  </div>
+  <div class="block move">
+    <dt>Next step</dt>
+    <p>Morgan decides on a floor price by 10/15. Sam then sends a 1-year and a 3-year quote side by side.</p>
+  </div>
+  <div class="block tasks">
+    <dt>Outstanding<span class="task-count">3 open</span></dt>
+    <ul class="tasklist">
+      <li draggable="true" data-deal="006EXAMPLE000002" data-text="Get Morgan&#x27;s call on a $2.35 floor for a 3-year term">
+        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
+        <label><input type="checkbox" data-deal="006EXAMPLE000002" data-account="Contoso AI" data-text="Get Morgan&#x27;s call on a $2.35 floor for a 3-year term"><span>Get Morgan&#x27;s call on a $2.35 floor for a 3-year term</span></label>
+        <span class="task-owner" title="Slack #deal-desk 10/7">Morgan Chen</span>
+        <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000002" data-account="Contoso AI" data-text="Get Morgan&#x27;s call on a $2.35 floor for a 3-year term">&times;</button>
+      </li><li draggable="true" data-deal="006EXAMPLE000002" data-text="Ask Marcus which workload moved and why">
+        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
+        <label><input type="checkbox" data-deal="006EXAMPLE000002" data-account="Contoso AI" data-text="Ask Marcus which workload moved and why"><span>Ask Marcus which workload moved and why</span></label>
+        <span class="task-owner" title="Usage dashboard 10/6">Sam Taylor</span>
+        <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000002" data-account="Contoso AI" data-text="Ask Marcus which workload moved and why">&times;</button>
+      </li><li draggable="true" data-deal="006EXAMPLE000002" data-text="Build the 1-year vs 3-year quote side by side">
+        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
+        <label><input type="checkbox" data-deal="006EXAMPLE000002" data-account="Contoso AI" data-text="Build the 1-year vs 3-year quote side by side"><span>Build the 1-year vs 3-year quote side by side</span></label>
+        <span class="task-owner" title="Slack #int-contoso 10/6">Sam Taylor / Chris Wu</span>
+        <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000002" data-account="Contoso AI" data-text="Build the 1-year vs 3-year quote side by side">&times;</button>
+      </li>
+    </ul>
+  </div>
+  <footer class="deal-foot">
+    <span>Close Dec 15</span>
+    <span class="">3 days since contact</span>
+    
+    <a class="plan-foot" href="contoso-ai-living-plan.html" target="_blank" rel="noopener">Plan of attack</a>
+  </footer>
+</article><article class="deal quiet" data-band="quiet" data-renewal="1" data-score="26">
+  <header class="deal-top">
+    <span class="prob" title="Salesforce probability"><b>30%</b><span>win</span></span>
+    <span class="band-pill">Quiet</span>
+  </header>
+  <div class="deal-id">
+    <span class="mark"><span class="mark-text">LM</span></span>
+    <div class="deal-name">
+      <h4>Lucerne Media <span class="tag">Renewal</span></h4>
+      <div class="stage"><span class="rail"><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i></span>Qualification</div>
+    </div>
+    <div class="amt">$8.4K</div>
+  </div>
+  <dl class="facts">
+    <div><dt>Champion</dt><dd>Ivy Chen-Lowe<span>Newsroom Tools Lead</span></dd></div>
+    <div><dt>Pricing</dt><dd class="price-none">Last year was $8,400 flat. No renewal quote sent yet.</dd></div>
+  </dl>
+  <div class="block stuck">
+    <dt>Why we're stuck</dt>
+    <p>Ivy has not replied since 8/14. Usage is flat at about 250K calls a month, so they still use it.</p>
+  </div>
+  <div class="block move">
+    <dt>Next step</dt>
+    <p>Send the renewal quote to Ivy and copy their ops lead. Ask for a 15-minute check-in.</p>
+  </div>
+  <div class="block tasks">
+    <dt>Outstanding<span class="task-count">2 open</span></dt>
+    <ul class="tasklist">
+      <li draggable="true" data-deal="006EXAMPLE000010" data-text="Send the renewal quote to Ivy">
+        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
+        <label><input type="checkbox" data-deal="006EXAMPLE000010" data-account="Lucerne Media" data-text="Send the renewal quote to Ivy"><span>Send the renewal quote to Ivy</span></label>
+        <span class="task-owner" title="Salesforce renewal date 12/31">Sam Taylor</span>
+        <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000010" data-account="Lucerne Media" data-text="Send the renewal quote to Ivy">&times;</button>
+      </li><li draggable="true" data-deal="006EXAMPLE000010" data-text="Find a second contact on their ops team">
+        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
+        <label><input type="checkbox" data-deal="006EXAMPLE000010" data-account="Lucerne Media" data-text="Find a second contact on their ops team"><span>Find a second contact on their ops team</span></label>
+        <span class="task-owner" title="Slack #int-lucerne 9/2">Sam Taylor</span>
+        <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000010" data-account="Lucerne Media" data-text="Find a second contact on their ops team">&times;</button>
+      </li>
+    </ul>
+  </div>
+  <footer class="deal-foot">
+    <span>Close Dec 31</span>
+    <span class="cold">56 days since contact</span>
+    
+    
+  </footer>
+</article></div>
+</section>
+</section>
+</main>
+
+<footer class="wrap foot">
+  <b>How the ranking works.</b> Each deal scores on stage, how far pricing has gone, days to close, and days since real contact, then takes a bump for a booked meeting. Salesforce misses in-person meetings and Slack, so "days since contact" uses whichever is more recent: the CRM stamp, Gmail, or the last genuine two-way Slack touch. Anything past 45 days with no contact is red regardless of score.<br>
+  Salesforce pulled October 9, 2026. Checked tasks and drag order are saved in this browser only.
+</footer>
+
+<script>
+(function(){
+  var btns = Array.prototype.slice.call(document.querySelectorAll('.filters button'));
+  var boardNew = document.getElementById('board-new');
+  var boardRenewals = document.getElementById('board-renewals');
+  var cards = Array.prototype.slice.call(boardNew.querySelectorAll('.deal'));
+  var empty = document.getElementById('empty');
+  function apply(f){
+    btns.forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.f === f)); });
+    if (f === 'renewals') { boardNew.hidden = true; boardRenewals.hidden = false; empty.style.display = 'none'; return; }
+    boardRenewals.hidden = true; boardNew.hidden = false;
+    var shown = 0;
+    cards.forEach(function(c){ var ok = f === 'all' || c.dataset.band === f; c.hidden = !ok; if (ok) shown++; });
+    boardNew.querySelectorAll('.month').forEach(function(m){ m.hidden = !m.querySelector('.deal:not([hidden])'); });
+    boardNew.querySelectorAll('.quarter').forEach(function(q){ q.hidden = !q.querySelector('.deal:not([hidden])'); });
+    empty.style.display = shown ? 'none' : 'block';
+  }
+  btns.forEach(function(b){ b.addEventListener('click', function(){ apply(b.dataset.f); }); });
+
+  // Per-viewer state only: checked and cancelled tasks are remembered in this browser.
+  var KEY = 'sotu-tasks';
+  var state = {};
+  try { state = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (err) { state = {}; }
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (err) {} }
+  function recount(ul){
+    var block = ul.closest('.tasks');
+    var open = ul.querySelectorAll('li:not(.done):not(.cancelled)').length;
+    var c = block && block.querySelector('.task-count');
+    if (c) c.textContent = open + ' open';
+  }
+  document.querySelectorAll('.tasklist li').forEach(function(li){
+    var id = li.dataset.deal + '|' + li.dataset.text;
+    var cb = li.querySelector('input[type="checkbox"]');
+    var x = li.querySelector('.task-x');
+    if (state[id] === 'done') { li.classList.add('done'); cb.checked = true; }
+    if (state[id] === 'cancelled') li.classList.add('cancelled');
+    cb.addEventListener('change', function(){
+      li.classList.toggle('done', cb.checked);
+      if (cb.checked) state[id] = 'done'; else delete state[id];
+      save(); recount(li.parentNode);
+    });
+    x.addEventListener('click', function(){
+      var on = !li.classList.contains('cancelled');
+      li.classList.toggle('cancelled', on);
+      if (on) state[id] = 'cancelled'; else delete state[id];
+      save(); recount(li.parentNode);
+    });
+  });
+  document.querySelectorAll('.tasklist').forEach(recount);
+
+  var dragLi = null;
+  function clearMarks(ul){ ul.querySelectorAll('.drop-above,.drop-below').forEach(function(n){ n.classList.remove('drop-above','drop-below'); }); }
+  document.querySelectorAll('.tasklist').forEach(function(ul){
+    ul.addEventListener('dragstart', function(ev){
+      var li = ev.target.closest && ev.target.closest('li'); if (!li) return;
+      dragLi = li; li.classList.add('dragging');
+      ev.dataTransfer.effectAllowed = 'move'; ev.dataTransfer.setData('text/plain', li.dataset.text);
+    });
+    ul.addEventListener('dragover', function(ev){
+      if (!dragLi || dragLi.parentNode !== ul) return;
+      ev.preventDefault();
+      var li = ev.target.closest('li'); clearMarks(ul);
+      if (!li || li === dragLi) return;
+      var r = li.getBoundingClientRect();
+      li.classList.add(ev.clientY < r.top + r.height / 2 ? 'drop-above' : 'drop-below');
+    });
+    ul.addEventListener('drop', function(ev){
+      if (!dragLi || dragLi.parentNode !== ul) return;
+      ev.preventDefault();
+      var li = ev.target.closest('li');
+      if (li && li !== dragLi) {
+        var r = li.getBoundingClientRect();
+        ul.insertBefore(dragLi, ev.clientY < r.top + r.height / 2 ? li : li.nextSibling);
+      }
+      clearMarks(ul);
+    });
+    ul.addEventListener('dragend', function(){ if (dragLi) dragLi.classList.remove('dragging'); clearMarks(ul); dragLi = null; });
+  });
+})();
+</script>

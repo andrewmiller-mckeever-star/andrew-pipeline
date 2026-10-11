@@ -1,0 +1,386 @@
+{
+ "as_of": "2026-10-09",
+ "sotu_url": "https://example.com/state-of-the-union",
+ "opps": [
+  {
+   "opp_id": "006EXAMPLE000005",
+   "account": "Litware Health",
+   "group": "move",
+   "stage_now": "4 - Proof of Value",
+   "stage_to": "5 - Agreement",
+   "amount": "$45,000",
+   "close_date": "2026-11-13",
+   "evidence": "Litware legal sent redlines on the order form 10/2. Sara said yes to the price on 9/25. Not on the opp as contact roles: Paul Novak (paul.novak@litware.example.com).",
+   "sotu_band": "moving",
+   "changes": [
+    {
+     "id": "c001",
+     "field": "Proposal_Feedback__c",
+     "label": "Proposal Feedback",
+     "current": null,
+     "proposed": "Sara said the price fits their budget. She wants a 1-year term first.",
+     "source": "Call notes 9/25",
+     "ask": false,
+     "options": []
+    },
+    {
+     "id": "c002",
+     "field": "Technical_Acceptance__c",
+     "label": "Technical Acceptance",
+     "current": "Pending",
+     "proposed": "Yes",
+     "source": "Gmail from Sara Patel 9/25: the eval results look good",
+     "ask": false,
+     "options": [
+      "Yes",
+      "No",
+      "Pending"
+     ]
+    },
+    {
+     "id": "c003",
+     "field": "Commitment_to_Purchase__c",
+     "label": "Commitment to Purchase",
+     "current": null,
+     "proposed": "",
+     "source": "No source found. Your call.",
+     "ask": true,
+     "options": [
+      "Yes",
+      "No",
+      "Verbal"
+     ]
+    },
+    {
+     "id": "c004",
+     "field": "Legal_Process_Initiated__c",
+     "label": "Legal Process Initiated",
+     "current": "No",
+     "proposed": "Yes",
+     "source": "Gmail redlines from Litware legal 10/2",
+     "ask": false,
+     "options": [
+      "Yes",
+      "No"
+     ]
+    },
+    {
+     "id": "c005",
+     "field": "StageName",
+     "label": "Stage",
+     "current": "4 - Proof of Value",
+     "proposed": "5 - Agreement",
+     "source": "Litware legal sent redlines 10/2. Moves one step at a time: 5 - Agreement.",
+     "ask": false,
+     "options": []
+    }
+   ]
+  },
+  {
+   "opp_id": "006EXAMPLE000004",
+   "account": "Tailspin Robotics",
+   "group": "move",
+   "stage_now": "2 - Qualification",
+   "stage_to": "3 - Tech Eval",
+   "amount": "No amount",
+   "close_date": "2027-01-29",
+   "evidence": "Kenji started testing on a free key 9/24 with his own test prompts. No budget owner named yet.",
+   "sotu_band": "watch",
+   "changes": [
+    {
+     "id": "c006",
+     "field": "Eval_Path__c",
+     "label": "Eval Path",
+     "current": null,
+     "proposed": "B - Standard Public",
+     "source": "Gmail thread with Kenji Watanabe 9/24",
+     "ask": false,
+     "options": [
+      "A - Skip Eval",
+      "B - Standard Public",
+      "C - Custom Bespoke"
+     ]
+    },
+    {
+     "id": "c007",
+     "field": "Economic_Buyer__c",
+     "label": "Economic Buyer",
+     "current": null,
+     "proposed": "",
+     "source": "No source found. Your call.",
+     "ask": true,
+     "options": []
+    },
+    {
+     "id": "c008",
+     "field": "Metrics__c",
+     "label": "Metrics (success metric)",
+     "current": null,
+     "proposed": "Right manual page found for 8 of 10 repair questions.",
+     "source": "Gmail thread with Kenji Watanabe 9/24",
+     "ask": false,
+     "options": []
+    },
+    {
+     "id": "c009",
+     "field": "StageName",
+     "label": "Stage",
+     "current": "2 - Qualification",
+     "proposed": "3 - Tech Eval",
+     "source": "Kenji is testing on a free key since 9/24. Moves one step at a time: 3 - Tech Eval.",
+     "ask": false,
+     "options": []
+    }
+   ]
+  },
+  {
+   "opp_id": "006EXAMPLE000006",
+   "account": "Adatum Finance",
+   "group": "close",
+   "stage_now": "1 - Discovery",
+   "stage_to": "Closed Lost",
+   "amount": "$25,000",
+   "close_date": "2027-02-26",
+   "evidence": "No reply to follow ups on 8/25 and 9/15. Last contact was the first call on 8/11.",
+   "sotu_band": "quiet",
+   "changes": [
+    {
+     "id": "c010",
+     "field": "StageName",
+     "label": "Stage",
+     "current": "1 - Discovery",
+     "proposed": "Closed Lost",
+     "source": "No reply to follow ups on 8/25 and 9/15.",
+     "ask": false,
+     "options": []
+    },
+    {
+     "id": "c011",
+     "field": "Loss_Reason__c",
+     "label": "Loss Reason",
+     "current": null,
+     "proposed": "No Decision / Non-Responsive",
+     "source": "Salesforce activity history, Gmail follow ups 8/25 and 9/15",
+     "ask": false,
+     "options": [
+      "Lost to Competitor",
+      "No Budget / Lost Funding",
+      "No Decision / Non-Responsive",
+      "Price",
+      "Other"
+     ]
+    },
+    {
+     "id": "c012",
+     "field": "Close_Reason__c",
+     "label": "Close Reason (required to close)",
+     "current": null,
+     "proposed": "Gone Dark",
+     "source": "Mapped from the loss reason.",
+     "ask": false,
+     "options": [
+      "Gone Dark",
+      "Timing / Not Ready",
+      "Champion Left",
+      "Product / Feature Gap",
+      "Tech Eval Performance",
+      "Pricing / Value",
+      "Incumbent Renewal",
+      "Other"
+     ]
+    }
+   ]
+  },
+  {
+   "opp_id": "006EXAMPLE000009",
+   "account": "Proseware",
+   "group": "close",
+   "stage_now": "2 - Qualification",
+   "stage_to": "Closed Lost",
+   "amount": "$15,000",
+   "close_date": "2027-01-15",
+   "evidence": "No contact since 7/28. Three follow ups with no reply. They are hiring a new head of product.",
+   "sotu_band": "quiet",
+   "changes": [
+    {
+     "id": "c013",
+     "field": "StageName",
+     "label": "Stage",
+     "current": "2 - Qualification",
+     "proposed": "Closed Lost",
+     "source": "No contact since 7/28. Three follow ups with no reply.",
+     "ask": false,
+     "options": []
+    },
+    {
+     "id": "c014",
+     "field": "Loss_Reason__c",
+     "label": "Loss Reason",
+     "current": null,
+     "proposed": "",
+     "source": "No source found. Your call.",
+     "ask": true,
+     "options": [
+      "Lost to Competitor",
+      "No Budget / Lost Funding",
+      "No Decision / Non-Responsive",
+      "Price",
+      "Other"
+     ]
+    },
+    {
+     "id": "c015",
+     "field": "Close_Reason__c",
+     "label": "Close Reason (required to close)",
+     "current": null,
+     "proposed": "",
+     "source": "No source found. Your call.",
+     "ask": true,
+     "options": [
+      "Gone Dark",
+      "Timing / Not Ready",
+      "Champion Left",
+      "Product / Feature Gap",
+      "Tech Eval Performance",
+      "Pricing / Value",
+      "Incumbent Renewal",
+      "Other"
+     ]
+    }
+   ]
+  },
+  {
+   "opp_id": "006EXAMPLE000001",
+   "account": "Northwind Analytics",
+   "group": "fill",
+   "stage_now": "5 - Agreement",
+   "stage_to": "",
+   "amount": "$120,000",
+   "close_date": "2026-11-20",
+   "evidence": "Order form sent to Northwind procurement 10/6. Pricing agreed by Elena on 9/29. Amount: $120K is the Research API commit only. Search API overage bills on top. Not on the opp as contact roles: Ravi Mehta (ravi.mehta@northwind.example.com), Grace Kim (grace.kim@northwind.example.com).",
+   "sotu_band": "moving",
+   "changes": [
+    {
+     "id": "c016",
+     "field": "Primary_API_Endpoint__c",
+     "label": "Primary API Endpoint",
+     "current": null,
+     "proposed": "Research API - Standard",
+     "source": "Order form sent 10/6",
+     "ask": false,
+     "options": [
+      "Search API",
+      "Contents API",
+      "Research API - Lite",
+      "Research API - Standard",
+      "Research API - Deep",
+      "Research API - Exhaustive"
+     ]
+    },
+    {
+     "id": "c017",
+     "field": "Deal_Blocker__c",
+     "label": "Deal Blocker",
+     "current": null,
+     "proposed": "Security questionnaire due before procurement sends the form to the CFO.",
+     "source": "Slack #int-northwind 10/8",
+     "ask": false,
+     "options": []
+    },
+    {
+     "id": "c018",
+     "field": "NextStep",
+     "label": "Next Step",
+     "current": "Send pricing to Elena",
+     "proposed": "10/14: Review the security questionnaire with Elena and Ravi, then ask for a signature date.",
+     "source": "Call with Elena Brooks 10/8",
+     "ask": false,
+     "options": []
+    },
+    {
+     "id": "c019",
+     "field": "Next_Step_Date__c",
+     "label": "Next Step Date",
+     "current": "2026-09-29",
+     "proposed": "2026-10-14",
+     "source": "Calendar invite for 10/14",
+     "ask": false,
+     "options": []
+    }
+   ]
+  },
+  {
+   "opp_id": "006EXAMPLE000007",
+   "account": "Wingtip Data",
+   "group": "fill",
+   "stage_now": "1 - Discovery",
+   "stage_to": "",
+   "amount": "No amount",
+   "close_date": "2027-03-19",
+   "evidence": "First call held 9/30. Use case still forming. Needs a product line item before it can leave Discovery.",
+   "sotu_band": "watch",
+   "changes": [
+    {
+     "id": "c020",
+     "field": "Defined_Use_Case__c",
+     "label": "Defined Use Case",
+     "current": null,
+     "proposed": "Search API and Contents API find and pull new product pages for their data feeds.",
+     "source": "Call notes 9/30",
+     "ask": false,
+     "options": []
+    },
+    {
+     "id": "c021",
+     "field": "Volume_Estimate_API_Monthly_Calls__c",
+     "label": "API Calls/Month",
+     "current": null,
+     "proposed": "500000",
+     "source": "Rosa's rough estimate on the 9/30 call",
+     "ask": false,
+     "options": []
+    },
+    {
+     "id": "c022",
+     "field": "Technical_Sophistication__c",
+     "label": "Technical Sophistication",
+     "current": null,
+     "proposed": "",
+     "source": "No source found. Your call.",
+     "ask": true,
+     "options": [
+      "AI Native",
+      "AI Laggard"
+     ]
+    },
+    {
+     "id": "c023",
+     "field": "Eval_Set_Signal__c",
+     "label": "Eval Set Signal",
+     "current": null,
+     "proposed": "",
+     "source": "No source found. Your call.",
+     "ask": true,
+     "options": [
+      "Has Own Dataset",
+      "Open to Public Evals",
+      "No Eval Expected",
+      "Unknown"
+     ]
+    },
+    {
+     "id": "c024",
+     "field": "NextStep",
+     "label": "Next Step",
+     "current": null,
+     "proposed": "Get call volume and 20 sample queries from Rosa.",
+     "source": "Call with Rosa Delgado 9/30",
+     "ask": false,
+     "options": []
+    }
+   ]
+  }
+ ],
+ "owner": "Sam Taylor",
+ "sfdc_base": "https://example.lightning.force.com"
+}

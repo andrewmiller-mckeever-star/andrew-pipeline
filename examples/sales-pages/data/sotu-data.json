@@ -1,0 +1,907 @@
+{
+  "as_of": "2026-10-09",
+  "owner": "Sam Taylor",
+  "manager": "Morgan Chen",
+  "kpis": {
+    "won": 6,
+    "lost_after_discovery": 3,
+    "lost_in_discovery": 5,
+    "closed_won_amount": 312400,
+    "year_target": 600000,
+    "quota_headline": "$200K",
+    "quota_note_html": "<b>Q1:</b> $61,200 of $100K (61%). <b>Q2:</b> $118,900 of $150K (79%). <b>Q3:</b> $132,300 of $150K (88%). <b>Q4:</b> $0 of $200K so far."
+  },
+  "quotas": {
+    "Q4 2026": "$200K"
+  },
+  "key_accounts": [
+    {
+      "account": "Northwind Analytics",
+      "opp_id": "006EXAMPLE000001",
+      "customer_since": "Mar 3, 2026",
+      "terms": "$60K Search API annual commit plus PayGo overage. A $120K Research API expansion is in Agreement.",
+      "billed_so_far": {
+        "value": "$84.2K invoiced",
+        "note": "$60K commit paid upfront in March. $24.2K in overage billed for July through September."
+      },
+      "contract_rates": {
+        "value": "$2.40 / $2.10 CPM",
+        "note": "Search API. $2.40 up to 200 QPS, $2.10 above. Research API is not on paper yet."
+      },
+      "usage_30d": {
+        "value": "18.6M calls",
+        "note": "Search API 18.1M from the pricing engine key. Research API trial key 512K calls."
+      },
+      "where_it_stalls": {
+        "value": "Procurement review",
+        "note": "The Research API order form has been with Ravi Mehta in procurement since 10/6. He wants the security questionnaire first."
+      },
+      "why_it_needs_work": "Northwind is our best growth story. They went over their commit three months in a row. The Research API trial hit 87% on their own test set. If the expansion slips past Nov 20, it lands in their next budget year and could shrink.",
+      "things_to_do": [
+        {
+          "text": "Send the security questionnaire to Ravi by 10/13",
+          "owner": "Sam Taylor / Leo Park",
+          "source": "Slack #int-northwind 10/8"
+        },
+        {
+          "text": "Confirm the commit start date of Dec 1 with Chris",
+          "owner": "Chris Wu",
+          "source": "Gmail thread with Ravi Mehta 10/7"
+        },
+        {
+          "text": "Ask Elena for an intro to Grace Kim before signature",
+          "owner": "Sam Taylor",
+          "source": "Call with Elena Brooks 10/8"
+        },
+        {
+          "text": "Plan the Contents API eval for the Pricing Intelligence team",
+          "owner": "Priya Nair",
+          "source": "Slack #int-northwind 10/2"
+        }
+      ]
+    },
+    {
+      "account": "Contoso AI",
+      "opp_id": "006EXAMPLE000002",
+      "customer_since": "Nov 18, 2025",
+      "terms": "$150K Search API annual commit. Renews Dec 15, 2026.",
+      "billed_so_far": {
+        "value": "$162.5K invoiced",
+        "note": "$150K commit paid in two parts. $12.5K in overage billed in August."
+      },
+      "contract_rates": {
+        "value": "$2.75 CPM",
+        "note": "Flat Search API rate. They asked for $2.25 at renewal."
+      },
+      "usage_30d": {
+        "value": "9.4M calls",
+        "note": "Down 22% from August. They moved one test workload to a cheaper vendor in September."
+      },
+      "where_it_stalls": {
+        "value": "Price ask",
+        "note": "Marcus wants $2.25 CPM and a 3-year option. Anything under $2.50 needs Morgan."
+      },
+      "why_it_needs_work": "Contoso is our second largest account and the renewal is in 10 weeks. Usage is sliding and they are testing a cheaper vendor. We need a price answer fast or the moved workload becomes the new normal.",
+      "things_to_do": [
+        {
+          "text": "Get Morgan's call on a $2.35 floor for 3 years",
+          "owner": "Morgan Chen",
+          "source": "Slack #deal-desk 10/7"
+        },
+        {
+          "text": "Ask Marcus which workload moved and why",
+          "owner": "Sam Taylor",
+          "source": "Usage dashboard 10/6"
+        },
+        {
+          "text": "Book a quality check with Priya on the moved workload",
+          "owner": "Priya Nair",
+          "source": "Slack #int-contoso 10/6"
+        }
+      ]
+    }
+  ],
+  "opps": [
+    {
+      "opp_id": "006EXAMPLE000001",
+      "account": "Northwind Analytics",
+      "name_on_card": "Northwind Analytics",
+      "stage": "5 - Agreement",
+      "amount_display": "$120K",
+      "amount": 120000,
+      "is_renewal": false,
+      "close_date": "2026-11-20",
+      "probability": 80,
+      "band": "moving",
+      "champion": {
+        "name": "Elena Brooks",
+        "title": "VP Data Platform"
+      },
+      "pricing": {
+        "text": "Research API at $9 per 1,000 calls, $120K annual commit. Search API stays at $2.40 CPM, $2.10 above 200 QPS.",
+        "live": true
+      },
+      "why_stuck": "The order form has sat with Northwind procurement since 10/6. Ravi Mehta wants a security questionnaire back before he sends it to the CFO.",
+      "next_step": "Send the finished security questionnaire by 10/13. Walk Elena and Ravi through it on the 10/14 call, then ask for a signature date.",
+      "tasks": [
+        {
+          "text": "Finish the security questionnaire with Leo and send it to Ravi",
+          "owner": "Sam Taylor / Leo Park",
+          "source": "Slack #int-northwind 10/8"
+        },
+        {
+          "text": "Confirm the $120K commit starts Dec 1, not on signature",
+          "owner": "Chris Wu",
+          "source": "Gmail thread with Ravi Mehta 10/7"
+        },
+        {
+          "text": "Send Elena the 10/14 agenda and the trial results deck",
+          "owner": "Sam Taylor",
+          "source": "Call with Elena Brooks 10/8"
+        }
+      ],
+      "last_contact": "2026-10-08",
+      "last_contact_source": "Call with Elena Brooks and Jordan Blake 10/8 (Gmail invite plus notes in Slack #int-northwind).",
+      "booked": "Oct 14",
+      "sfdc_facts": {
+        "stage_evidence": "Order form sent to Northwind procurement 10/6. Pricing agreed by Elena on 9/29.",
+        "suggested_stage": "keep",
+        "suggested_close_date": null,
+        "amount_note": "$120K is the Research API commit only. Search API overage bills on top.",
+        "champion": "Elena Brooks (elena.brooks@northwind.example.com)",
+        "economic_buyer": "Grace Kim (grace.kim@northwind.example.com), CFO, signs anything over $100K.",
+        "identify_pain": "Analysts spend about 6 hours per market report pulling and checking sources by hand.",
+        "metrics": "Cut report draft time from 6 hours to under 2. Hit 90% correct answers on their 200-question test set.",
+        "decision_criteria": "Answer accuracy on their test set, cost per report, and a clean security review.",
+        "decision_process": "Elena picks the vendor. Ravi runs procurement. Grace signs. Owen Hart reviews the MSA amendment.",
+        "defined_use_case": "Research API drafts the first pass of analyst market reports with sources.",
+        "primary_api_endpoint": "Research API - Standard",
+        "incumbent_provider": "None",
+        "competition": [
+          "Quarry Search"
+        ],
+        "monthly_call_volume": 1200000,
+        "pricing_shown": true,
+        "proposal_sent_date": "2026-09-29",
+        "nda_status": "Signed",
+        "contract_status": "Sent",
+        "legal_process_initiated": true,
+        "eval_status": "Complete",
+        "deal_blocker": "Security questionnaire due before procurement sends the form to the CFO.",
+        "next_step_short": "10/14: Review the security questionnaire with Elena and Ravi, then ask for a signature date.",
+        "next_step_date": "2026-10-14",
+        "technical_sophistication": "AI Native",
+        "eval_set_signal": "Has Own Dataset",
+        "eval_path": "C - Custom Bespoke",
+        "eval_runner_email": "jordan.blake@northwind.example.com",
+        "eval_ran_by": "Joint",
+        "proposal_feedback": "Elena said the price works if the commit starts Dec 1.",
+        "technical_acceptance": "Yes",
+        "commitment_to_purchase": "Verbal",
+        "cvo_metric": "Report draft time under 2 hours. 90% correct on the 200-question test set.",
+        "projected_close_date": "2026-11-20",
+        "loss_reason": null,
+        "missing_contact_roles": [
+          "Ravi Mehta (ravi.mehta@northwind.example.com)",
+          "Grace Kim (grace.kim@northwind.example.com)"
+        ],
+        "source": "Slack #int-northwind, Gmail threads with Elena Brooks and Ravi Mehta, call notes 10/8."
+      }
+    },
+    {
+      "opp_id": "006EXAMPLE000002",
+      "account": "Contoso AI",
+      "name_on_card": "Contoso AI",
+      "stage": "5 - Agreement",
+      "amount_display": "$180K",
+      "amount": 180000,
+      "is_renewal": true,
+      "close_date": "2026-12-15",
+      "probability": 70,
+      "band": "watch",
+      "champion": {
+        "name": "Marcus Lee",
+        "title": "Head of AI Platform"
+      },
+      "pricing": {
+        "text": "Renewal quote at $2.50 CPM on a $180K annual commit. Marcus asked for $2.25 and a 3-year option.",
+        "live": true
+      },
+      "why_stuck": "Marcus wants $2.25 CPM. Anything under $2.50 needs Morgan to sign off. Usage also dipped 22% after they moved a test workload in September.",
+      "next_step": "Morgan decides on a floor price by 10/15. Sam then sends a 1-year and a 3-year quote side by side.",
+      "tasks": [
+        {
+          "text": "Get Morgan's call on a $2.35 floor for a 3-year term",
+          "owner": "Morgan Chen",
+          "source": "Slack #deal-desk 10/7"
+        },
+        {
+          "text": "Ask Marcus which workload moved and why",
+          "owner": "Sam Taylor",
+          "source": "Usage dashboard 10/6"
+        },
+        {
+          "text": "Build the 1-year vs 3-year quote side by side",
+          "owner": "Sam Taylor / Chris Wu",
+          "source": "Slack #int-contoso 10/6"
+        }
+      ],
+      "last_contact": "2026-10-06",
+      "last_contact_source": "Renewal call with Marcus Lee 10/6 (Gmail invite).",
+      "booked": null,
+      "sfdc_facts": {
+        "stage_evidence": "Renewal quote sent 10/1. Marcus replied with a price ask on 10/6.",
+        "suggested_stage": "keep",
+        "suggested_close_date": null,
+        "amount_note": "$180K assumes volume returns to the July level.",
+        "champion": "Marcus Lee (marcus.lee@contoso.example.com)",
+        "economic_buyer": "Ana Torres (ana.torres@contoso.example.com), COO.",
+        "identify_pain": "Their agent product needs fresh web results at low cost per call.",
+        "metrics": "Keep cost per agent task under 1 cent.",
+        "decision_criteria": "Price per call and uptime.",
+        "decision_process": "Marcus brings a price to Ana. Ana signs.",
+        "defined_use_case": "Search API grounds answers in their customer support agent.",
+        "primary_api_endpoint": "Search API",
+        "incumbent_provider": "Other",
+        "competition": [
+          "Zenith SERP"
+        ],
+        "monthly_call_volume": 9400000,
+        "pricing_shown": true,
+        "proposal_sent_date": "2026-10-01",
+        "nda_status": "Signed",
+        "contract_status": "Sent",
+        "legal_process_initiated": true,
+        "eval_status": "Not Required",
+        "deal_blocker": "Price ask of $2.25 CPM is below the $2.50 floor.",
+        "next_step_short": "10/15: Morgan sets the floor price. Sam sends 1-year and 3-year quotes.",
+        "next_step_date": "2026-10-15",
+        "technical_sophistication": "AI Native",
+        "eval_set_signal": "No Eval Expected",
+        "eval_path": "A - Skip Eval",
+        "eval_runner_email": null,
+        "eval_ran_by": null,
+        "proposal_feedback": "Marcus asked for $2.25 CPM and a 3-year option.",
+        "technical_acceptance": "Yes",
+        "commitment_to_purchase": "Verbal",
+        "cvo_metric": null,
+        "projected_close_date": null,
+        "loss_reason": null,
+        "missing_contact_roles": [],
+        "source": "Slack #int-contoso and #deal-desk, Gmail renewal thread, usage dashboard."
+      }
+    },
+    {
+      "opp_id": "006EXAMPLE000003",
+      "account": "Fabrikam Labs",
+      "name_on_card": "Fabrikam Labs",
+      "stage": "3 - Tech Eval",
+      "amount_display": "$60K",
+      "amount": 60000,
+      "is_renewal": false,
+      "close_date": "2026-12-18",
+      "probability": 40,
+      "band": "moving",
+      "champion": {
+        "name": "Hannah Osei",
+        "title": "Staff ML Engineer"
+      },
+      "pricing": {
+        "text": "Search API at $2.60 CPM shown on 9/30. They want a volume tier above 300 QPS.",
+        "live": true
+      },
+      "why_stuck": "The eval is halfway done. Hannah's team ran 400 of 800 test queries. They are waiting on Contents API keys for the rest.",
+      "next_step": "Leo turns on Contents API for their eval key by 10/10. Readout with Hannah on 10/16.",
+      "tasks": [
+        {
+          "text": "Turn on Contents API for the Fabrikam eval key",
+          "owner": "Leo Park",
+          "source": "Slack #int-fabrikam 10/7"
+        },
+        {
+          "text": "Draft a 300+ QPS tier for Morgan to approve",
+          "owner": "Sam Taylor / Morgan Chen",
+          "source": "Call with Hannah Osei 9/30"
+        }
+      ],
+      "last_contact": "2026-10-07",
+      "last_contact_source": "Slack Connect thread with Hannah Osei 10/7.",
+      "booked": "Oct 16",
+      "sfdc_facts": {
+        "stage_evidence": "Eval running on their own 800-query test set since 9/22.",
+        "suggested_stage": "keep",
+        "suggested_close_date": null,
+        "amount_note": null,
+        "champion": "Hannah Osei (hannah.osei@fabrikam.example.com)",
+        "economic_buyer": "Victor Hale (victor.hale@fabrikam.example.com), VP Engineering.",
+        "identify_pain": "Their current vendor returns stale pages for news queries.",
+        "metrics": "Fresh results for 95% of news queries under 1 second.",
+        "decision_criteria": "Freshness, latency and price at high QPS.",
+        "decision_process": "Hannah runs the eval. Victor signs.",
+        "defined_use_case": "Search API plus Contents API feed their model training data pipeline.",
+        "primary_api_endpoint": "Search API",
+        "incumbent_provider": "Other",
+        "competition": [
+          "Zenith SERP"
+        ],
+        "monthly_call_volume": 22000000,
+        "pricing_shown": true,
+        "proposal_sent_date": null,
+        "nda_status": null,
+        "contract_status": null,
+        "legal_process_initiated": false,
+        "eval_status": "In Progress",
+        "deal_blocker": "Contents API keys not live for the eval.",
+        "next_step_short": "10/16: Eval readout with Hannah Osei.",
+        "next_step_date": "2026-10-16",
+        "technical_sophistication": "AI Native",
+        "eval_set_signal": "Has Own Dataset",
+        "eval_path": "C - Custom Bespoke",
+        "eval_runner_email": "hannah.osei@fabrikam.example.com",
+        "eval_ran_by": "Customer",
+        "proposal_feedback": null,
+        "technical_acceptance": "Pending",
+        "commitment_to_purchase": null,
+        "cvo_metric": null,
+        "projected_close_date": null,
+        "loss_reason": null,
+        "missing_contact_roles": [],
+        "source": "Slack #int-fabrikam, Slack Connect with Fabrikam, call notes 9/30."
+      }
+    },
+    {
+      "opp_id": "006EXAMPLE000004",
+      "account": "Tailspin Robotics",
+      "name_on_card": "Tailspin Robotics",
+      "stage": "2 - Qualification",
+      "amount_display": "PayGo",
+      "amount": 0,
+      "is_renewal": false,
+      "close_date": "2027-01-29",
+      "probability": 20,
+      "band": "watch",
+      "champion": {
+        "name": "Kenji Watanabe",
+        "title": "Robotics Software Lead"
+      },
+      "pricing": {
+        "text": "No pricing discussed yet. They are on the free tier.",
+        "live": false
+      },
+      "why_stuck": "Kenji likes the results but has no budget owner. The team is small and spends on hardware first.",
+      "next_step": "Ask Kenji who owns software spend. Offer a short PayGo start so usage can prove the case.",
+      "tasks": [
+        {
+          "text": "Ask Kenji who signs software spend",
+          "owner": "Sam Taylor",
+          "source": "Gmail thread with Kenji Watanabe 9/24"
+        },
+        {
+          "text": "Send PayGo setup steps and the rate card",
+          "owner": "Sam Taylor",
+          "source": "Slack #int-tailspin 9/24"
+        }
+      ],
+      "last_contact": "2026-09-24",
+      "last_contact_source": "Email reply from Kenji Watanabe 9/24.",
+      "booked": null,
+      "sfdc_facts": {
+        "stage_evidence": "Kenji started testing on a free key 9/24 with his own test prompts.",
+        "suggested_stage": "3 - Tech Eval",
+        "suggested_close_date": null,
+        "amount_note": null,
+        "champion": "Kenji Watanabe (kenji.watanabe@tailspin.example.com)",
+        "economic_buyer": null,
+        "identify_pain": "Their field robots need answers from vendor manuals that are only on the web.",
+        "metrics": "Right manual page found for 8 of 10 repair questions.",
+        "decision_criteria": null,
+        "decision_process": null,
+        "defined_use_case": "Search API finds repair steps from public vendor manuals.",
+        "primary_api_endpoint": "Search API",
+        "incumbent_provider": null,
+        "competition": [],
+        "monthly_call_volume": 150000,
+        "pricing_shown": false,
+        "proposal_sent_date": null,
+        "nda_status": null,
+        "contract_status": null,
+        "legal_process_initiated": false,
+        "eval_status": null,
+        "deal_blocker": null,
+        "next_step_short": "Ask Kenji who owns software spend. Send PayGo setup steps.",
+        "next_step_date": "2026-10-14",
+        "technical_sophistication": "AI Native",
+        "eval_set_signal": "Has Own Dataset",
+        "eval_path": "B - Standard Public",
+        "eval_runner_email": null,
+        "eval_ran_by": null,
+        "proposal_feedback": null,
+        "technical_acceptance": null,
+        "commitment_to_purchase": null,
+        "cvo_metric": null,
+        "projected_close_date": null,
+        "loss_reason": null,
+        "missing_contact_roles": [],
+        "source": "Gmail thread with Kenji Watanabe, Slack #int-tailspin."
+      }
+    },
+    {
+      "opp_id": "006EXAMPLE000005",
+      "account": "Litware Health",
+      "name_on_card": "Litware Health",
+      "stage": "4 - Proof of Value",
+      "amount_display": "$45K",
+      "amount": 45000,
+      "is_renewal": false,
+      "close_date": "2026-11-13",
+      "probability": 60,
+      "band": "moving",
+      "champion": {
+        "name": "Dr. Sara Patel",
+        "title": "Director of Clinical Content"
+      },
+      "pricing": {
+        "text": "Contents API at $1.80 per 1,000 pages on a $45K annual commit. Sent 9/18.",
+        "live": true
+      },
+      "why_stuck": "Their legal team sent redlines on 10/2. Two asks need Dana: a data retention limit and a cap on liability.",
+      "next_step": "Dana answers the two redlines by 10/10. Sam books a call with Sara and their counsel for 10/13.",
+      "tasks": [
+        {
+          "text": "Answer the retention and liability redlines",
+          "owner": "Dana Ruiz",
+          "source": "Gmail redlines from Litware legal 10/2"
+        },
+        {
+          "text": "Book the 10/13 call with Sara and their counsel",
+          "owner": "Sam Taylor",
+          "source": "Slack #int-litware 10/2"
+        }
+      ],
+      "last_contact": "2026-10-02",
+      "last_contact_source": "Redlines email from Litware legal 10/2.",
+      "booked": "Oct 13",
+      "sfdc_facts": {
+        "stage_evidence": "Litware legal sent redlines on the order form 10/2. Sara said yes to the price on 9/25.",
+        "suggested_stage": "5 - Agreement",
+        "suggested_close_date": null,
+        "amount_note": null,
+        "champion": "Dr. Sara Patel (sara.patel@litware.example.com)",
+        "economic_buyer": "Paul Novak (paul.novak@litware.example.com), CFO.",
+        "identify_pain": "Their clinical team copies guideline updates by hand from 40 public sites.",
+        "metrics": "Guideline updates found within 24 hours of release.",
+        "decision_criteria": "Clean page text, data retention terms, and price.",
+        "decision_process": "Sara approves. Their counsel reviews. Paul signs.",
+        "defined_use_case": "Contents API pulls clean text from public clinical guideline pages.",
+        "primary_api_endpoint": "Contents API",
+        "incumbent_provider": null,
+        "competition": [],
+        "monthly_call_volume": 2000000,
+        "pricing_shown": true,
+        "proposal_sent_date": "2026-09-18",
+        "nda_status": "Signed",
+        "contract_status": "RedLines",
+        "legal_process_initiated": true,
+        "eval_status": "Complete",
+        "deal_blocker": "Two redlines: data retention limit and a liability cap.",
+        "next_step_short": "10/13: Walk Sara and their counsel through our answers to the redlines.",
+        "next_step_date": "2026-10-13",
+        "technical_sophistication": "AI Laggard",
+        "eval_set_signal": "Has Own Dataset",
+        "eval_path": "B - Standard Public",
+        "eval_runner_email": "sara.patel@litware.example.com",
+        "eval_ran_by": "Joint",
+        "proposal_feedback": "Sara said the price fits their budget. She wants a 1-year term first.",
+        "technical_acceptance": "Yes",
+        "commitment_to_purchase": "Verbal",
+        "cvo_metric": "Guideline updates found within 24 hours of release.",
+        "projected_close_date": null,
+        "loss_reason": null,
+        "missing_contact_roles": [
+          "Paul Novak (paul.novak@litware.example.com)"
+        ],
+        "source": "Gmail redlines thread, Slack #int-litware, call notes 9/25."
+      }
+    },
+    {
+      "opp_id": "006EXAMPLE000006",
+      "account": "Adatum Finance",
+      "name_on_card": "Adatum Finance",
+      "stage": "1 - Discovery",
+      "amount_display": "$25K",
+      "amount": 25000,
+      "is_renewal": false,
+      "close_date": "2027-02-26",
+      "probability": 10,
+      "band": "quiet",
+      "champion": {
+        "name": "Liam O'Connor",
+        "title": "Head of Quant Research"
+      },
+      "pricing": {
+        "text": "No pricing discussed yet.",
+        "live": false
+      },
+      "why_stuck": "Liam went quiet after the first call on 8/11. Two follow ups got no reply.",
+      "next_step": "Send one last note with the finance use case. If no reply by 10/24, close it out.",
+      "tasks": [
+        {
+          "text": "Send a last note with the earnings news use case",
+          "owner": "Sam Taylor",
+          "source": "Salesforce activity 8/11"
+        },
+        {
+          "text": "Close as lost on 10/24 if no reply",
+          "owner": "Sam Taylor",
+          "source": "Pipeline review 10/9"
+        }
+      ],
+      "last_contact": "2026-08-11",
+      "last_contact_source": "Discovery call with Liam O'Connor 8/11 (Salesforce event).",
+      "booked": null,
+      "sfdc_facts": {
+        "stage_evidence": "No reply to follow ups on 8/25 and 9/15.",
+        "suggested_stage": "Closed Lost",
+        "suggested_close_date": null,
+        "amount_note": null,
+        "champion": "Liam O'Connor (liam.oconnor@adatum.example.com)",
+        "economic_buyer": null,
+        "identify_pain": "Analysts read earnings news by hand.",
+        "metrics": null,
+        "decision_criteria": null,
+        "decision_process": null,
+        "defined_use_case": "Search API pulls company news for a trading signal.",
+        "primary_api_endpoint": "Search API",
+        "incumbent_provider": "None",
+        "competition": [],
+        "monthly_call_volume": null,
+        "pricing_shown": false,
+        "proposal_sent_date": null,
+        "nda_status": null,
+        "contract_status": null,
+        "legal_process_initiated": false,
+        "eval_status": null,
+        "deal_blocker": null,
+        "next_step_short": null,
+        "next_step_date": null,
+        "technical_sophistication": null,
+        "eval_set_signal": "Unknown",
+        "eval_path": null,
+        "eval_runner_email": null,
+        "eval_ran_by": null,
+        "proposal_feedback": null,
+        "technical_acceptance": null,
+        "commitment_to_purchase": null,
+        "cvo_metric": null,
+        "projected_close_date": null,
+        "loss_reason": "No Decision / Non-Responsive",
+        "missing_contact_roles": [],
+        "source": "Salesforce activity history, Gmail follow ups 8/25 and 9/15."
+      }
+    },
+    {
+      "opp_id": "006EXAMPLE000007",
+      "account": "Wingtip Data",
+      "name_on_card": "Wingtip Data",
+      "stage": "1 - Discovery",
+      "amount_display": "PayGo",
+      "amount": 0,
+      "is_renewal": false,
+      "close_date": "2027-03-19",
+      "probability": 10,
+      "band": "watch",
+      "champion": {
+        "name": "Rosa Delgado",
+        "title": "Product Manager, Data Feeds"
+      },
+      "pricing": {
+        "text": "No pricing discussed yet.",
+        "live": false
+      },
+      "why_stuck": "Rosa is still writing the use case. She has not shared call volume or a test set.",
+      "next_step": "Get a rough monthly call count from Rosa and a list of 20 sample queries.",
+      "tasks": [
+        {
+          "text": "Ask Rosa for monthly call volume and 20 sample queries",
+          "owner": "Sam Taylor",
+          "source": "Call with Rosa Delgado 9/30"
+        },
+        {
+          "text": "Share the Contents API docs page with Rosa",
+          "owner": "Priya Nair",
+          "source": "Slack #int-wingtip 9/30"
+        }
+      ],
+      "last_contact": "2026-09-30",
+      "last_contact_source": "Discovery call with Rosa Delgado 9/30 (Gmail invite).",
+      "booked": null,
+      "sfdc_facts": {
+        "stage_evidence": "First call held 9/30. Use case still forming.",
+        "suggested_stage": "keep",
+        "suggested_close_date": null,
+        "amount_note": null,
+        "champion": "Rosa Delgado (rosa.delgado@wingtip.example.com)",
+        "economic_buyer": null,
+        "identify_pain": "Their data feeds miss new product pages for days.",
+        "metrics": null,
+        "decision_criteria": null,
+        "decision_process": null,
+        "defined_use_case": "Search API and Contents API find and pull new product pages for their data feeds.",
+        "primary_api_endpoint": "Contents API",
+        "incumbent_provider": null,
+        "competition": [],
+        "monthly_call_volume": 500000,
+        "pricing_shown": false,
+        "proposal_sent_date": null,
+        "nda_status": null,
+        "contract_status": null,
+        "legal_process_initiated": false,
+        "eval_status": null,
+        "deal_blocker": null,
+        "next_step_short": "Get call volume and 20 sample queries from Rosa.",
+        "next_step_date": "2026-10-16",
+        "technical_sophistication": null,
+        "eval_set_signal": "Unknown",
+        "eval_path": null,
+        "eval_runner_email": null,
+        "eval_ran_by": null,
+        "proposal_feedback": null,
+        "technical_acceptance": null,
+        "commitment_to_purchase": null,
+        "cvo_metric": null,
+        "projected_close_date": null,
+        "loss_reason": null,
+        "missing_contact_roles": [],
+        "source": "Call notes 9/30, Slack #int-wingtip."
+      }
+    },
+    {
+      "opp_id": "006EXAMPLE000008",
+      "account": "Woodgrove Retail",
+      "name_on_card": "Woodgrove Retail",
+      "stage": "5 - Agreement",
+      "amount_display": "$36K",
+      "amount": 36000,
+      "is_renewal": true,
+      "close_date": "2026-10-30",
+      "probability": 90,
+      "band": "moving",
+      "champion": {
+        "name": "Megan Fox-Reid",
+        "title": "Engineering Manager, Search"
+      },
+      "pricing": {
+        "text": "Same rate as last year. $2.80 CPM on a $36K annual commit.",
+        "live": true
+      },
+      "why_stuck": "Nothing is blocking it. The renewal form is in their signing tool. It waits on the CFO's next batch.",
+      "next_step": "Check on 10/20 that the form is signed. Send the new invoice date to Chris.",
+      "tasks": [
+        {
+          "text": "Check the renewal form is signed",
+          "owner": "Sam Taylor",
+          "source": "Gmail thread with Megan Fox-Reid 10/5"
+        },
+        {
+          "text": "Set up the new invoice for Nov 1",
+          "owner": "Chris Wu",
+          "source": "Slack #int-woodgrove 10/5"
+        }
+      ],
+      "last_contact": "2026-10-05",
+      "last_contact_source": "Email from Megan Fox-Reid 10/5 confirming the form is with the CFO.",
+      "booked": null,
+      "sfdc_facts": {
+        "stage_evidence": "Renewal form sent 9/28. In their signing queue since 10/5.",
+        "suggested_stage": "keep",
+        "suggested_close_date": null,
+        "amount_note": null,
+        "champion": "Megan Fox-Reid (megan.foxreid@woodgrove.example.com)",
+        "economic_buyer": null,
+        "identify_pain": null,
+        "metrics": null,
+        "decision_criteria": null,
+        "decision_process": null,
+        "defined_use_case": "Search API powers product search on their store help pages.",
+        "primary_api_endpoint": "Search API",
+        "incumbent_provider": null,
+        "competition": [],
+        "monthly_call_volume": 1100000,
+        "pricing_shown": true,
+        "proposal_sent_date": "2026-09-28",
+        "nda_status": null,
+        "contract_status": "Final Review",
+        "legal_process_initiated": true,
+        "eval_status": "Not Required",
+        "deal_blocker": null,
+        "next_step_short": "10/20: Confirm the renewal form is signed.",
+        "next_step_date": "2026-10-20",
+        "technical_sophistication": "AI Laggard",
+        "eval_set_signal": "No Eval Expected",
+        "eval_path": "A - Skip Eval",
+        "eval_runner_email": null,
+        "eval_ran_by": null,
+        "proposal_feedback": null,
+        "technical_acceptance": "Yes",
+        "commitment_to_purchase": "Yes",
+        "cvo_metric": null,
+        "projected_close_date": null,
+        "loss_reason": null,
+        "missing_contact_roles": [],
+        "source": "Gmail renewal thread, Slack #int-woodgrove."
+      }
+    },
+    {
+      "opp_id": "006EXAMPLE000009",
+      "account": "Proseware",
+      "name_on_card": "Proseware",
+      "stage": "2 - Qualification",
+      "amount_display": "$15K",
+      "amount": 15000,
+      "is_renewal": false,
+      "close_date": "2027-01-15",
+      "probability": 20,
+      "band": "quiet",
+      "champion": {
+        "name": "Daniel Ibarra",
+        "title": "CTO"
+      },
+      "pricing": {
+        "text": "Rate card sent 7/22. No reply on price.",
+        "live": false
+      },
+      "why_stuck": "Daniel stopped replying after 7/28. Their site says they are hiring a new head of product, so priorities may have moved.",
+      "next_step": "Try the new head of product once they start. If nothing by 11/1, close it out.",
+      "tasks": [
+        {
+          "text": "Find out who the new head of product is",
+          "owner": "Sam Taylor",
+          "source": "Proseware careers page 10/1"
+        },
+        {
+          "text": "Close as lost on 11/1 if no path",
+          "owner": "Sam Taylor",
+          "source": "Pipeline review 10/9"
+        }
+      ],
+      "last_contact": "2026-07-28",
+      "last_contact_source": "Email from Daniel Ibarra 7/28.",
+      "booked": null,
+      "sfdc_facts": {
+        "stage_evidence": "No contact since 7/28. Three follow ups with no reply.",
+        "suggested_stage": "Closed Lost",
+        "suggested_close_date": null,
+        "amount_note": null,
+        "champion": "Daniel Ibarra (daniel.ibarra@proseware.example.com)",
+        "economic_buyer": null,
+        "identify_pain": null,
+        "metrics": null,
+        "decision_criteria": null,
+        "decision_process": null,
+        "defined_use_case": "Research API writes product comparison pages.",
+        "primary_api_endpoint": "Research API - Lite",
+        "incumbent_provider": null,
+        "competition": [],
+        "monthly_call_volume": null,
+        "pricing_shown": true,
+        "proposal_sent_date": null,
+        "nda_status": null,
+        "contract_status": null,
+        "legal_process_initiated": false,
+        "eval_status": null,
+        "deal_blocker": null,
+        "next_step_short": null,
+        "next_step_date": null,
+        "technical_sophistication": null,
+        "eval_set_signal": "Unknown",
+        "eval_path": null,
+        "eval_runner_email": null,
+        "eval_ran_by": null,
+        "proposal_feedback": null,
+        "technical_acceptance": null,
+        "commitment_to_purchase": null,
+        "cvo_metric": null,
+        "projected_close_date": null,
+        "loss_reason": null,
+        "missing_contact_roles": [],
+        "source": "Gmail thread with Daniel Ibarra, Salesforce activity."
+      }
+    },
+    {
+      "opp_id": "006EXAMPLE000010",
+      "account": "Lucerne Media",
+      "name_on_card": "Lucerne Media",
+      "stage": "2 - Qualification",
+      "amount_display": "$8.4K",
+      "amount": 8400,
+      "is_renewal": true,
+      "close_date": "2026-12-31",
+      "probability": 30,
+      "band": "quiet",
+      "champion": {
+        "name": "Ivy Chen-Lowe",
+        "title": "Newsroom Tools Lead"
+      },
+      "pricing": {
+        "text": "Last year was $8,400 flat. No renewal quote sent yet.",
+        "live": false
+      },
+      "why_stuck": "Ivy has not replied since 8/14. Usage is flat at about 250K calls a month, so they still use it.",
+      "next_step": "Send the renewal quote to Ivy and copy their ops lead. Ask for a 15-minute check-in.",
+      "tasks": [
+        {
+          "text": "Send the renewal quote to Ivy",
+          "owner": "Sam Taylor",
+          "source": "Salesforce renewal date 12/31"
+        },
+        {
+          "text": "Find a second contact on their ops team",
+          "owner": "Sam Taylor",
+          "source": "Slack #int-lucerne 9/2"
+        }
+      ],
+      "last_contact": "2026-08-14",
+      "last_contact_source": "Email from Ivy Chen-Lowe 8/14.",
+      "booked": null,
+      "sfdc_facts": {
+        "stage_evidence": "Renewal not yet quoted. Usage steady.",
+        "suggested_stage": "keep",
+        "suggested_close_date": null,
+        "amount_note": null,
+        "champion": "Ivy Chen-Lowe (ivy.chenlowe@lucerne.example.com)",
+        "economic_buyer": null,
+        "identify_pain": null,
+        "metrics": null,
+        "decision_criteria": null,
+        "decision_process": null,
+        "defined_use_case": "Search API checks facts in newsroom drafts.",
+        "primary_api_endpoint": "Search API",
+        "incumbent_provider": null,
+        "competition": [],
+        "monthly_call_volume": 250000,
+        "pricing_shown": false,
+        "proposal_sent_date": null,
+        "nda_status": null,
+        "contract_status": null,
+        "legal_process_initiated": false,
+        "eval_status": null,
+        "deal_blocker": null,
+        "next_step_short": "Send the renewal quote to Ivy and their ops lead.",
+        "next_step_date": "2026-10-15",
+        "technical_sophistication": null,
+        "eval_set_signal": "Unknown",
+        "eval_path": null,
+        "eval_runner_email": null,
+        "eval_ran_by": null,
+        "proposal_feedback": null,
+        "technical_acceptance": null,
+        "commitment_to_purchase": null,
+        "cvo_metric": null,
+        "projected_close_date": null,
+        "loss_reason": null,
+        "missing_contact_roles": [],
+        "source": "Salesforce renewal record, usage dashboard, Slack #int-lucerne."
+      }
+    }
+  ],
+  "open_with_three": [
+    {
+      "account": "Northwind Analytics",
+      "amount": "$120K",
+      "band": "moving",
+      "line": "Order form is with procurement. The security questionnaire goes out 10/13. Call with Elena and Ravi on 10/14."
+    },
+    {
+      "account": "Contoso AI",
+      "amount": "$180K",
+      "band": "watch",
+      "line": "Renewal. Marcus wants $2.25 CPM. Need your call on a $2.35 floor for a 3-year term by 10/15."
+    },
+    {
+      "account": "Fabrikam Labs",
+      "amount": "$60K",
+      "band": "moving",
+      "line": "Eval is halfway. Contents API keys go live 10/10. Readout with Hannah on 10/16."
+    }
+  ]
+}

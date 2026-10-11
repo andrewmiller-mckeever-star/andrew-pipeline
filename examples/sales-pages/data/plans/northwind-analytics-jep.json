@@ -1,0 +1,289 @@
+{
+ "account": "Northwind Analytics",
+ "buyer_company": "Northwind Analytics",
+ "date": "October 2026",
+ "ae": "Sam Taylor",
+ "api_architect": "Priya Nair",
+ "cvos": [
+  {
+   "metric": "Time to draft one analyst market report",
+   "target": "From about 6 hours down to under 2 hours per report",
+   "timeframe": "By the end of Q1 2027"
+  },
+  {
+   "metric": "Correct answers on Northwind's 200-question test set",
+   "target": "At least 90% correct, each with a working source link",
+   "timeframe": "At go-live, December 2026"
+  },
+  {
+   "metric": "Research API uptime in business hours",
+   "target": "99.9% or better each month",
+   "timeframe": "First 90 days after go-live"
+  }
+ ],
+ "phases": [
+  {
+   "name": "PHASE 1: INTRODUCTIONS",
+   "rows": [
+    {
+     "activity": "Search API contract signed",
+     "date": "Mar 3",
+     "seller": "Sam Taylor",
+     "account": "Elena Brooks",
+     "status": "Done",
+     "notes": "$60K annual commit for the pricing engine."
+    },
+    {
+     "activity": "Expansion kickoff for the Research API",
+     "date": "Aug 19",
+     "seller": "Sam Taylor, Priya Nair",
+     "account": "Elena Brooks, Aisha Rahman",
+     "status": "Done",
+     "notes": "Agreed to a trial on the Analyst Reports team."
+    }
+   ]
+  },
+  {
+   "name": "PHASE 2: EVALUATION",
+   "rows": [
+    {
+     "activity": "Trial key issued and test set loaded",
+     "date": "Aug 26",
+     "seller": "Priya Nair",
+     "account": "Jordan Blake",
+     "status": "Done",
+     "notes": "200 real analyst questions."
+    },
+    {
+     "activity": "Trial readout",
+     "date": "Sep 22",
+     "seller": "Priya Nair",
+     "account": "Aisha Rahman, Jordan Blake",
+     "status": "Done",
+     "notes": "87% correct. Draft time down to about 2.5 hours."
+    },
+    {
+     "activity": "Long-question accuracy fix and rerun",
+     "date": "Oct 24",
+     "seller": "Priya Nair, Leo Park",
+     "account": "Jordan Blake",
+     "status": "In progress",
+     "notes": "Goal is 90% before go-live."
+    }
+   ]
+  },
+  {
+   "name": "PHASE 3: COMMERCIAL",
+   "rows": [
+    {
+     "activity": "Pricing agreed",
+     "date": "Sep 29",
+     "seller": "Sam Taylor",
+     "account": "Elena Brooks",
+     "status": "Done",
+     "notes": "$9 per 1,000 calls. $120K annual commit from Dec 1."
+    },
+    {
+     "activity": "Order form sent",
+     "date": "Oct 6",
+     "seller": "Sam Taylor",
+     "account": "Ravi Mehta",
+     "status": "Done",
+     "notes": "With procurement."
+    },
+    {
+     "activity": "Intro meeting with the CFO",
+     "date": "Late Oct",
+     "seller": "Sam Taylor, Morgan Chen",
+     "account": "Grace Kim, Elena Brooks",
+     "status": "Pending",
+     "notes": "Share the time-saved numbers."
+    }
+   ]
+  },
+  {
+   "name": "PHASE 4: LEGAL & PROCUREMENT",
+   "rows": [
+    {
+     "activity": "Security questionnaire",
+     "date": "Oct 13",
+     "seller": "Leo Park, Dana Ruiz",
+     "account": "Mei Lin",
+     "status": "In progress",
+     "notes": "41 of 64 questions answered."
+    },
+    {
+     "activity": "Review security answers together",
+     "date": "Oct 14",
+     "seller": "Sam Taylor, Priya Nair",
+     "account": "Elena Brooks, Ravi Mehta",
+     "status": "Pending",
+     "notes": "Video call."
+    },
+    {
+     "activity": "MSA amendment review",
+     "date": "Late Oct",
+     "seller": "Dana Ruiz",
+     "account": "Owen Hart",
+     "status": "Pending",
+     "notes": "Adds the Research API to the March contract."
+    },
+    {
+     "activity": "Finance approval and signature",
+     "date": "Nov 20",
+     "seller": "Morgan Chen, Chris Wu",
+     "account": "Grace Kim",
+     "status": "Pending",
+     "notes": "Must land before their budget year ends Nov 30."
+    }
+   ]
+  },
+  {
+   "name": "PHASE 5: ONBOARDING & GO-LIVE",
+   "rows": [
+    {
+     "activity": "Production keys and rate limits set",
+     "date": "Dec 1",
+     "seller": "Leo Park",
+     "account": "Ben Carter",
+     "status": "Pending",
+     "notes": "Commit starts the same day."
+    },
+    {
+     "activity": "Analyst rollout, all 60 seats",
+     "date": "Dec 8",
+     "seller": "Priya Nair",
+     "account": "Aisha Rahman",
+     "status": "Pending",
+     "notes": "Training session for analysts."
+    },
+    {
+     "activity": "First 30-day check on success metrics",
+     "date": "Jan 8",
+     "seller": "Sam Taylor, Priya Nair",
+     "account": "Elena Brooks, Aisha Rahman",
+     "status": "Pending",
+     "notes": "Review draft time, accuracy and uptime."
+    }
+   ]
+  }
+ ],
+ "contacts": {
+  "seller": [
+   {
+    "name": "Sam Taylor",
+    "title": "Account Executive",
+    "role": "Deal owner",
+    "email": "sam.taylor@acme.example.com"
+   },
+   {
+    "name": "Morgan Chen",
+    "title": "COO",
+    "role": "Executive sponsor, price approvals",
+    "email": "morgan.chen@acme.example.com"
+   },
+   {
+    "name": "Priya Nair",
+    "title": "API Architect",
+    "role": "Trial lead and accuracy work",
+    "email": "priya.nair@acme.example.com"
+   },
+   {
+    "name": "Leo Park",
+    "title": "Software Engineer",
+    "role": "Security questionnaire and keys",
+    "email": "leo.park@acme.example.com"
+   },
+   {
+    "name": "Dana Ruiz",
+    "title": "Legal Counsel",
+    "role": "MSA amendment",
+    "email": "dana.ruiz@acme.example.com"
+   },
+   {
+    "name": "Chris Wu",
+    "title": "Finance Lead",
+    "role": "Billing and commit start date",
+    "email": "chris.wu@acme.example.com"
+   }
+  ],
+  "buyer": [
+   {
+    "name": "Elena Brooks",
+    "title": "VP Data Platform",
+    "role": "Champion and budget owner",
+    "email": "elena.brooks@northwind.example.com"
+   },
+   {
+    "name": "Grace Kim",
+    "title": "CFO",
+    "role": "Signer",
+    "email": "grace.kim@northwind.example.com"
+   },
+   {
+    "name": "Tomas Silva",
+    "title": "CTO",
+    "role": "Final technical approval",
+    "email": "tomas.silva@northwind.example.com"
+   },
+   {
+    "name": "Aisha Rahman",
+    "title": "Director of Research Products",
+    "role": "Business owner",
+    "email": "aisha.rahman@northwind.example.com"
+   },
+   {
+    "name": "Jordan Blake",
+    "title": "Staff Engineer",
+    "role": "Technical lead",
+    "email": "jordan.blake@northwind.example.com"
+   },
+   {
+    "name": "Ravi Mehta",
+    "title": "Procurement Manager",
+    "role": "Order form",
+    "email": "ravi.mehta@northwind.example.com"
+   },
+   {
+    "name": "Mei Lin",
+    "title": "Head of Security",
+    "role": "Security review",
+    "email": "mei.lin@northwind.example.com"
+   },
+   {
+    "name": "Owen Hart",
+    "title": "General Counsel",
+    "role": "Legal review",
+    "email": "owen.hart@northwind.example.com"
+   }
+  ]
+ },
+ "next_steps": [
+  {
+   "owner": "[Acme Search]",
+   "text": "Send the finished security questionnaire to Ravi and Mei by Oct 13."
+  },
+  {
+   "owner": "[Acme Search]",
+   "text": "Confirm in writing that the $120K commit starts Dec 1."
+  },
+  {
+   "owner": "[Acme Search]",
+   "text": "Share the long-question fix and rerun results by Oct 24."
+  },
+  {
+   "owner": "[Northwind Analytics]",
+   "text": "Book a 20-minute intro with Grace Kim before the end of October."
+  },
+  {
+   "owner": "[Northwind Analytics]",
+   "text": "Send the order form to the CFO once security signs off."
+  },
+  {
+   "owner": "[Both]",
+   "text": "Hold the Oct 14 review call and set a signature date."
+  }
+ ],
+ "seller": "Acme Search",
+ "ae_email": "sam.taylor@example.com"
+}
