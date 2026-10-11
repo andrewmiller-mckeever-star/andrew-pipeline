@@ -1,0 +1,221 @@
+{
+  "account": "Northwind Analytics",
+  "owner": "Sam Taylor",
+  "year": "2026",
+  "month": "Oct 2026",
+  "as_of": "Oct 9, 2026",
+  "status_line": "A happy Search API customer that went over its commit three months in a row. The Research API trial passed. The $120K expansion is with procurement and needs a security questionnaire before it reaches the CFO.",
+  "pills": ["Customer since Mar 2026", "Search API live", "Research API in Agreement", "$120K expansion", "Close Nov 20"],
+  "opportunity": {
+    "amount": "$120,000",
+    "stage": "5 - Agreement",
+    "detail": "Research API expansion. $9 per 1,000 calls on a $120K annual commit. Order form sent 10/6. Search API overage bills on top."
+  },
+  "top_of_mind": [
+    {"tag": "Product", "tone": "good", "text": "Research API trial scored 87% correct on their 200-question test set. Target in the plan is 90% at go-live.", "date": "Sep 22"},
+    {"tag": "Price", "tone": "good", "text": "Elena agreed to $9 per 1,000 calls if the commit starts Dec 1.", "date": "Sep 29"},
+    {"tag": "Paper", "tone": "", "text": "Order form sent to Ravi Mehta in procurement.", "date": "Oct 6"},
+    {"tag": "Security", "tone": "risk", "text": "Ravi will not send the form to the CFO until our security questionnaire is back. It has 64 questions.", "date": "Oct 8"},
+    {"tag": "Timing", "tone": "risk", "text": "Their budget year ends Nov 30. If we miss Nov 20, the deal moves to next year's budget.", "date": "Oct 8"}
+  ],
+  "blockers": [
+    {"tag": "Security", "title": "Questionnaire not done.", "detail": "64 questions. Leo has 41 answered. Data retention and log access are the hard ones."},
+    {"tag": "Access", "title": "We have never met the CFO.", "detail": "Grace Kim signs anything over $100K. Elena has not offered an intro yet."},
+    {"tag": "Accuracy", "title": "87% is short of 90%.", "detail": "The plan promises 90% at go-live. Priya thinks a prompt change on long questions closes the gap."},
+    {"tag": "Timing", "title": "Budget year ends Nov 30.", "detail": "Procurement plus legal plus signature usually takes four weeks at Northwind."}
+  ],
+  "business_map": {
+    "context": "Northwind Analytics sells market data and analyst reports to retail and travel brands. About 1,400 staff. Four units buy data tools on their own budgets. We are live in one and have a deal open in a second.",
+    "units": [
+      {
+        "name": "Analyst Reports",
+        "status": "open",
+        "what": "Writes paid market reports for retail and travel clients. About 60 analysts.",
+        "search": "Research API drafts the first pass of each report with sources. Analysts check and finish it.",
+        "endpoints": ["Research API", "Search API"],
+        "incumbent": "Manual research. Quarry Search was in the bake-off.",
+        "owner": "Aisha Rahman (Director of Research Products)",
+        "gate": ""
+      },
+      {
+        "name": "Pricing Intelligence",
+        "status": "live",
+        "what": "Tracks retail prices across the web for their pricing engine product.",
+        "search": "Search API live since March. Next is a Contents API eval to pull full product pages.",
+        "endpoints": ["Search API", "Contents API"],
+        "incumbent": "Acme Search for search. Their own scraper for pages.",
+        "owner": "Jordan Blake (Staff Engineer)",
+        "gate": "Contents API eval starts after the Research API deal signs."
+      },
+      {
+        "name": "Northwind EU",
+        "status": "gated",
+        "what": "The same products sold to clients in Europe. Run from their Dublin office.",
+        "search": "Would use the Search API for EU retail data.",
+        "endpoints": ["Search API"],
+        "incumbent": "Unknown",
+        "owner": "Not engaged",
+        "gate": "Needs EU data residency. Not on our roadmap until Q2 2027."
+      },
+      {
+        "name": "Marketing Analytics",
+        "status": "none",
+        "what": "Measures brand mentions and ad reach for clients.",
+        "search": "Possible fit for news and web mentions through the Search API.",
+        "endpoints": ["Search API"],
+        "incumbent": "Unknown",
+        "owner": "Not engaged",
+        "gate": ""
+      }
+    ]
+  },
+  "next_action": {
+    "date": "Tue Oct 14",
+    "channel": "Video call",
+    "lead": "Sam Taylor",
+    "with": ["Priya Nair"],
+    "for": "Elena Brooks and Ravi Mehta",
+    "what": "Walk through the finished security questionnaire. Answer Ravi's questions live. Ask for the date the form goes to Grace Kim.",
+    "then": "Sam asks Elena for a 20-minute intro to Grace before signature. Priya shares the prompt fix that lifts long-question accuracy."
+  },
+  "phases": [
+    {"state": "done", "name": "Land the Search API", "when": "Mar 3, 2026", "outcome": "$60K annual commit signed for the pricing engine."},
+    {"state": "done", "name": "Grow usage", "when": "Jul to Sep 2026", "outcome": "Went over commit three months running. $24.2K overage billed."},
+    {"state": "done", "name": "Research API trial", "when": "Aug 26 to Sep 22", "outcome": "87% correct on their 200-question test set. Report draft time fell from 6 hours to about 2.5."},
+    {"state": "now", "name": "Paper the expansion", "when": "Oct 2026", "outcome": "$120K Research API commit. Security, legal and CFO signature left."},
+    {"state": "next", "name": "Expand to more units", "when": "Q1 2027", "outcome": "Contents API eval in Pricing Intelligence. First call with Marketing Analytics."}
+  ],
+  "eval": {
+    "hint": "The Research API trial ran on Northwind's own test set from Aug 26 to Sep 22. Jordan Blake ran it with Priya.",
+    "confidence": 75,
+    "confidence_note": "My estimate. The champion and the budget are real. The risk is the clock and a CFO we have not met.",
+    "win": [
+      {"head": "Their own test set.", "text": "87% correct on 200 real analyst questions, with a source for each answer."},
+      {"head": "Time saved.", "text": "Draft time fell from 6 hours to about 2.5 hours per report in the trial."},
+      {"head": "Already a customer.", "text": "Security reviewed us in March. Much of the questionnaire repeats."},
+      {"head": "One bill.", "text": "Elena likes having search and research on one contract."}
+    ],
+    "short": [
+      {"head": "Long questions.", "text": "Accuracy drops to 78% on questions over 40 words."},
+      {"head": "Quarry Search is cheaper.", "text": "Their quote was about 15% lower. Elena says quality matters more, for now."},
+      {"head": "No CFO contact.", "text": "Grace Kim has never heard our pitch. She signs over $100K."},
+      {"head": "Tight clock.", "text": "Four weeks of paper in a six-week window."}
+    ]
+  },
+  "thesis": {
+    "paragraph": "Northwind already trusts us with their pricing engine. **The Research API saves each analyst about 3.5 hours per report.** With 60 analysts, that is the case Elena will take to the CFO. We win if we **finish security fast, meet Grace before signature, and close the accuracy gap on long questions.**",
+    "priorities": [
+      {"head": "Send the questionnaire by 10/13.", "text": "Leo finishes the last 23 answers. Dana checks the retention answers."},
+      {"head": "Meet Grace Kim.", "text": "Ask Elena for a short intro. Bring the time-saved math, not a demo."},
+      {"head": "Close the accuracy gap.", "text": "Priya ships the long-question prompt fix and reruns the test set before go-live."},
+      {"head": "Line up the next unit.", "text": "Plan the Contents API eval with Jordan so it starts the week after signature."}
+    ]
+  },
+  "path": [
+    {"state": "done", "name": "Search API contract signed", "when": "Mar 3", "note": "$60K annual commit for the pricing engine.", "owners": "Sam Taylor, Elena Brooks"},
+    {"state": "done", "name": "Over commit three months running", "when": "Jul to Sep", "note": "$24.2K overage billed. Opened the expansion talk.", "owners": "Sam Taylor, Chris Wu"},
+    {"state": "done", "name": "Research API trial key issued", "when": "Aug 26", "note": "Trial key for the Analyst Reports team.", "owners": "Priya Nair, Jordan Blake"},
+    {"state": "done", "name": "Trial results reviewed", "when": "Sep 22", "note": "87% correct on 200 questions. Draft time down to 2.5 hours.", "owners": "Priya Nair, Aisha Rahman"},
+    {"state": "done", "name": "Pricing agreed", "when": "Sep 29", "note": "$9 per 1,000 calls. $120K commit from Dec 1.", "owners": "Sam Taylor, Elena Brooks"},
+    {"state": "prog", "name": "Order form with procurement", "when": "Oct 6", "note": "Ravi holds it until security is done.", "owners": "Sam Taylor, Ravi Mehta"},
+    {"state": "prog", "name": "Security questionnaire", "when": "Due Oct 13", "note": "41 of 64 answered.", "owners": "Leo Park, Mei Lin"},
+    {"state": "unv", "name": "Long-question accuracy fix", "when": "Oct 24", "note": "Rerun the test set. Aim for 90%.", "owners": "Priya Nair, Jordan Blake"},
+    {"state": "unv", "name": "Legal review of the MSA amendment", "when": "Late Oct", "note": "Owen Hart reviews. Dana expects light edits.", "owners": "Dana Ruiz, Owen Hart"},
+    {"state": "unv", "name": "Finance approval", "when": "Early Nov", "note": "Grace Kim approves the $120K spend.", "owners": "Chris Wu, Grace Kim"},
+    {"state": "unv", "name": "Signature", "when": "Nov 20", "note": "Order form plus MSA amendment.", "owners": "Morgan Chen, Grace Kim"}
+  ],
+  "org_map": {
+    "rule": "Elena picks the vendor. Grace signs anything over $100K. Procurement and security can stall a deal for weeks, so we keep Ravi and Mei in the loop early.",
+    "bands": [
+      {
+        "label": "Founders & C-suite",
+        "people": [
+          {"name": "Tomas Silva", "title": "CTO", "status": "target", "badge": "Decider", "note": "Elena's boss. Approved the March deal by email. We have not met him."},
+          {"name": "Grace Kim", "title": "CFO", "status": "target", "badge": "Signer", "note": "Signs anything over $100K. Need an intro from Elena."}
+        ]
+      },
+      {
+        "label": "VPs & heads",
+        "people": [
+          {"name": "Elena Brooks", "title": "VP Data Platform", "status": "talking", "badge": "Champion", "note": "Bought the Search API in March. Running the expansion. Weekly calls."},
+          {"name": "Nora Quinn", "title": "VP Product", "status": "none", "note": "Owns the report products. Aisha reports to her."},
+          {"name": "Head of Market Intelligence", "title": "New role, not yet hired", "ghost": true, "note": "Posted Sep 30. Would own Marketing Analytics tools."}
+        ]
+      },
+      {
+        "label": "Directors & managers",
+        "people": [
+          {"name": "Aisha Rahman", "title": "Director of Research Products", "status": "talking", "note": "Ran the trial on the analyst side. Wants the time-saved numbers in the contract."},
+          {"name": "Ben Carter", "title": "Data Engineering Manager", "status": "none", "note": "Runs the pipelines. Will own the Research API keys after go-live."}
+        ]
+      },
+      {
+        "label": "Influencers & champions",
+        "people": [
+          {"name": "Jordan Blake", "title": "Staff Engineer, Pricing Intelligence", "status": "talking", "note": "Built the test set and ran the trial with Priya. Wants the Contents API next."},
+          {"name": "Hugo Martin", "title": "Senior Analyst", "status": "talking", "note": "Power user in the trial. Wrote the feedback Aisha shared."}
+        ]
+      }
+    ],
+    "gatekeepers": [
+      {"group": "Procurement", "people": [{"name": "Ravi Mehta", "title": "Procurement Manager", "status": "talking"}]},
+      {"group": "Security", "people": [{"name": "Mei Lin", "title": "Head of Security", "status": "target"}]},
+      {"group": "Legal", "people": [{"name": "Owen Hart", "title": "General Counsel", "status": "none"}]}
+    ],
+    "footprint": "HQ in Chicago. Analysts in Chicago and Austin. EU team in Dublin."
+  },
+  "more_details": {
+    "room": {
+      "signers": [
+        {"seat": "Economic buyer", "name": "Grace Kim", "title": "CFO", "why": "Signs anything over $100K. Has not met us.", "email": "grace.kim@northwind.example.com"},
+        {"seat": "Executive sponsor", "name": "Elena Brooks", "title": "VP Data Platform", "why": "Owns the budget line. Picked us twice.", "email": "elena.brooks@northwind.example.com"}
+      ],
+      "seats": [
+        {"name": "Ravi Mehta", "title": "Procurement Manager", "seat": "Paper owner", "why": "Holds the order form. Wants security done first."},
+        {"name": "Mei Lin", "title": "Head of Security", "seat": "Security review", "why": "Signs off on the questionnaire. Reviewed us in March."},
+        {"name": "Owen Hart", "title": "General Counsel", "seat": "Legal review", "why": "Reviews the MSA amendment. Light touch in March."},
+        {"name": "Aisha Rahman", "title": "Director of Research Products", "seat": "Business owner", "why": "Her analysts use the product. Her numbers make the case."},
+        {"name": "Jordan Blake", "title": "Staff Engineer", "seat": "Technical lead", "why": "Ran the trial. Owns the integration."}
+      ]
+    },
+    "surfaces": [
+      {"surface": "Analyst Reports", "sub": "deal open", "what": "Paid market reports for retail and travel clients.", "owner": "Aisha Rahman", "angle": "Research API drafts each report with sources."},
+      {"surface": "Pricing engine", "sub": "live", "what": "Tracks retail prices across the web.", "owner": "Jordan Blake", "angle": "Search API today. Contents API for full product pages next."},
+      {"surface": "Brand Pulse", "sub": "not engaged", "what": "Brand mention and ad reach dashboard.", "owner": "Not named", "angle": "Search API for news and web mentions."},
+      {"surface": "Northwind EU", "sub": "gated", "what": "EU versions of all three products.", "owner": "Not named", "angle": "Search API once EU data residency ships."}
+    ],
+    "commercials": {
+      "rows": [
+        {"use_case": "Research API for analyst report drafts", "surface": "Analyst Reports", "tam": "$120K to $180K"},
+        {"use_case": "Contents API for product pages", "surface": "Pricing engine", "tam": "$40K to $70K"},
+        {"use_case": "Search API for brand mentions", "surface": "Brand Pulse", "tam": "$25K to $50K"},
+        {"use_case": "Search API for EU retail data", "surface": "Northwind EU", "tam": "Not sized"}
+      ],
+      "notes": [
+        {"head": "The $120K is sized from the trial.", "text": "60 analysts, about 1.2M Research API calls a month. Could reach $180K if all analysts use it daily."},
+        {"head": "Overage keeps growing.", "text": "Search API overage was $6.1K in July, $8.0K in August and $10.1K in September."}
+      ]
+    },
+    "watch_list": [
+      {"sev": "high", "head": "Budget year ends Nov 30", "text": "Missing Nov 20 pushes the deal into a new budget cycle. It could shrink or slip a quarter."},
+      {"sev": "high", "head": "CFO we have not met", "text": "Grace could ask for a lower commit or a shorter term. Get the intro before signature."},
+      {"sev": "med", "head": "Long-question accuracy", "text": "78% on long questions. If the fix slips, Aisha may ask for a price cut."},
+      {"sev": "med", "head": "Quarry Search quote", "text": "About 15% cheaper. Elena could use it to push price after security."},
+      {"sev": "low", "head": "New Market Intelligence head", "text": "A new leader could bring their own vendor. Watch the hire."}
+    ],
+    "back_pocket": [
+      {"head": "Multi-year option", "text": "Morgan would approve 5% off for a 2-year term if price becomes the last blocker."},
+      {"head": "Search API rate drop", "text": "We could lower the over-200 QPS rate to $2.00 as part of the expansion."},
+      {"head": "Joint case study", "text": "Aisha is open to a case study. Worth offering for a faster signature."}
+    ],
+    "hygiene": [
+      {"head": "Contact roles missing", "text": "Ravi Mehta and Grace Kim are not on the opp as contact roles."},
+      {"head": "Primary endpoint blank", "text": "Primary API Endpoint should be Research API - Standard."},
+      {"head": "Next step is stale", "text": "Salesforce still says to send pricing. Pricing went out 9/29."}
+    ]
+  },
+  "sources": "Salesforce, usage dashboard, Gmail threads with Elena Brooks and Ravi Mehta, Slack #int-northwind and #deal-desk, call notes 9/22 to 10/8",
+  "update_log": [
+    {"date": "Oct 9, 2026", "text": "First Plan of Attack build. Added the business map, org map and path to signature."}
+  ]
+}

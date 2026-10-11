@@ -1,0 +1,458 @@
+<title>Pipeline Cleanup Review</title>
+<style>
+/* Layout: one narrow reading column, grouped by action, each deal a ledger of numbered changes. */
+:root {
+  --bg:#f6f7f9; --panel:#ffffff; --ink:#18202b; --mute:#5d6878; --line:#dde2ea;
+  --accent:#1f5fbf; --ok:#1d7a46; --okbg:#e5f4ea; --no:#8a3b2e; --nobg:#f8e9e5; --ask:#8a5a00; --askbg:#fbf0d9;
+  --f-display:"Manrope", system-ui, sans-serif; --f-body:"Manrope", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg:#11161d; --panel:#18202a; --ink:#e6ebf2; --mute:#97a3b4; --line:#2a3442;
+  --accent:#7aa8f0; --ok:#6fcf97; --okbg:#173326; --no:#f0a090; --nobg:#3a201b; --ask:#f0c46a; --askbg:#3a2e14; color-scheme:dark } }
+:root[data-theme="dark"] {
+  --bg:#11161d; --panel:#18202a; --ink:#e6ebf2; --mute:#97a3b4; --line:#2a3442;
+  --accent:#7aa8f0; --ok:#6fcf97; --okbg:#173326; --no:#f0a090; --nobg:#3a201b; --ask:#f0c46a; --askbg:#3a2e14; color-scheme:dark }
+body { background:var(--bg); color:var(--ink); font-family:var(--f-body); font-size:15px; line-height:1.5; }
+.wrap { max-width:880px; margin:0 auto; padding-inline:16px; padding-block:28px 64px; display:grid; gap:28px; }
+a { color:var(--accent); }
+h1,h2,h3 { font-family:var(--f-display); text-wrap:balance; margin:0; }
+h1 { font-size:28px; font-weight:800; letter-spacing:-.01em; }
+.mast p { margin:6px 0 0; color:var(--mute); max-width:65ch; }
+.tally { display:flex; flex-wrap:wrap; gap:8px 18px; margin-top:14px; font-variant-numeric:tabular-nums; font-size:14px; }
+.tally b { font-size:18px; }
+.howto { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px 16px; font-size:14px; color:var(--mute); }
+.howto b { color:var(--ink); }
+.grp { display:grid; gap:14px; }
+.grp-head { display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 14px; border-bottom:2px solid var(--ink); padding-bottom:6px; }
+.grp-head h2 { font-size:20px; }
+.count { color:var(--mute); font-size:13px; font-variant-numeric:tabular-nums; }
+.blurb { margin:0; color:var(--mute); font-size:14px; }
+.opp { background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+.opp-head { padding:14px 16px; display:grid; gap:6px; border-bottom:1px solid var(--line); }
+.opp-title { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.opp-title h3 { font-size:17px; }
+.band { font-size:11px; text-transform:uppercase; letter-spacing:.06em; padding:2px 8px; border-radius:99px; border:1px solid var(--line); color:var(--mute); }
+.band.moving { color:var(--ok); border-color:var(--ok); } .band.watch { color:var(--ask); border-color:var(--ask); }
+.opp-meta { display:flex; flex-wrap:wrap; gap:4px 16px; font-size:13px; color:var(--mute); font-variant-numeric:tabular-nums; }
+.opp-meta b { color:var(--ink); } .arrow { color:var(--mute); }
+.ev { margin:2px 0 0; font-size:14px; max-width:70ch; }
+.chgs { list-style:none; margin:0; padding:0; }
+.chg { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:6px 14px; padding:12px 16px; border-top:1px solid var(--line); }
+.chg:first-child { border-top:0; }
+.chg-head { grid-column:1 / -1; display:flex; align-items:center; gap:10px; }
+.num { font-family:var(--f-mono); font-size:12px; color:var(--mute); }
+.lbl { font-weight:700; font-size:14px; }
+.ask { font-size:11px; background:var(--askbg); color:var(--ask); padding:1px 8px; border-radius:99px; }
+.chg-body { min-width:0; display:grid; gap:6px; }
+.was { font-size:13px; color:var(--mute); } .cur.blank { font-style:italic; }
+.val { width:100%; resize:vertical; line-height:1.45; box-sizing:border-box; font:inherit; font-size:14px; padding:6px 8px; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--ink); }
+.src { font-size:12px; color:var(--mute); margin-top:3px; }
+.acts { display:flex; align-items:flex-start; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+.b { font:inherit; font-size:13px; font-weight:600; padding:6px 12px; border-radius:6px; border:1px solid var(--line); background:var(--panel); color:var(--ink); cursor:pointer; }
+.b:focus-visible, .val:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
+.b.all { justify-self:start; border-color:var(--accent); color:var(--accent); }
+.state { width:100%; text-align:right; font-size:12px; color:var(--mute); }
+.chg[data-dec="approve"] { background:var(--okbg); } .chg[data-dec="approve"] .ok { background:var(--ok); color:var(--panel); border-color:var(--ok); }
+.chg[data-dec="skip"] { background:var(--nobg); } .chg[data-dec="skip"] .no { background:var(--no); color:var(--panel); border-color:var(--no); }
+.note { font-size:13px; color:var(--mute); }
+@media (max-width:560px) { .chg { grid-template-columns:1fr; } .acts { justify-content:flex-start; } .state { text-align:left; } }
+@media (prefers-reduced-motion: reduce) { * { transition:none !important; } }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=JetBrains+Mono:wght@400&display=swap">
+<div class="wrap">
+  <header class="mast">
+    <h1>Pipeline Cleanup Review</h1>
+    <p>Proposed Salesforce updates for Sam Taylor's open opps, as of 2026-10-09, built from the State of the Union sources and your Sales Path stage fields · <a href="https://example.com/state-of-the-union" target="_blank" rel="noopener">State of the Union</a>.</p>
+    <div class="tally"><span><b>6</b> deals</span><span><b>24</b> changes</span><span><b>6</b> need your answer</span><span id="progress">Loading your decisions…</span></div>
+  </header>
+  <div class="howto"><b>How this works.</b> Approve or skip each change. Edit the value box first if the proposal is wrong. Rows marked <b>Needs you</b> had no source, so type or pick the value. Nothing goes to Salesforce until you tell Claude "apply the approved changes". Claude then writes them, moves stages one step at a time, and reads each opp back to confirm.</div>
+  <section class="grp" id="g-move">
+  <div class="grp-head"><h2>Move the stage</h2><span class="count">2 deals · 9 changes</span></div>
+  <p class="blurb">The sources show these deals are past their current stage. Fill the gate fields, then step the stage forward.</p>
+  <article class="opp" id="o-006EXAMPLE000005">
+  <header class="opp-head">
+    <div class="opp-title"><h3>Litware Health</h3><span class="band moving">moving</span></div>
+    <div class="opp-meta"><span>4 - Proof of Value <span class="arrow">to</span> <b>5 - Agreement</b></span><span>$45,000</span><span>Close 2026-11-13</span>
+      <a href="https://example.lightning.force.com/lightning/r/Opportunity/006EXAMPLE000005/view" target="_blank" rel="noopener">Open in Salesforce</a></div>
+    <p class="ev">Litware legal sent redlines on the order form 10/2. Sara said yes to the price on 9/25. Not on the opp as contact roles: Paul Novak (paul.novak@litware.example.com).</p>
+    <button type="button" class="b all" data-opp="006EXAMPLE000005">Approve all 5 for this deal</button>
+  </header>
+  <ol class="chgs"><li class="chg" data-id="c001" data-field="Proposal_Feedback__c">
+  <div class="chg-head"><span class="num">c001</span><span class="lbl">Proposal Feedback</span></div>
+  <div class="chg-body">
+    <div class="was">Now: <span class="cur blank">blank</span></div>
+    <div class="to"><input id="v-c001" class="val" type="text" value="Sara said the price fits their budget. She wants a 1-year term first." aria-label="Value for Proposal Feedback"><div class="src">Call notes 9/25</div></div>
+  </div>
+  <div class="acts" role="group" aria-label="Decision for c001">
+    <button type="button" class="b ok" data-act="approve">Approve</button>
+    <button type="button" class="b no" data-act="skip">Skip</button>
+    <span class="state" aria-live="polite"></span>
+  </div>
+</li><li class="chg" data-id="c002" data-field="Technical_Acceptance__c">
+  <div class="chg-head"><span class="num">c002</span><span class="lbl">Technical Acceptance</span></div>
+  <div class="chg-body">
+    <div class="was">Now: <span class="cur">Pending</span></div>
+    <div class="to"><input id="v-c002" class="val" type="text" value="Yes" aria-label="Value for Technical Acceptance"><div class="src">Gmail from Sara Patel 9/25: the eval results look good</div></div>
+  </div>
+  <div class="acts" role="group" aria-label="Decision for c002">
+    <button type="button" class="b ok" data-act="approve">Approve</button>
+    <button type="button" class="b no" data-act="skip">Skip</button>
+    <span class="state" aria-live="polite"></span>
+  </div>
+</li><li class="chg is-ask" data-id="c003" data-field="Commitment_to_Purchase__c">
+  <div class="chg-head"><span class="num">c003</span><span class="lbl">Commitment to Purchase</span><span class="ask">Needs you</span></div>
+  <div class="chg-body">
+    <div class="was">Now: <span class="cur blank">blank</span></div>
+    <div class="to"><select id="v-c003" class="val"><option value="">Pick one</option><option>Yes</option><option>No</option><option>Verbal</option></select><div class="src">No source found. Your call.</div></div>
+  </div>
+  <div class="acts" role="group" aria-label="Decision for c003">
+    <button type="button" class="b ok" data-act="approve">Approve</button>
+    <button type="button" class="b no" data-act="skip">Skip</button>
+    <span class="state" aria-live="polite"></span>
+  </div>
+</li><li class="chg" data-id="c004" data-field="Legal_Process_Initiated__c">
+  <div class="chg-head"><span class="num">c004</span><span class="lbl">Legal Process Initiated</span></div>
+  <div class="chg-body">
+    <div class="was">Now: <span class="cur">No</span></div>
+    <div class="to"><input id="v-c004" class="val" type="text" value="Yes" aria-label="Value for Legal Process Initiated"><div class="src">Gmail redlines from Litware legal 10/2</div></div>
+  </div>
+  <div class="acts" role="group" aria-label="Decision for c004">
+    <button type="button" class="b ok" data-act="approve">Approve</button>
+    <button type="button" class="b no" data-act="skip">Skip</button>
+    <span class="state" aria-live="polite"></span>
+  </div>
+</li><li class="chg" data-id="c005" data-field="StageName">
+  <div class="chg-head"><span class="num">c005</span><span class="lbl">Stage</span></div>
+  <div class="chg-body">
+    <div class="was">Now: <span class="cur">4 - Proof of Value</span></div>
+    <div class="to"><input id="v-c005" class="val" type="text" value="5 - Agreement" aria-label="Value for Stage"><div class="src">Litware legal sent redlines 10/2. Moves one step at a time: 5 - Agreement.</div></div>
+  </div>
+  <div class="acts" role="group" aria-label="Decision for c005">
+    <button type="button" class="b ok" data-act="approve">Approve</button>
+    <button type="button" class="b no" data-act="skip">Skip</button>
+    <span class="state" aria-live="polite"></span>
+  </div>
+</li></ol>
+</article><article class="opp" id="o-006EXAMPLE000004">
+  <header class="opp-head">
+    <div class="opp-title"><h3>Tailspin Robotics</h3><span class="band watch">watch</span></div>
+    <div class="opp-meta"><span>2 - Qualification <span class="arrow">to</span> <b>3 - Tech Eval</b></span><span>No amount</span><span>Close 2027-01-29</span>
+      <a href="https://example.lightning.force.com/lightning/r/Opportunity/006EXAMPLE000004/view" target="_blank" rel="noopener">Open in Salesforce</a></div>
+    <p class="ev">Kenji started testing on a free key 9/24 with his own test prompts. No budget owner named yet.</p>
+    <button type="button" class="b all" data-opp="006EXAMPLE000004">Approve all 4 for this deal</button>
+  </header>
+  <ol class="chgs"><li class="chg" data-id="c006" data-field="Eval_Path__c">
+  <div class="chg-head"><span class="num">c006</span><span class="lbl">Eval Path</span></div>
+  <div class="chg-body">
+    <div class="was">Now: <span class="cur blank">blank</span></div>
+    <div class="to"><input id="v-c006" class="val" type="text" value="B - Standard Public" aria-label="Value for Eval Path"><div class="src">Gmail thread with Kenji Watanabe 9/24</div></div>
+  </div>
+  <div class="acts" role="group" aria-label="Decision for c006">
+    <button type="button" class="b ok" data-act="approve">Approve</button>
+    <button type="button" class="b no" data-act="skip">Skip</button>
+    <span class="state" aria-live="polite"></span>
+  </div>
+</li><li class="chg is-ask" data-id="c007" data-field="Economic_Buyer__c">
+  <div class="chg-head"><span class="num">c007</span><span class="lbl">Economic Buyer</span><span class="ask">Needs you</span></div>
+  <div class="chg-body">
+    <div class="was">Now: <span class="cur blank">blank</span></div>
+    <div class="to"><input id="v-c007" class="val" type="text" value="" aria-label="Value for Economic Buyer"><div class="src">No source found. Your call.</div></div>
+  </div>
+  <div class="acts" role="group" aria-label="Decision for c007">
+    <button type="button" class="b ok" data-act="approve">Approve</button>
+    <button type="button" class="b no" data-act="skip">Skip</button>
+    <span class="state" aria-live="polite"></span>
+  </div>
+</li><li class="chg" data-id="c008" data-field="Metrics__c">
+  <div class="chg-head"><span class="num">c008</span><span class="lbl">Metrics (success metric)</span></div>
+  <div class="chg-body">
+    <div class="was">Now: <span class="cur blank">blank</span></div>
+    <div class="to"><input id="v-c008" class="val" type="text" value="Right manual page found for 8 of 10 repair questions." aria-label="Value for Metrics (success metric)"><div class="src">Gmail thread with Kenji Watanabe 9/24</div></div>
+  </div>
+  <div class="acts" role="group" aria-label="Decision for c008">
+    <button type="button" class="b ok" data-act="approve">Approve</button>
+    <button type="button" class="b no" data-act="skip">Skip</button>
+    <span class="state" aria-live="polite"></span>
+  </div>
+</li><li class="chg" data-id="c009" data-field="StageName">
+  <div class="chg-head"><span class="num">c009</span><span class="lbl">Stage</span></div>
+  <div class="chg-body">
+    <div class="was">Now: <span class="cur">2 - Qualification</span></div>
+    <div class="to"><input id="v-c009" class="val" type="text" value="3 - Tech Eval" aria-label="Value for Stage"><div class="src">Kenji is testing on a free key since 9/24. Moves one step at a time: 3 - Tech Eval.</div></div>
+  </div>
+  <div class="acts" role="group" aria-label="Decision for c009">
+    <button type="button" class="b ok" data-act="approve">Approve</button>
+    <button type="button" class="b no" data-act="skip">Skip</button>
+    <span class="state" aria-live="polite"></span>
+  </div>
+</li></ol>
+</article>
+</section><section class="grp" id="g-close">
+  <div class="grp-head"><h2>Close out</h2><span class="count">2 deals · 6 changes</span></div>
+  <p class="blurb">No contact and no path. Closing them as lost needs a Loss Reason.</p>
+  <article class="opp" id="o-006EXAMPLE000006">
+  <header class="opp-head">
+    <div class="opp-title"><h3>Adatum Finance</h3><span class="band quiet">quiet</span></div>
+    <div class="opp-meta"><span>1 - Discovery <span class="arrow">to</span> <b>Closed Lost</b></span><span>$25,000</span><span>Close 2027-02-26</span>
+      <a href="https://example.lightning.force.com/lightning/r/Opportunity/006EXAMPLE000006/view" target="_blank" rel="noopener">Open in Salesforce</a></div>
+    <p class="ev">No reply to follow ups on 8/25 and 9/15. Last contact was the first call on 8/11.</p>
+    <button type="button" class="b all" data-opp="006EXAMPLE000006">Approve all 3 for this deal</button>
+  </header>
+  <ol class="chgs"><li class="chg" data-id="c010" data-field="StageName">
+  <div class="chg-head"><span class="num">c010</span><span class="lbl">Stage</span></div>
+  <div class="chg-body">
+    <div class="was">Now: <span class="cur">1 - Discovery</span></div>
+    <div class="to"><input id="v-c010" class="val" type="text" value="Closed Lost" aria-label="Value for Stage"><div class="src">No reply to follow ups on 8/25 and 9/15.</div></div>
+  </div>
+  <div class="acts" role="group" aria-label="Decision for c010">
+    <button type="button" class="b ok" data-act="approve">Approve</button>
+    <button type="button" class="b no" data-act="skip">Skip</button>
+    <span class="state" aria-live="polite"></span>
+  </div>
+</li><li class="chg" data-id="c011" data-field="Loss_Reason__c">
+  <div class="chg-head"><span class="num">c011</span><span class="lbl">Loss Reason</span></div>
+  <div class="chg-body">
+    <div class="was">Now: <span class="cur blank">blank</span></div>
+    <div class="to"><input id="v-c011" class="val" type="text" value="No Decision / Non-Responsive" aria-label="Value for Loss Reason"><div class="src">Salesforce activity history, Gmail follow ups 8/25 and 9/15</div></div>
+  </div>
+  <div class="acts" role="group" aria-label="Decision for c011">
+    <button type="button" class="b ok" data-act="approve">Approve</button>
+    <button type="button" class="b no" data-act="skip">Skip</button>
+    <span class="state" aria-live="polite"></span>
+  </div>
+</li><li class="chg" data-id="c012" data-field="Close_Reason__c">
+  <div class="chg-head"><span class="num">c012</span><span class="lbl">Close Reason (required to close)</span></div>
+  <div class="chg-body">
+    <div class="was">Now: <span class="cur blank">blank</span></div>
+    <div class="to"><input id="v-c012" class="val" type="text" value="Gone Dark" aria-label="Value for Close Reason (required to close)"><div class="src">Mapped from the loss reason.</div></div>
+  </div>
+  <div class="acts" role="group" aria-label="Decision for c012">
+    <button type="button" class="b ok" data-act="approve">Approve</button>
+    <button type="button" class="b no" data-act="skip">Skip</button>
+    <span class="state" aria-live="polite"></span>
+  </div>
+</li></ol>
+</article><article class="opp" id="o-006EXAMPLE000009">
+  <header class="opp-head">
+    <div class="opp-title"><h3>Proseware</h3><span class="band quiet">quiet</span></div>
+    <div class="opp-meta"><span>2 - Qualification <span class="arrow">to</span> <b>Closed Lost</b></span><span>$15,000</span><span>Close 2027-01-15</span>
+      <a href="https://example.lightning.force.com/lightning/r/Opportunity/006EXAMPLE000009/view" target="_blank" rel="noopener">Open in Salesforce</a></div>
+    <p class="ev">No contact since 7/28. Three follow ups with no reply. They are hiring a new head of product.</p>
+    <button type="button" class="b all" data-opp="006EXAMPLE000009">Approve all 3 for this deal</button>
+  </header>
+  <ol class="chgs"><li class="chg" data-id="c013" data-field="StageName">
+  <div class="chg-head"><span class="num">c013</span><span class="lbl">Stage</span></div>
+  <div class="chg-body">
+    <div class="was">Now: <span class="cur">2 - Qualification</span></div>
+    <div class="to"><input id="v-c013" class="val" type="text" value="Closed Lost" aria-label="Value for Stage"><div class="src">No contact since 7/28. Three follow ups with no reply.</div></div>
+  </div>
+  <div class="acts" role="group" aria-label="Decision for c013">
+    <button type="button" class="b ok" data-act="approve">Approve</button>
+    <button type="button" class="b no" data-act="skip">Skip</button>
+    <span class="state" aria-live="polite"></span>
+  </div>
+</li><li class="chg is-ask" data-id="c014" data-field="Loss_Reason__c">
+  <div class="chg-head"><span class="num">c014</span><span class="lbl">Loss Reason</span><span class="ask">Needs you</span></div>
+  <div class="chg-body">
+    <div class="was">Now: <span class="cur blank">blank</span></div>
+    <div class="to"><select id="v-c014" class="val"><option value="">Pick one</option><option>Lost to Competitor</option><option>No Budget / Lost Funding</option><option>No Decision / Non-Responsive</option><option>Price</option><option>Other</option></select><div class="src">No source found. Your call.</div></div>
+  </div>
+  <div class="acts" role="group" aria-label="Decision for c014">
+    <button type="button" class="b ok" data-act="approve">Approve</button>
+    <button type="button" class="b no" data-act="skip">Skip</button>
+    <span class="state" aria-live="polite"></span>
+  </div>
+</li><li class="chg is-ask" data-id="c015" data-field="Close_Reason__c">
+  <div class="chg-head"><span class="num">c015</span><span class="lbl">Close Reason (required to close)</span><span class="ask">Needs you</span></div>
+  <div class="chg-body">
+    <div class="was">Now: <span class="cur blank">blank</span></div>
+    <div class="to"><select id="v-c015" class="val"><option value="">Pick one</option><option>Gone Dark</option><option>Timing / Not Ready</option><option>Champion Left</option><option>Product / Feature Gap</option><option>Tech Eval Performance</option><option>Pricing / Value</option><option>Incumbent Renewal</option><option>Other</option></select><div class="src">No source found. Your call.</div></div>
+  </div>
+  <div class="acts" role="group" aria-label="Decision for c015">
+    <button type="button" class="b ok" data-act="approve">Approve</button>
+    <button type="button" class="b no" data-act="skip">Skip</button>
+    <span class="state" aria-live="polite"></span>
+  </div>
+</li></ol>
+</article>
+</section><section class="grp" id="g-fill">
+  <div class="grp-head"><h2>Fill in fields only</h2><span class="count">2 deals · 9 changes</span></div>
+  <p class="blurb">The stage is right. These fields are blank or out of date.</p>
+  <article class="opp" id="o-006EXAMPLE000001">
+  <header class="opp-head">
+    <div class="opp-title"><h3>Northwind Analytics</h3><span class="band moving">moving</span></div>
+    <div class="opp-meta"><span>5 - Agreement</span><span>$120,000</span><span>Close 2026-11-20</span>
+      <a href="https://example.lightning.force.com/lightning/r/Opportunity/006EXAMPLE000001/view" target="_blank" rel="noopener">Open in Salesforce</a></div>
+    <p class="ev">Order form sent to Northwind procurement 10/6. Pricing agreed by Elena on 9/29. Amount: $120K is the Research API commit only. Search API overage bills on top. Not on the opp as contact roles: Ravi Mehta (ravi.mehta@northwind.example.com), Grace Kim (grace.kim@northwind.example.com).</p>
+    <button type="button" class="b all" data-opp="006EXAMPLE000001">Approve all 4 for this deal</button>
+  </header>
+  <ol class="chgs"><li class="chg" data-id="c016" data-field="Primary_API_Endpoint__c">
+  <div class="chg-head"><span class="num">c016</span><span class="lbl">Primary API Endpoint</span></div>
+  <div class="chg-body">
+    <div class="was">Now: <span class="cur blank">blank</span></div>
+    <div class="to"><input id="v-c016" class="val" type="text" value="Research API - Standard" aria-label="Value for Primary API Endpoint"><div class="src">Order form sent 10/6</div></div>
+  </div>
+  <div class="acts" role="group" aria-label="Decision for c016">
+    <button type="button" class="b ok" data-act="approve">Approve</button>
+    <button type="button" class="b no" data-act="skip">Skip</button>
+    <span class="state" aria-live="polite"></span>
+  </div>
+</li><li class="chg" data-id="c017" data-field="Deal_Blocker__c">
+  <div class="chg-head"><span class="num">c017</span><span class="lbl">Deal Blocker</span></div>
+  <div class="chg-body">
+    <div class="was">Now: <span class="cur blank">blank</span></div>
+    <div class="to"><input id="v-c017" class="val" type="text" value="Security questionnaire due before procurement sends the form to the CFO." aria-label="Value for Deal Blocker"><div class="src">Slack #int-northwind 10/8</div></div>
+  </div>
+  <div class="acts" role="group" aria-label="Decision for c017">
+    <button type="button" class="b ok" data-act="approve">Approve</button>
+    <button type="button" class="b no" data-act="skip">Skip</button>
+    <span class="state" aria-live="polite"></span>
+  </div>
+</li><li class="chg" data-id="c018" data-field="NextStep">
+  <div class="chg-head"><span class="num">c018</span><span class="lbl">Next Step</span></div>
+  <div class="chg-body">
+    <div class="was">Now: <span class="cur">Send pricing to Elena</span></div>
+    <div class="to"><input id="v-c018" class="val" type="text" value="10/14: Review the security questionnaire with Elena and Ravi, then ask for a signature date." aria-label="Value for Next Step"><div class="src">Call with Elena Brooks 10/8</div></div>
+  </div>
+  <div class="acts" role="group" aria-label="Decision for c018">
+    <button type="button" class="b ok" data-act="approve">Approve</button>
+    <button type="button" class="b no" data-act="skip">Skip</button>
+    <span class="state" aria-live="polite"></span>
+  </div>
+</li><li class="chg" data-id="c019" data-field="Next_Step_Date__c">
+  <div class="chg-head"><span class="num">c019</span><span class="lbl">Next Step Date</span></div>
+  <div class="chg-body">
+    <div class="was">Now: <span class="cur">2026-09-29</span></div>
+    <div class="to"><input id="v-c019" class="val" type="text" value="2026-10-14" aria-label="Value for Next Step Date"><div class="src">Calendar invite for 10/14</div></div>
+  </div>
+  <div class="acts" role="group" aria-label="Decision for c019">
+    <button type="button" class="b ok" data-act="approve">Approve</button>
+    <button type="button" class="b no" data-act="skip">Skip</button>
+    <span class="state" aria-live="polite"></span>
+  </div>
+</li></ol>
+</article><article class="opp" id="o-006EXAMPLE000007">
+  <header class="opp-head">
+    <div class="opp-title"><h3>Wingtip Data</h3><span class="band watch">watch</span></div>
+    <div class="opp-meta"><span>1 - Discovery</span><span>No amount</span><span>Close 2027-03-19</span>
+      <a href="https://example.lightning.force.com/lightning/r/Opportunity/006EXAMPLE000007/view" target="_blank" rel="noopener">Open in Salesforce</a></div>
+    <p class="ev">First call held 9/30. Use case still forming. Needs a product line item before it can leave Discovery.</p>
+    <button type="button" class="b all" data-opp="006EXAMPLE000007">Approve all 5 for this deal</button>
+  </header>
+  <ol class="chgs"><li class="chg" data-id="c020" data-field="Defined_Use_Case__c">
+  <div class="chg-head"><span class="num">c020</span><span class="lbl">Defined Use Case</span></div>
+  <div class="chg-body">
+    <div class="was">Now: <span class="cur blank">blank</span></div>
+    <div class="to"><input id="v-c020" class="val" type="text" value="Search API and Contents API find and pull new product pages for their data feeds." aria-label="Value for Defined Use Case"><div class="src">Call notes 9/30</div></div>
+  </div>
+  <div class="acts" role="group" aria-label="Decision for c020">
+    <button type="button" class="b ok" data-act="approve">Approve</button>
+    <button type="button" class="b no" data-act="skip">Skip</button>
+    <span class="state" aria-live="polite"></span>
+  </div>
+</li><li class="chg" data-id="c021" data-field="Volume_Estimate_API_Monthly_Calls__c">
+  <div class="chg-head"><span class="num">c021</span><span class="lbl">API Calls/Month</span></div>
+  <div class="chg-body">
+    <div class="was">Now: <span class="cur blank">blank</span></div>
+    <div class="to"><input id="v-c021" class="val" type="text" value="500000" aria-label="Value for API Calls/Month"><div class="src">Rosa&#x27;s rough estimate on the 9/30 call</div></div>
+  </div>
+  <div class="acts" role="group" aria-label="Decision for c021">
+    <button type="button" class="b ok" data-act="approve">Approve</button>
+    <button type="button" class="b no" data-act="skip">Skip</button>
+    <span class="state" aria-live="polite"></span>
+  </div>
+</li><li class="chg is-ask" data-id="c022" data-field="Technical_Sophistication__c">
+  <div class="chg-head"><span class="num">c022</span><span class="lbl">Technical Sophistication</span><span class="ask">Needs you</span></div>
+  <div class="chg-body">
+    <div class="was">Now: <span class="cur blank">blank</span></div>
+    <div class="to"><select id="v-c022" class="val"><option value="">Pick one</option><option>AI Native</option><option>AI Laggard</option></select><div class="src">No source found. Your call.</div></div>
+  </div>
+  <div class="acts" role="group" aria-label="Decision for c022">
+    <button type="button" class="b ok" data-act="approve">Approve</button>
+    <button type="button" class="b no" data-act="skip">Skip</button>
+    <span class="state" aria-live="polite"></span>
+  </div>
+</li><li class="chg is-ask" data-id="c023" data-field="Eval_Set_Signal__c">
+  <div class="chg-head"><span class="num">c023</span><span class="lbl">Eval Set Signal</span><span class="ask">Needs you</span></div>
+  <div class="chg-body">
+    <div class="was">Now: <span class="cur blank">blank</span></div>
+    <div class="to"><select id="v-c023" class="val"><option value="">Pick one</option><option>Has Own Dataset</option><option>Open to Public Evals</option><option>No Eval Expected</option><option>Unknown</option></select><div class="src">No source found. Your call.</div></div>
+  </div>
+  <div class="acts" role="group" aria-label="Decision for c023">
+    <button type="button" class="b ok" data-act="approve">Approve</button>
+    <button type="button" class="b no" data-act="skip">Skip</button>
+    <span class="state" aria-live="polite"></span>
+  </div>
+</li><li class="chg" data-id="c024" data-field="NextStep">
+  <div class="chg-head"><span class="num">c024</span><span class="lbl">Next Step</span></div>
+  <div class="chg-body">
+    <div class="was">Now: <span class="cur blank">blank</span></div>
+    <div class="to"><input id="v-c024" class="val" type="text" value="Get call volume and 20 sample queries from Rosa." aria-label="Value for Next Step"><div class="src">Call with Rosa Delgado 9/30</div></div>
+  </div>
+  <div class="acts" role="group" aria-label="Decision for c024">
+    <button type="button" class="b ok" data-act="approve">Approve</button>
+    <button type="button" class="b no" data-act="skip">Skip</button>
+    <span class="state" aria-live="polite"></span>
+  </div>
+</li></ol>
+</article>
+</section>
+  <p class="note">Internal only. Sources are named under each change. Field history in Salesforce keeps the old values.</p>
+</div>
+<script>
+(async () => {
+  const rows = [...document.querySelectorAll('.chg')];
+  const prog = document.getElementById('progress');
+  const byId = Object.fromEntries(rows.map(r => [r.dataset.id, r]));
+  const paint = (r, dec) => {
+    if (!dec) { r.removeAttribute('data-dec'); r.querySelector('.state').textContent = ''; return; }
+    r.dataset.dec = dec.status;
+    const inp = r.querySelector('.val');
+    if (dec.value != null && inp && inp.value !== dec.value) inp.value = dec.value;
+    r.querySelector('.state').textContent = dec.status === 'approve' ? 'Approved' : 'Skipped';
+  };
+  const count = () => {
+    const done = rows.filter(r => r.dataset.dec).length;
+    prog.textContent = done + ' of ' + rows.length + ' decided';
+  };
+  let db = null;
+  try { db = window.claude ? await window.claude.use('db') : null; } catch (_) { db = null; }
+  if (!db) {
+    prog.textContent = 'Read only here. Open this page signed in to claude.ai to record decisions.';
+    document.querySelectorAll('.b').forEach(b => b.disabled = true);
+    return;
+  }
+  db.collection('decisions').onSnapshot(snap => {
+    const seen = new Set();
+    for (const doc of snap.docs) { const r = byId[doc.id]; if (r) { paint(r, doc.data()); seen.add(doc.id); } }
+    rows.forEach(r => { if (!seen.has(r.dataset.id)) paint(r, null); });
+    count();
+  }, () => { prog.textContent = 'Could not load decisions. Reload the page to try again.'; });
+  const save = async (r, status) => {
+    const inp = r.querySelector('.val');
+    const value = inp ? inp.value.trim() : '';
+    if (status === 'approve' && r.classList.contains('is-ask') && !value) {
+      r.querySelector('.state').textContent = 'Type or pick a value first';
+      return;
+    }
+    r.querySelector('.state').textContent = 'Saving…';
+    try {
+      await db.doc('decisions/' + r.dataset.id).set({ status, value, field: r.dataset.field, opp: r.closest('.opp').id.slice(2), at: new Date().toISOString() });
+    } catch (err) {
+      r.querySelector('.state').textContent = 'Not saved. ' + (err && err.code === 'not_granted' ? 'You need edit access.' : 'Try again.');
+    }
+  };
+  document.addEventListener('click', async ev => {
+    const b = ev.target.closest('button');
+    if (!b) return;
+    if (b.dataset.act) { await save(b.closest('.chg'), b.dataset.act); return; }
+    if (b.dataset.opp) {
+      for (const r of document.querySelectorAll('#o-' + b.dataset.opp + ' .chg')) {
+        if (r.classList.contains('is-ask') && !r.querySelector('.val').value.trim()) continue;
+        await save(r, 'approve');
+      }
+    }
+  });
+})();
+</script>

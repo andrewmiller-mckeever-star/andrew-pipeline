@@ -1,0 +1,363 @@
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Northwind Analytics &middot; 2026 Plan of Attack (Oct 2026)</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter+Tight:wght@400;500;600;700&display=swap');
+
+/* Plan of Attack: example stylesheet. Tokens first, then layout, then components. */
+:root{
+  --bg:#f4f5f2; --card:#ffffff; --card-2:#eff1ed; --sunk:#e3e6e0;
+  --ink:#172019; --ink-2:#414b43; --mut:#717a72; --line:#cfd5cc; --line-soft:#e5e9e2;
+  --accent:#2f6b4f; --accent-soft:#dcebe2;
+  --win:#1f8a4c; --win-soft:#dcf2e3; --warn:#c07a12; --warn-soft:#fbeed8; --risk:#c2362f; --risk-soft:#f9e0de;
+  --iris:#5a54c4; --iris-soft:#e6e4fa;
+  --navy:#16241c; --navy-2:#1f3328; --on-navy:#eef4ef; --navy-mut:#a3b5a8; --navy-line:#2f4637; --mast-accent:#86dbab;
+  --shadow:0 1px 2px rgba(22,36,28,.06),0 6px 16px rgba(22,36,28,.05);
+  --r:12px; --r-sm:8px;
+  --sans:"Inter Tight",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --serif:"Fraunces",ui-serif,Georgia,"Times New Roman",serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0d120f; --card:#151c17; --card-2:#1b241e; --sunk:#243028;
+    --ink:#e7eee8; --ink-2:#b8c4bb; --mut:#83918a; --line:#2d3a31; --line-soft:#212b24;
+    --accent:#6fcf9b; --accent-soft:#163325;
+    --win:#56c785; --win-soft:#143022; --warn:#e8a94e; --warn-soft:#3a2b14; --risk:#f07a72; --risk-soft:#3d1c1a;
+    --iris:#a49ff5; --iris-soft:#25234a;
+    --navy:#08100b; --navy-2:#122019; --on-navy:#eef4ef; --navy-mut:#8fa496; --navy-line:#253a2d; --mast-accent:#86dbab;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.25);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0d120f; --card:#151c17; --card-2:#1b241e; --sunk:#243028;
+  --ink:#e7eee8; --ink-2:#b8c4bb; --mut:#83918a; --line:#2d3a31; --line-soft:#212b24;
+  --accent:#6fcf9b; --accent-soft:#163325;
+  --win:#56c785; --win-soft:#143022; --warn:#e8a94e; --warn-soft:#3a2b14; --risk:#f07a72; --risk-soft:#3d1c1a;
+  --iris:#a49ff5; --iris-soft:#25234a;
+  --navy:#08100b; --navy-2:#122019; --on-navy:#eef4ef; --navy-mut:#8fa496; --navy-line:#253a2d; --mast-accent:#86dbab;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.25);
+  color-scheme:dark;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--sans);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+h1,h2,h3,h4,dl,dd,p{margin:0}
+.init{display:grid;place-items:center;flex:none;font-weight:700;letter-spacing:.02em;line-height:1}
+.lbl,.newslbl,.bm-sub,.bandlbl{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
+
+/* ---------- Masthead ---------- */
+.mast{background:radial-gradient(120% 140% at 100% 0%,var(--navy-2) 0%,var(--navy) 60%);color:var(--on-navy);padding:22px 0 30px}
+.mrow{display:flex;justify-content:space-between;margin-bottom:18px}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--navy-mut)}
+.banner{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,300px);gap:24px;align-items:start}
+.bid{display:flex;align-items:center;gap:16px;min-width:0}
+.bplate{flex:none;max-width:44%;padding:12px 16px;border-radius:var(--r);background:var(--on-navy);color:var(--navy);overflow:hidden}
+.wordmark{display:block;font-family:var(--serif);font-weight:600;font-size:18px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.beye{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--navy-mut);font-weight:600}
+.bname{font-family:var(--serif);font-weight:600;font-size:clamp(28px,5.5vw,46px);line-height:1.05;letter-spacing:-.01em;overflow-wrap:anywhere}
+.bsub{margin-top:14px;max-width:66ch;color:var(--navy-mut);font-size:15px}
+.bpills{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.bpill{font-size:12px;font-weight:600;padding:4px 11px;border-radius:999px;border:1px solid var(--navy-line);color:var(--on-navy);background:rgba(255,255,255,.04)}
+.bpill.t{background:var(--mast-accent);border-color:var(--mast-accent);color:var(--navy)}
+.opp{border:1px solid var(--navy-line);border-radius:var(--r);padding:16px 18px;background:rgba(255,255,255,.05)}
+.ol{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--navy-mut)}
+.oa{font-family:var(--serif);font-weight:600;font-size:32px;line-height:1.15;margin-top:4px;font-variant-numeric:tabular-nums}
+.oa small{display:block;font-family:var(--sans);font-size:12.5px;font-weight:600;color:var(--mast-accent);margin-top:2px}
+.od{font-size:13px;color:var(--navy-mut);margin-top:8px}
+.newslbl{margin:26px 0 10px;color:var(--navy-mut)}
+.news{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px}
+.nw{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:var(--r-sm);background:rgba(255,255,255,.05);border:1px solid var(--navy-line);border-left:3px solid var(--navy-mut);font-size:13.5px;min-width:0}
+.nw.good{border-left-color:var(--win)}
+.nw.risk{border-left-color:var(--risk)}
+.nk{flex:none;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:5px;background:rgba(255,255,255,.08);color:var(--on-navy)}
+.nw.good .nk{background:var(--win);color:var(--navy)}
+.nw.risk .nk{background:var(--risk);color:var(--navy)}
+.nw>span:last-child{min-width:0;overflow-wrap:anywhere}
+.nt{display:block;font-size:11.5px;color:var(--navy-mut);margin-top:2px}
+.blockers{margin-top:22px}
+.blockers .lbl{color:var(--navy-mut);margin-bottom:10px}
+.bgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.bcard{padding:14px;border-radius:var(--r-sm);background:var(--risk-soft);color:var(--ink);border-top:3px solid var(--risk);min-width:0}
+.bcard .tag{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--risk)}
+.bt{font-weight:700;margin-top:4px;line-height:1.3}
+.bd{font-size:13px;color:var(--ink-2);margin-top:4px}
+
+/* ---------- Sections ---------- */
+.wrap>section{margin-top:40px}
+.shead{display:flex;align-items:baseline;justify-content:space-between;gap:6px 16px;flex-wrap:wrap;padding-bottom:10px;margin-bottom:16px;border-bottom:1px solid var(--line)}
+.shead h2{font-family:var(--serif);font-weight:600;font-size:24px;line-height:1.2}
+.hint{font-size:13px;color:var(--mut)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px}
+
+/* ---------- Business map ---------- */
+.bm-ctx{color:var(--ink-2);max-width:78ch}
+.bizmap-wrap{margin:16px 0;overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px}
+.bizmap-wrap svg{display:block;max-width:100%;height:auto}
+.bm-sub{margin:18px 0 8px}
+.bm-legend,.plegend,.orgleg{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--ink-2)}
+.bm-legend span,.plegend span,.orgleg span{display:inline-flex;align-items:center;gap:6px}
+.bm-legend i,.plegend i,.orgleg i{width:10px;height:10px;border-radius:3px;flex:none}
+.bm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:12px}
+.bu{--st:var(--line);--st-soft:var(--card-2);background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow);border-top:4px solid var(--st);min-width:0}
+.bu.live{--st:var(--warn);--st-soft:var(--warn-soft)}
+.bu.open{--st:var(--iris);--st-soft:var(--iris-soft)}
+.bu.gated{--st:var(--risk);--st-soft:var(--risk-soft)}
+.bu.none{--st:var(--line);--st-soft:var(--card-2)}
+.bu.none .bst{color:var(--mut)}
+.bh{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.bn{font-weight:700;font-size:16px;line-height:1.3;min-width:0}
+.bst{flex:none;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--st-soft);color:var(--st)}
+.bw{font-size:13.5px;color:var(--ink-2);margin:6px 0 10px}
+.bu dl{display:grid;gap:6px;font-size:13px}
+.bu dl>div{display:grid;grid-template-columns:84px minmax(0,1fr);gap:8px}
+.bu dt{color:var(--mut);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding-top:2px}
+.bu dd{overflow-wrap:anywhere}
+.ep{display:inline-block;font-size:11.5px;font-weight:600;padding:1px 7px;margin:0 4px 4px 0;border-radius:5px;background:var(--accent-soft);color:var(--accent)}
+.gatenote{margin-top:10px;padding:8px 10px;border-radius:var(--r-sm);background:var(--risk-soft);color:var(--risk);font-size:12.5px;font-weight:600}
+
+/* ---------- Next action ---------- */
+.nact{background:var(--accent-soft);border:1px solid var(--accent);border-left-width:5px;border-radius:var(--r);padding:16px 18px}
+.nrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;font-size:13.5px}
+.nd{font-weight:700;padding:3px 10px;border-radius:999px;background:var(--accent);color:var(--card)}
+.nch{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.nwho{color:var(--ink-2)}
+.nwhat{font-size:18px;font-weight:600;margin-top:10px;line-height:1.4}
+.nalso{margin-top:8px;font-size:13.5px;color:var(--ink-2)}
+
+/* ---------- Phase rail ---------- */
+.rail{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(150px,1fr);gap:0;overflow-x:auto;padding-bottom:6px}
+.ph{padding-right:14px;min-width:0}
+.prow{display:flex;align-items:center}
+.pdot{width:30px;height:30px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:13px;font-weight:700;background:var(--card);border:2px solid var(--line);color:var(--mut)}
+.pline{flex:1;height:2px;background:var(--line);margin-left:6px}
+.ph:last-child .pline{visibility:hidden}
+.ph.done .pdot{background:var(--win);border-color:var(--win);color:var(--card)}
+.ph.done .pline{background:var(--win)}
+.ph.now .pdot{background:var(--warn);border-color:var(--warn);color:var(--card);box-shadow:0 0 0 5px var(--warn-soft)}
+.pn{font-weight:700;margin-top:10px;line-height:1.3}
+.ph.now .pn{color:var(--warn)}
+.pw{font-size:12px;color:var(--mut);margin-top:2px}
+.pt{font-size:13px;color:var(--ink-2);margin-top:6px}
+.rail.compact .pt{font-size:12.5px}
+
+/* ---------- Eval ---------- */
+.evalv3{display:grid;grid-template-columns:200px minmax(0,1fr) minmax(0,1fr);gap:16px}
+.gauge{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;text-align:center;box-shadow:var(--shadow)}
+.gring{--p:0;--deg:calc(var(--p) * 3.6deg);width:128px;height:128px;margin:0 auto;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--accent) var(--deg),var(--sunk) 0)}
+.gring::before{content:"";grid-area:1/1;width:100px;height:100px;border-radius:50%;background:var(--card)}
+.gring span{grid-area:1/1;position:relative;font-family:var(--serif);font-size:30px;font-weight:600;font-variant-numeric:tabular-nums}
+.gl{font-weight:700;margin-top:12px}
+.gw{font-size:12.5px;color:var(--mut);margin-top:4px}
+.ecol{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow);min-width:0}
+.ecol h3{font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.ecol.up h3{color:var(--win)}
+.ecol.down h3{color:var(--risk)}
+.ecol.up h3::before{content:"\25B2";font-size:10px}
+.ecol.down h3::before{content:"\25BC";font-size:10px}
+.ecol ul{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:10px}
+.ecol li{font-size:13.5px;color:var(--ink-2);padding-left:12px;border-left:2px solid var(--line-soft)}
+.ecol.up li{border-left-color:var(--win-soft)}
+.ecol.down li{border-left-color:var(--risk-soft)}
+.ecol li b{display:block;color:var(--ink)}
+
+/* ---------- Thesis ---------- */
+.hero{background:var(--navy);color:var(--on-navy);border-radius:var(--r);padding:26px 28px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-60px;top:-60px;width:200px;height:200px;border-radius:50%;background:var(--mast-accent);opacity:.12}
+.hero .lbl{color:var(--mast-accent)}
+.hero p{font-family:var(--serif);font-size:20px;line-height:1.5;margin-top:10px;max-width:70ch;position:relative}
+.hero p b{color:var(--mast-accent);font-weight:600}
+.win3{list-style:none;counter-reset:w;margin:20px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;position:relative}
+.win3 li{counter-increment:w;font-size:13.5px;color:var(--navy-mut);padding:12px 14px;border:1px solid var(--navy-line);border-radius:var(--r-sm);background:rgba(255,255,255,.04)}
+.win3 li::before{content:"0" counter(w);display:block;font-family:var(--serif);font-size:20px;color:var(--mast-accent);line-height:1;margin-bottom:6px}
+.win3 li b{display:block;color:var(--on-navy)}
+
+/* ---------- Path ---------- */
+.plegend{margin-bottom:14px}
+.path{list-style:none;margin:0;padding:0;position:relative}
+.path::before{content:"";position:absolute;left:13px;top:8px;bottom:8px;width:2px;background:var(--line)}
+.path li{position:relative;padding:0 0 18px 44px}
+.pd{position:absolute;left:0;top:0;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;background:var(--card);border:2px solid var(--line);color:var(--mut)}
+.path li.done .pd{background:var(--win);border-color:var(--win);color:var(--card)}
+.path li.prog .pd{background:var(--warn);border-color:var(--warn);color:var(--card)}
+.path li.unv .pd{border:2px dashed var(--mut);background:var(--bg)}
+.ph1{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;padding-top:3px}
+.pnm{font-weight:700}
+.pwh{font-size:12px;color:var(--mut)}
+.pnote{font-size:13.5px;color:var(--ink-2);margin-top:2px}
+.pown{font-size:12px;color:var(--mut);margin-top:2px}
+.path li.unv .pnm{color:var(--ink-2);font-weight:600}
+.path li.unv .pnote{color:var(--mut)}
+
+/* ---------- Org map ---------- */
+.orgrule{font-size:13.5px;padding:10px 14px;border-radius:var(--r-sm);background:var(--warn-soft);color:var(--ink);border-left:3px solid var(--warn);margin-bottom:12px}
+.orgsum{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;font-size:13px;color:var(--mut);padding-bottom:14px;border-bottom:1px solid var(--line-soft)}
+.orgsum b{color:var(--ink);font-size:16px;font-variant-numeric:tabular-nums}
+.orgleg{margin-left:auto}
+.tree{padding-top:6px}
+.bandlbl{margin:18px 0 10px}
+.lvl{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.tcard{position:relative;padding:12px 12px 12px 14px;border-radius:var(--r-sm);background:var(--card-2);border:1px solid var(--line-soft);border-left:4px solid var(--line);min-width:0}
+.tcard.st-talking{border-left-color:var(--win);background:var(--win-soft)}
+.tcard.st-target{border-left-color:var(--iris);background:var(--iris-soft)}
+.tcard.st-none{border-left-color:var(--line)}
+.tcard.ghost{background:transparent;border:1.5px dashed var(--line);border-left-width:1.5px;color:var(--mut)}
+.avl{width:34px;height:34px;border-radius:50%;font-size:12px;background:var(--card);color:var(--ink-2);border:1px solid var(--line);margin-bottom:8px}
+.tcard.st-talking .avl{background:var(--win);color:var(--card);border-color:var(--win)}
+.tcard.st-target .avl{background:var(--iris);color:var(--card);border-color:var(--iris)}
+.lv{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:999px;margin:0 4px 6px 0;background:var(--card);color:var(--ink-2)}
+.lv.talk{background:var(--win);color:var(--card)}
+.lv.target{background:var(--iris);color:var(--card)}
+.tcard .nm{font-weight:700;line-height:1.3;overflow-wrap:anywhere}
+.tcard .ti{font-size:12.5px;color:var(--ink-2)}
+.tcard .own{font-size:12px;color:var(--mut);margin-top:6px}
+.teamcols{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.tcol{background:var(--card-2);border-radius:var(--r-sm);padding:12px;min-width:0}
+.tcol h4{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);margin-bottom:8px}
+.mini{display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--line-soft)}
+.mini:first-of-type{border-top:0}
+.avs{width:28px;height:28px;border-radius:50%;font-size:11px;background:var(--card);border:1px solid var(--line);color:var(--ink-2)}
+.mini.talk .avs{background:var(--win);border-color:var(--win);color:var(--card)}
+.mini .who{min-width:0}
+.mini .nm{font-weight:600;font-size:13.5px}
+.mini .ti{font-size:12px;color:var(--mut)}
+.fp{margin-top:18px;padding-top:14px;border-top:1px solid var(--line-soft)}
+.fp .note{font-size:13.5px;color:var(--ink-2);margin-top:4px}
+
+/* ---------- Details ---------- */
+details{background:var(--card);border:1px solid var(--line);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:14px 16px;font-weight:700}
+summary::-webkit-details-marker{display:none}
+summary:hover{background:var(--card-2)}
+.caret{flex:none;font-size:10px;color:var(--mut);transition:transform .18s ease}
+details[open] .caret{transform:rotate(90deg);color:var(--accent)}
+.ct{margin-left:auto;font-size:12px;font-weight:500;color:var(--mut);text-align:right}
+details .body{padding:4px 16px 18px;border-top:1px solid var(--line-soft)}
+.signers{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin:14px 0}
+.signer{display:flex;gap:12px;padding:12px;border-radius:var(--r-sm);background:var(--card-2);min-width:0}
+.signer>div{min-width:0}
+.av{width:32px;height:32px;border-radius:50%;font-size:11.5px;background:var(--accent-soft);color:var(--accent)}
+.seat{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.signer .nm,.roster .nm{font-weight:700}
+.signer .ti,.roster .ti{font-size:12.5px;color:var(--ink-2)}
+.signer .rl{font-size:12.5px;color:var(--ink-2);margin-top:4px}
+.mt{font-size:12px;color:var(--mut);margin-top:4px;overflow-wrap:anywhere}
+
+/* ---------- Tables ---------- */
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line-soft);border-radius:var(--r-sm);margin-top:12px;max-width:100%}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);background:var(--card-2);padding:9px 12px;white-space:nowrap}
+td{padding:10px 12px;border-top:1px solid var(--line-soft);vertical-align:top;color:var(--ink-2)}
+tr:hover td{background:var(--card-2)}
+.roster .who{display:flex;align-items:center;gap:10px}
+.roster td.rl{min-width:220px}
+.tag.active{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--iris-soft);color:var(--iris);white-space:nowrap}
+.d td.k{font-weight:700;color:var(--ink);white-space:nowrap}
+.d .sub{display:block;font-weight:400;font-size:12px;color:var(--mut)}
+.tam{font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* ---------- Watch lists ---------- */
+.watch{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:8px}
+.watch li{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border-radius:var(--r-sm);background:var(--card-2)}
+.watch li>div{min-width:0}
+.wh{font-weight:700}
+.wb{font-size:13.5px;color:var(--ink-2);margin-top:2px}
+.sev{flex:none;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:5px;margin-top:2px;min-width:44px;text-align:center}
+.sev.high{background:var(--risk);color:var(--card)}
+.sev.med{background:var(--warn-soft);color:var(--warn);box-shadow:inset 0 0 0 1px var(--warn)}
+.sev.low{background:var(--card);color:var(--mut);box-shadow:inset 0 0 0 1px var(--line)}
+
+/* ---------- Footer ---------- */
+footer{margin:48px 0 40px;padding-top:18px;border-top:1px solid var(--line);font-size:12.5px;color:var(--mut);line-height:1.6}
+footer b{color:var(--ink-2)}
+
+/* ---------- Responsive ---------- */
+@media (max-width:900px){
+  .banner{grid-template-columns:minmax(0,1fr)}
+  .evalv3{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .gauge{grid-column:1/-1;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:18px;align-items:center;text-align:left}
+  .gauge .gring{grid-row:span 2}
+  .gl{margin-top:0}
+}
+@media (max-width:640px){
+  .wrap{padding:0 16px}
+  .mast{padding:18px 0 24px}
+  .bid{flex-direction:column;align-items:flex-start;gap:10px}
+  .bplate{max-width:100%}
+  .evalv3{grid-template-columns:minmax(0,1fr)}
+  .gring{width:104px;height:104px}
+  .gring::before{width:80px;height:80px}
+  .gring span{font-size:24px}
+  .bm-grid,.lvl,.signers,.news,.bgrid{grid-template-columns:minmax(0,1fr)}
+  .lvl{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .rail{grid-auto-flow:row;grid-auto-columns:auto}
+  .ph{display:grid;grid-template-columns:30px minmax(0,1fr);column-gap:12px;padding:0 0 14px}
+  .prow{grid-row:span 4;flex-direction:column;align-self:stretch}
+  .pline{width:2px;height:auto;flex:1;margin:4px 0 0}
+  .pn{margin-top:4px}
+  .hero{padding:20px}
+  .hero p{font-size:17px}
+  .orgleg{margin-left:0}
+  .shead h2{font-size:21px}
+  .ct{display:none}
+}
+@media (max-width:380px){
+  .lvl{grid-template-columns:minmax(0,1fr)}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}
+}
+@media print{
+  details{break-inside:avoid}
+  details:not([open]) .body{display:block}
+}
+</style>
+
+<header class="mast"><div class="wrap">
+<div class="mrow"><span class="eyebrow">Sam Taylor &middot; API Sales</span></div>
+<div class="banner"><div><div class="bid"><div class="bplate"><span class="wordmark">Northwind Analytics</span></div><div><div class="beye">2026 Plan of Attack &middot; as of Oct 9, 2026</div><div class="bname">Northwind Analytics</div></div></div><div class="bsub">A happy Search API customer that went over its commit three months in a row. The Research API trial passed. The $120K expansion is with procurement and needs a security questionnaire before it reaches the CFO.</div><div class="bpills"><span class="bpill t">Customer since Mar 2026</span><span class="bpill">Search API live</span><span class="bpill">Research API in Agreement</span><span class="bpill">$120K expansion</span><span class="bpill">Close Nov 20</span></div></div><div class="opp"><div class="ol">Opportunity</div><div class="oa">$120,000<small>5 - Agreement</small></div><div class="od">Research API expansion. $9 per 1,000 calls on a $120K annual commit. Order form sent 10/6. Search API overage bills on top.</div></div></div><div class="newslbl">Top of mind</div><div class="news"><div class="nw good"><span class="nk">Product</span><span>Research API trial scored 87% correct on their 200-question test set. Target in the plan is 90% at go-live.<span class="nt">Sep 22</span></span></div><div class="nw good"><span class="nk">Price</span><span>Elena agreed to $9 per 1,000 calls if the commit starts Dec 1.<span class="nt">Sep 29</span></span></div><div class="nw "><span class="nk">Paper</span><span>Order form sent to Ravi Mehta in procurement.<span class="nt">Oct 6</span></span></div><div class="nw risk"><span class="nk">Security</span><span>Ravi will not send the form to the CFO until our security questionnaire is back. It has 64 questions.<span class="nt">Oct 8</span></span></div><div class="nw risk"><span class="nk">Timing</span><span>Their budget year ends Nov 30. If we miss Nov 20, the deal moves to next year&#x27;s budget.<span class="nt">Oct 8</span></span></div></div>
+<div class="blockers"><div class="lbl">Blockers</div><div class="bgrid"><div class="bcard"><span class="tag">Security</span><div class="bt">Questionnaire not done.</div><div class="bd">64 questions. Leo has 41 answered. Data retention and log access are the hard ones.</div></div><div class="bcard"><span class="tag">Access</span><div class="bt">We have never met the CFO.</div><div class="bd">Grace Kim signs anything over $100K. Elena has not offered an intro yet.</div></div><div class="bcard"><span class="tag">Accuracy</span><div class="bt">87% is short of 90%.</div><div class="bd">The plan promises 90% at go-live. Priya thinks a prompt change on long questions closes the gap.</div></div><div class="bcard"><span class="tag">Timing</span><div class="bt">Budget year ends Nov 30.</div><div class="bd">Procurement plus legal plus signature usually takes four weeks at Northwind.</div></div></div></div>
+</div></header>
+
+<div class="wrap">
+<section><div class="shead"><h2>Business structure map</h2>
+<span class="hint">Where search lives, which endpoint fits, who holds it today.</span></div>
+<div class="bm-ctx">Northwind Analytics sells market data and analyst reports to retail and travel brands. About 1,400 staff. Four units buy data tools on their own budgets. We are live in one and have a deal open in a second.</div><div class="bm-sub">Unit by unit</div><div class="bm-legend"><span><i style="background:var(--warn)"></i>Live eval</span><span><i style="background:var(--iris)"></i>Deal open</span><span><i style="background:var(--risk)"></i>Gated</span><span><i style="background:var(--line)"></i>Not engaged</span></div><div class="bm-grid"><div class="bu open"><div class="bh"><div class="bn">Analyst Reports</div><span class="bst">Deal open</span></div><div class="bw">Writes paid market reports for retail and travel clients. About 60 analysts.</div><dl><div><dt>Search</dt><dd>Research API drafts the first pass of each report with sources. Analysts check and finish it.</dd></div><div><dt>Endpoints</dt><dd><span class="ep">Research API</span><span class="ep">Search API</span></dd></div><div><dt>Incumbent</dt><dd>Manual research. Quarry Search was in the bake-off.</dd></div><div><dt>Owner</dt><dd>Aisha Rahman (Director of Research Products)</dd></div></dl></div><div class="bu live"><div class="bh"><div class="bn">Pricing Intelligence</div><span class="bst">Live eval</span></div><div class="bw">Tracks retail prices across the web for their pricing engine product.</div><dl><div><dt>Search</dt><dd>Search API live since March. Next is a Contents API eval to pull full product pages.</dd></div><div><dt>Endpoints</dt><dd><span class="ep">Search API</span><span class="ep">Contents API</span></dd></div><div><dt>Incumbent</dt><dd>Acme Search for search. Their own scraper for pages.</dd></div><div><dt>Owner</dt><dd>Jordan Blake (Staff Engineer)</dd></div></dl><div class="gatenote">Gate: Contents API eval starts after the Research API deal signs.</div></div><div class="bu gated"><div class="bh"><div class="bn">Northwind EU</div><span class="bst">Gated</span></div><div class="bw">The same products sold to clients in Europe. Run from their Dublin office.</div><dl><div><dt>Search</dt><dd>Would use the Search API for EU retail data.</dd></div><div><dt>Endpoints</dt><dd><span class="ep">Search API</span></dd></div><div><dt>Incumbent</dt><dd>Unknown</dd></div><div><dt>Owner</dt><dd>Not engaged</dd></div></dl><div class="gatenote">Gate: Needs EU data residency. Not on our roadmap until Q2 2027.</div></div><div class="bu none"><div class="bh"><div class="bn">Marketing Analytics</div><span class="bst">Not engaged</span></div><div class="bw">Measures brand mentions and ad reach for clients.</div><dl><div><dt>Search</dt><dd>Possible fit for news and web mentions through the Search API.</dd></div><div><dt>Endpoints</dt><dd><span class="ep">Search API</span></dd></div><div><dt>Incumbent</dt><dd>Unknown</dd></div><div><dt>Owner</dt><dd>Not engaged</dd></div></dl></div></div></section>
+
+<section><div class="shead"><h2>Next action</h2></div><div class="nact"><div class="nrow"><span class="nd">Tue Oct 14</span><span class="nch">Video call</span><span class="nwho"><b>Sam Taylor</b> with <b>Priya Nair</b>, for <b>Elena Brooks and Ravi Mehta</b></span></div><div class="nwhat">Walk through the finished security questionnaire. Answer Ravi&#x27;s questions live. Ask for the date the form goes to Grace Kim.</div><div class="nalso"><b>Then:</b> Sam asks Elena for a 20-minute intro to Grace before signature. Priya shares the prompt fix that lifts long-question accuracy.</div></div></section>
+
+<section><div class="shead"><h2>What we have done, and what is left</h2>
+<span class="hint">3 of 5 phases complete. Phase 4 is live now.</span></div>
+<div class="rail compact"><div class="ph done"><div class="prow"><span class="pdot num">&#10003;</span><span class="pline"></span></div><div class="pn">Land the Search API</div><div class="pw">Mar 3, 2026</div><div class="pt">$60K annual commit signed for the pricing engine.</div></div><div class="ph done"><div class="prow"><span class="pdot num">&#10003;</span><span class="pline"></span></div><div class="pn">Grow usage</div><div class="pw">Jul to Sep 2026</div><div class="pt">Went over commit three months running. $24.2K overage billed.</div></div><div class="ph done"><div class="prow"><span class="pdot num">&#10003;</span><span class="pline"></span></div><div class="pn">Research API trial</div><div class="pw">Aug 26 to Sep 22</div><div class="pt">87% correct on their 200-question test set. Report draft time fell from 6 hours to about 2.5.</div></div><div class="ph now"><div class="prow"><span class="pdot num">4</span><span class="pline"></span></div><div class="pn">Paper the expansion</div><div class="pw">Oct 2026</div><div class="pt">$120K Research API commit. Security, legal and CFO signature left.</div></div><div class="ph next"><div class="prow"><span class="pdot num">5</span><span class="pline"></span></div><div class="pn">Expand to more units</div><div class="pw">Q1 2027</div><div class="pt">Contents API eval in Pricing Intelligence. First call with Marketing Analytics.</div></div></div></section>
+
+<section><div class="shead"><h2>The eval</h2>
+<span class="hint">The Research API trial ran on Northwind&#x27;s own test set from Aug 26 to Sep 22. Jordan Blake ran it with Priya.</span></div>
+<div class="evalv3"><div class="gauge"><div class="gring" style="--p:75"><span>75%</span></div><div class="gl">Confidence we win</div><div class="gw">My estimate. The champion and the budget are real. The risk is the clock and a CFO we have not met.</div></div><div class="ecol up"><h3>Where we win</h3><ul><li><b>Their own test set.</b> 87% correct on 200 real analyst questions, with a source for each answer.</li><li><b>Time saved.</b> Draft time fell from 6 hours to about 2.5 hours per report in the trial.</li><li><b>Already a customer.</b> Security reviewed us in March. Much of the questionnaire repeats.</li><li><b>One bill.</b> Elena likes having search and research on one contract.</li></ul></div><div class="ecol down"><h3>Where we fall short</h3><ul><li><b>Long questions.</b> Accuracy drops to 78% on questions over 40 words.</li><li><b>Quarry Search is cheaper.</b> Their quote was about 15% lower. Elena says quality matters more, for now.</li><li><b>No CFO contact.</b> Grace Kim has never heard our pitch. She signs over $100K.</li><li><b>Tight clock.</b> Four weeks of paper in a six-week window.</li></ul></div></div></section>
+
+<section><div class="hero"><div class="lbl">Deal thesis</div><p>Northwind already trusts us with their pricing engine. <b>The Research API saves each analyst about 3.5 hours per report.</b> With 60 analysts, that is the case Elena will take to the CFO. We win if we <b>finish security fast, meet Grace before signature, and close the accuracy gap on long questions.</b></p><ol class="win3"><li><b>Send the questionnaire by 10/13.</b> Leo finishes the last 23 answers. Dana checks the retention answers.</li><li><b>Meet Grace Kim.</b> Ask Elena for a short intro. Bring the time-saved math, not a demo.</li><li><b>Close the accuracy gap.</b> Priya ships the long-question prompt fix and reruns the test set before go-live.</li><li><b>Line up the next unit.</b> Plan the Contents API eval with Jordan so it starts the week after signature.</li></ol></div></section>
+
+<section><div class="shead"><h2>Path to partnership</h2>
+<span class="hint">Chronological. Legal, finance and signature are always the last three.</span></div>
+<div class="plegend"><span><i style="background:var(--win)"></i>Done</span><span><i style="background:var(--warn)"></i>In progress</span><span><i style="border:2px dashed var(--mut)"></i>Unverified or down the road</span></div><ol class="path"><li class="done"><span class="pd">&#10003;</span><div class="ph1"><span class="pnm">Search API contract signed</span><span class="pwh">Mar 3</span></div><div class="pnote">$60K annual commit for the pricing engine.</div><div class="pown">Sam Taylor, Elena Brooks</div></li><li class="done"><span class="pd">&#10003;</span><div class="ph1"><span class="pnm">Over commit three months running</span><span class="pwh">Jul to Sep</span></div><div class="pnote">$24.2K overage billed. Opened the expansion talk.</div><div class="pown">Sam Taylor, Chris Wu</div></li><li class="done"><span class="pd">&#10003;</span><div class="ph1"><span class="pnm">Research API trial key issued</span><span class="pwh">Aug 26</span></div><div class="pnote">Trial key for the Analyst Reports team.</div><div class="pown">Priya Nair, Jordan Blake</div></li><li class="done"><span class="pd">&#10003;</span><div class="ph1"><span class="pnm">Trial results reviewed</span><span class="pwh">Sep 22</span></div><div class="pnote">87% correct on 200 questions. Draft time down to 2.5 hours.</div><div class="pown">Priya Nair, Aisha Rahman</div></li><li class="done"><span class="pd">&#10003;</span><div class="ph1"><span class="pnm">Pricing agreed</span><span class="pwh">Sep 29</span></div><div class="pnote">$9 per 1,000 calls. $120K commit from Dec 1.</div><div class="pown">Sam Taylor, Elena Brooks</div></li><li class="prog"><span class="pd">&hellip;</span><div class="ph1"><span class="pnm">Order form with procurement</span><span class="pwh">Oct 6</span></div><div class="pnote">Ravi holds it until security is done.</div><div class="pown">Sam Taylor, Ravi Mehta</div></li><li class="prog"><span class="pd">&hellip;</span><div class="ph1"><span class="pnm">Security questionnaire</span><span class="pwh">Due Oct 13</span></div><div class="pnote">41 of 64 answered.</div><div class="pown">Leo Park, Mei Lin</div></li><li class="unv"><span class="pd"></span><div class="ph1"><span class="pnm">Long-question accuracy fix</span><span class="pwh">Oct 24</span></div><div class="pnote">Rerun the test set. Aim for 90%.</div><div class="pown">Priya Nair, Jordan Blake</div></li><li class="unv"><span class="pd"></span><div class="ph1"><span class="pnm">Legal review of the MSA amendment</span><span class="pwh">Late Oct</span></div><div class="pnote">Owen Hart reviews. Dana expects light edits.</div><div class="pown">Dana Ruiz, Owen Hart</div></li><li class="unv"><span class="pd"></span><div class="ph1"><span class="pnm">Finance approval</span><span class="pwh">Early Nov</span></div><div class="pnote">Grace Kim approves the $120K spend.</div><div class="pown">Chris Wu, Grace Kim</div></li><li class="unv"><span class="pd"></span><div class="ph1"><span class="pnm">Signature</span><span class="pwh">Nov 20</span></div><div class="pnote">Order form plus MSA amendment.</div><div class="pown">Morgan Chen, Grace Kim</div></li></ol></section>
+
+<section><div class="shead"><h2>Org map</h2>
+<span class="hint">8 people mapped</span></div>
+<div class="orgrule">Elena picks the vendor. Grace signs anything over $100K. Procurement and security can stall a deal for weeks, so we keep Ravi and Mei in the loop early.</div>
+<div class="card orgcard"><div class="orgsum"><span><b>8</b> mapped</span><span><b>4</b> talking to</span><span><b>2</b> trying to reach</span><span><b>2</b> not engaged</span><span class="orgleg"><span><i style="background:var(--win)"></i>Talking to</span><span><i style="background:var(--iris)"></i>Trying to reach</span><span><i style="background:var(--line)"></i>Not engaged</span></span></div><div class="tree"><div class="bandlbl">Founders &amp; C-suite</div><div class="lvl"><div class="tcard st-target"><span class="avl init">TS</span><span class="lv target">Trying to reach</span><span class="lv sg" style="background:var(--navy);color:var(--on-navy)">Decider</span><div class="nm">Tomas Silva</div><div class="ti">CTO</div><div class="own">Elena&#x27;s boss. Approved the March deal by email. We have not met him.</div></div><div class="tcard st-target"><span class="avl init">GK</span><span class="lv target">Trying to reach</span><span class="lv sg" style="background:var(--navy);color:var(--on-navy)">Signer</span><div class="nm">Grace Kim</div><div class="ti">CFO</div><div class="own">Signs anything over $100K. Need an intro from Elena.</div></div></div><div class="bandlbl">VPs &amp; heads</div><div class="lvl"><div class="tcard st-talking"><span class="avl init">EB</span><span class="lv talk">Talking to</span><span class="lv sg" style="background:var(--navy);color:var(--on-navy)">Champion</span><div class="nm">Elena Brooks</div><div class="ti">VP Data Platform</div><div class="own">Bought the Search API in March. Running the expansion. Weekly calls.</div></div><div class="tcard st-none"><span class="avl init">NQ</span><span class="lv" style="background:var(--line-soft);color:var(--mut)">Not engaged</span><div class="nm">Nora Quinn</div><div class="ti">VP Product</div><div class="own">Owns the report products. Aisha reports to her.</div></div><div class="tcard ghost"><span class="avl init">?</span><div class="nm">Head of Market Intelligence</div><div class="ti">New role, not yet hired</div><div class="own">Posted Sep 30. Would own Marketing Analytics tools.</div></div></div><div class="bandlbl">Directors &amp; managers</div><div class="lvl"><div class="tcard st-talking"><span class="avl init">AR</span><span class="lv talk">Talking to</span><div class="nm">Aisha Rahman</div><div class="ti">Director of Research Products</div><div class="own">Ran the trial on the analyst side. Wants the time-saved numbers in the contract.</div></div><div class="tcard st-none"><span class="avl init">BC</span><span class="lv" style="background:var(--line-soft);color:var(--mut)">Not engaged</span><div class="nm">Ben Carter</div><div class="ti">Data Engineering Manager</div><div class="own">Runs the pipelines. Will own the Research API keys after go-live.</div></div></div><div class="bandlbl">Influencers &amp; champions</div><div class="lvl"><div class="tcard st-talking"><span class="avl init">JB</span><span class="lv talk">Talking to</span><div class="nm">Jordan Blake</div><div class="ti">Staff Engineer, Pricing Intelligence</div><div class="own">Built the test set and ran the trial with Priya. Wants the Contents API next.</div></div><div class="tcard st-talking"><span class="avl init">HM</span><span class="lv talk">Talking to</span><div class="nm">Hugo Martin</div><div class="ti">Senior Analyst</div><div class="own">Power user in the trial. Wrote the feedback Aisha shared.</div></div></div><div class="bandlbl" style="margin-top:22px">Gatekeepers &middot; who signs off on paper</div><div class="teamcols" style="margin-top:0"><div class="tcol"><h4>Procurement</h4><div class="mini talk"><span class="avs init">RM</span><div class="who"><div class="nm">Ravi Mehta</div><div class="ti">Procurement Manager &middot; Talking to</div></div></div></div><div class="tcol"><h4>Security</h4><div class="mini"><span class="avs init">ML</span><div class="who"><div class="nm">Mei Lin</div><div class="ti">Head of Security &middot; Trying to reach</div></div></div></div><div class="tcol"><h4>Legal</h4><div class="mini"><span class="avs init">OH</span><div class="who"><div class="nm">Owen Hart</div><div class="ti">General Counsel &middot; Not engaged</div></div></div></div></div></div><div class="fp"><div class="lbl">Where their people sit</div><div class="note">HQ in Chicago. Analysts in Chicago and Austin. EU team in Dublin.</div></div></div></section>
+
+<section><div class="shead"><h2>More details</h2>
+<span class="hint">Open what you need.</span></div>
+<details><summary><span class="caret">&#9654;</span>The room, in detail<span class="ct">2 signers &middot; 5 named seats</span></summary><div class="body"><div class="signers"><div class="signer"><span class="av init">GK</span><div><span class="seat">Economic buyer</span><div class="nm">Grace Kim</div><div class="ti">CFO</div><div class="rl">Signs anything over $100K. Has not met us.</div><div class="mt">grace.kim@northwind.example.com</div></div></div><div class="signer"><span class="av init">EB</span><div><span class="seat">Executive sponsor</span><div class="nm">Elena Brooks</div><div class="ti">VP Data Platform</div><div class="rl">Owns the budget line. Picked us twice.</div><div class="mt">elena.brooks@northwind.example.com</div></div></div></div><div class="tw"><table class="roster" style="min-width:560px"><tr><th>Who</th><th>Seat in this deal</th><th>Why they matter</th></tr><tr><td><div class="who"><span class="av init">RM</span><div><div class="nm">Ravi Mehta</div><div class="ti">Procurement Manager</div></div></div></td><td><span class="tag active">Paper owner</span></td><td class="rl">Holds the order form. Wants security done first.</td></tr><tr><td><div class="who"><span class="av init">ML</span><div><div class="nm">Mei Lin</div><div class="ti">Head of Security</div></div></div></td><td><span class="tag active">Security review</span></td><td class="rl">Signs off on the questionnaire. Reviewed us in March.</td></tr><tr><td><div class="who"><span class="av init">OH</span><div><div class="nm">Owen Hart</div><div class="ti">General Counsel</div></div></div></td><td><span class="tag active">Legal review</span></td><td class="rl">Reviews the MSA amendment. Light touch in March.</td></tr><tr><td><div class="who"><span class="av init">AR</span><div><div class="nm">Aisha Rahman</div><div class="ti">Director of Research Products</div></div></div></td><td><span class="tag active">Business owner</span></td><td class="rl">Her analysts use the product. Her numbers make the case.</td></tr><tr><td><div class="who"><span class="av init">JB</span><div><div class="nm">Jordan Blake</div><div class="ti">Staff Engineer</div></div></div></td><td><span class="tag active">Technical lead</span></td><td class="rl">Ran the trial. Owns the integration.</td></tr></table></div></div></details>
+<details><summary><span class="caret">&#9654;</span>Their surfaces<span class="ct">4 products</span></summary><div class="body"><div class="tw"><table class="d"><tr><th>Surface</th><th>What it is</th><th>Owner</th><th>Our angle</th></tr><tr><td class="k">Analyst Reports<span class="sub">deal open</span></td><td>Paid market reports for retail and travel clients.</td><td>Aisha Rahman</td><td>Research API drafts each report with sources.</td></tr><tr><td class="k">Pricing engine<span class="sub">live</span></td><td>Tracks retail prices across the web.</td><td>Jordan Blake</td><td>Search API today. Contents API for full product pages next.</td></tr><tr><td class="k">Brand Pulse<span class="sub">not engaged</span></td><td>Brand mention and ad reach dashboard.</td><td>Not named</td><td>Search API for news and web mentions.</td></tr><tr><td class="k">Northwind EU<span class="sub">gated</span></td><td>EU versions of all three products.</td><td>Not named</td><td>Search API once EU data residency ships.</td></tr></table></div></div></details>
+<details><summary><span class="caret">&#9654;</span>Commercials &amp; TAM<span class="ct">scored use cases</span></summary><div class="body"><div class="tw"><table class="d" style="min-width:480px"><tr><th>Scored use case</th><th>Their surface</th><th>TAM (mid)</th></tr><tr><td class="k" style="white-space:normal">Research API for analyst report drafts</td><td>Analyst Reports</td><td><span class="tam">$120K to $180K</span></td></tr><tr><td class="k" style="white-space:normal">Contents API for product pages</td><td>Pricing engine</td><td><span class="tam">$40K to $70K</span></td></tr><tr><td class="k" style="white-space:normal">Search API for brand mentions</td><td>Brand Pulse</td><td><span class="tam">$25K to $50K</span></td></tr><tr><td class="k" style="white-space:normal">Search API for EU retail data</td><td>Northwind EU</td><td><span class="tam">Not sized</span></td></tr></table></div><ul class="watch" style="margin-top:14px"><li><div class="wh">The $120K is sized from the trial.</div><div class="wb">60 analysts, about 1.2M Research API calls a month. Could reach $180K if all analysts use it daily.</div></li><li><div class="wh">Overage keeps growing.</div><div class="wb">Search API overage was $6.1K in July, $8.0K in August and $10.1K in September.</div></li></ul></div></details>
+<details><summary><span class="caret">&#9654;</span>Watch list<span class="ct">5 items</span></summary><div class="body"><ul class="watch"><li><span class="sev high">high</span><div><div class="wh">Budget year ends Nov 30</div><div class="wb">Missing Nov 20 pushes the deal into a new budget cycle. It could shrink or slip a quarter.</div></div></li><li><span class="sev high">high</span><div><div class="wh">CFO we have not met</div><div class="wb">Grace could ask for a lower commit or a shorter term. Get the intro before signature.</div></div></li><li><span class="sev med">med</span><div><div class="wh">Long-question accuracy</div><div class="wb">78% on long questions. If the fix slips, Aisha may ask for a price cut.</div></div></li><li><span class="sev med">med</span><div><div class="wh">Quarry Search quote</div><div class="wb">About 15% cheaper. Elena could use it to push price after security.</div></div></li><li><span class="sev low">low</span><div><div class="wh">New Market Intelligence head</div><div class="wb">A new leader could bring their own vendor. Watch the hire.</div></div></li></ul></div></details>
+<details><summary><span class="caret">&#9654;</span>Keep in the back pocket<span class="ct">3 items</span></summary><div class="body"><ul class="watch"><li><div><div class="wh">Multi-year option</div><div class="wb">Morgan would approve 5% off for a 2-year term if price becomes the last blocker.</div></div></li><li><div><div class="wh">Search API rate drop</div><div class="wb">We could lower the over-200 QPS rate to $2.00 as part of the expansion.</div></div></li><li><div><div class="wh">Joint case study</div><div class="wb">Aisha is open to a case study. Worth offering for a faster signature.</div></div></li></ul></div></details>
+<details><summary><span class="caret">&#9654;</span>Data hygiene traps<span class="ct">3 items</span></summary><div class="body"><ul class="watch"><li><div><div class="wh">Contact roles missing</div><div class="wb">Ravi Mehta and Grace Kim are not on the opp as contact roles.</div></div></li><li><div><div class="wh">Primary endpoint blank</div><div class="wb">Primary API Endpoint should be Research API - Standard.</div></div></li><li><div><div class="wh">Next step is stale</div><div class="wb">Salesforce still says to send pricing. Pricing went out 9/29.</div></div></li></ul></div></details>
+</section>
+
+<footer><b>Internal only.</b> Sources: Salesforce, usage dashboard, Gmail threads with Elena Brooks and Ravi Mehta, Slack #int-northwind and #deal-desk, call notes 9/22 to 10/8. Updated Oct 9, 2026: First Plan of Attack build. Added the business map, org map and path to signature.</footer>
+</div>

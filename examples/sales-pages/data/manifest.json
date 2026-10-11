@@ -1,0 +1,6 @@
+{
+ "sotu": "state-of-the-union.html",
+ "plans": {"Northwind Analytics": "northwind-analytics.html", "Contoso AI": "contoso-ai-living-plan.html"},
+ "jeps": {"Northwind Analytics": "northwind-analytics-jep.html"},
+ "index_sheet": "https://example.com/account-plans-index"
+}

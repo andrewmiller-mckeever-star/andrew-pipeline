@@ -1,0 +1,86 @@
+{
+ "account": "Contoso AI",
+ "owner": "Sam Taylor",
+ "thesis": "Contoso AI ships coding agents to 4,000 teams. Their agents look up docs with a homegrown scraper that breaks weekly. Our Search API can be the lookup layer, starting with their docs agent.",
+ "pills": ["Key account · Customer", "Seattle, WA", "Series B, $85M", "Customer since Apr 2026", "~220 employees"],
+ "status": {
+  "last_updated": "Oct 9, 2026",
+  "next_review": "Oct 16, 2026",
+  "stage": "3 - Tech Eval",
+  "health": "Amber",
+  "pipeline": "$180K",
+  "usage": "2.1M calls / 30d"
+ },
+ "traction": {
+  "landed": ["PayGo account live since Apr 2026", "Docs agent team calls Search daily", "Shared Slack channel with 6 of their engineers"],
+  "tried": ["Research API pilot in June. They paused it for the launch.", "Intro to the CFO through an investor. No reply."],
+  "blockers": ["Their scraper is \"good enough\" for leadership", "No owner for a vendor decision above the docs team"],
+  "next_move": ["Run the 200-query docs eval with Priya", "Bring results to the VP Eng review Oct 22"]
+ },
+ "asks": [
+  {"for": "Morgan Chen", "ask": "Join the Oct 22 VP Eng review for 20 minutes.", "why": "Their VP wants to hear our roadmap from an exec, not the AE."},
+  {"for": "Priya Nair", "ask": "Own the 200-query docs eval and send results by Oct 20.", "why": "The review only moves forward with numbers on their own queries."}
+ ],
+ "changelog": [
+  {"date": "Oct 9", "text": "Docs team shared 200 real queries for the eval."},
+  {"date": "Oct 2", "text": "VP Eng review set for Oct 22."},
+  {"date": "Sep 24", "text": "Usage passed 2M calls in 30 days for the first time."}
+ ],
+ "next_steps": [
+  {"action": "Run the 200-query docs eval", "owner": "Priya Nair", "due": "Oct 20", "status": "Open"},
+  {"action": "Draft the one-page results for the VP review", "owner": "Sam Taylor", "due": "Oct 21", "status": "Open"},
+  {"action": "Send pricing for the 5M calls/month tier", "owner": "Sam Taylor", "due": "Oct 14", "status": "Open"},
+  {"action": "Confirm Morgan for the Oct 22 review", "owner": "Sam Taylor", "due": "Oct 10", "status": "Done"}
+ ],
+ "why": [
+  "Contoso's agents run millions of doc lookups each month. Every broken lookup is a failed task their customers see.",
+  "They already pay us on PayGo, so the eval is about moving from a side tool to the default lookup layer."
+ ],
+ "wedge": {"angle": "Replace the homegrown docs scraper with our Search API inside the docs agent.", "buyers": ["Rina Okafor (VP Engineering)", "Tom Becker (Docs Agent Lead)"]},
+ "warm_paths": [
+  {"path": "Tom Becker to Rina Okafor", "via": "the docs agent eval results", "strength": "Strong"},
+  {"path": "Morgan Chen to Rina Okafor", "via": "shared former employer", "strength": "Medium"},
+  {"path": "Investor intro to the CFO", "via": "Lucerne Ventures", "strength": "Weak"}
+ ],
+ "phases": [
+  {"phase": "Phase one: prove it", "when": "Oct 2026", "goals": ["Run the docs eval", "Win the VP Eng review"]},
+  {"phase": "Phase two: make it default", "when": "Nov to Dec 2026", "goals": ["Swap the scraper in the docs agent", "Sign a 12-month commit"]},
+  {"phase": "Phase three: expand", "when": "Q1 2027", "goals": ["Research API for their code-review agent", "Joint case study"]}
+ ],
+ "committee": [
+  {"name": "Rina Okafor", "title": "VP Engineering", "role": "Decider", "location": "Seattle"},
+  {"name": "Tom Becker", "title": "Docs Agent Lead", "role": "Champion", "location": "Seattle"},
+  {"name": "Ana Silva", "title": "Head of Platform", "role": "Technical approver", "location": "Remote"},
+  {"name": "Greg Hall", "title": "CFO", "role": "Signs commits over $100K", "location": "Seattle"}
+ ],
+ "org": {
+  "leaders": [{"name": "Mia Chen", "title": "CEO"}, {"name": "Rina Okafor", "title": "VP Engineering"}, {"name": "Greg Hall", "title": "CFO"}],
+  "teams": [
+   {"team": "Docs Agent", "lead": "Tom Becker", "people": ["Jae Kim, Staff Engineer", "Lena Ortiz, Engineer"]},
+   {"team": "Platform", "lead": "Ana Silva", "people": ["Raj Patel, SRE Lead"]},
+   {"team": "Code Review Agent", "lead": "Owen Brooks", "people": ["Not mapped yet"]}
+  ]
+ },
+ "products": [
+  {"product": "Docs Agent", "owner": "Tom Becker", "angle": "Search API as the lookup layer. Fewer broken lookups."},
+  {"product": "Code Review Agent", "owner": "Owen Brooks", "angle": "Research API for library and security checks."},
+  {"product": "Contoso CLI", "owner": "Ana Silva", "angle": "Contents API to pull clean pages for local context."}
+ ],
+ "footprint": [{"place": "Seattle", "share": 55}, {"place": "Remote US", "share": 30}, {"place": "Toronto", "share": 15}],
+ "clocks": [
+  {"date": "Oct 22", "event": "VP Eng review"},
+  {"date": "Dec 1", "event": "Their annual planning locks"},
+  {"date": "Apr 2027", "event": "PayGo anniversary"}
+ ],
+ "use_cases": [
+  {"name": "Docs agent lookups", "score": "92", "tam_calls_m": 60},
+  {"name": "Code review research", "score": "71", "tam_calls_m": 18},
+  {"name": "CLI page fetch", "score": "55", "tam_calls_m": 9}
+ ],
+ "risks": [
+  "Leadership decides the scraper is good enough and the eval stalls.",
+  "Budget locks Dec 1 before a commit is signed.",
+  "The champion changes teams."
+ ],
+ "provenance": "Example data. Every company, person and number on this page is invented."
+}
