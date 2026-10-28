@@ -106,3 +106,23 @@ score_missed_events.py
 fill-abm-doc.js
 fix-abm-doc.js
 fill-all-abm.js
+
+# Account plan build (2026-09-09). Local only.
+# content/*.json holds contact names, deal values, Slack quotes and CTD paths.
+# RESUME-HERE.md and BUILD-CHECKLIST.md name accounts and the tracker sheet id.
+# This whole directory stays out of the public repo; the last commit before it
+# existed was "Scrub account identifiers and prospect data from the public repo".
+account-plans/
+
+# State of the Union: customer data and generated pages stay local (public repo)
+state-of-the-union/data/
+state-of-the-union/*.html
+state-of-the-union/plans/
+
+# Customer and personal material kept local (2026-10-28). Public repo.
+deloitte-demo/
+reflection-deck/
+warm-intros/
+grounded_inference_*.xlsx
+bofa-knowledge-infosheet-design-prompt.md
+databricks-partnership-deck-prompt.md
