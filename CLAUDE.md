@@ -1,31 +1,50 @@
 # You.com Sales Knowledge Base
 
-Always-on context for You.com API Sales. This loads every conversation regardless of task.
+Always-on router for You.com API Sales. This loads every conversation regardless of task, so it
+is kept deliberately small — routing, config pointers, and cross-cutting rules only.
+
+**Before writing anything — email, Slack message, doc, LinkedIn note, or any other written or
+customer-facing deliverable — invoke the `ydc-sales-voice` skill first.** It holds You.com's
+product/brand knowledge, competitive positioning, named case studies, and all of Andrew's voice
+and formatting rules (moved out of this file on 2026-09-12 so non-writing sessions — pipeline
+engineering, cost analysis, ops — don't pay to load ~85% of this file's former content on every
+turn). Nothing was deleted; it all still applies exactly as before, it just loads on demand now
+instead of unconditionally.
 
 **AE Setup:** Read `ae-config.md` at the start of every pipeline session to load your name, email, and file paths. All identity and path values live there — nothing is hardcoded in the pipeline.
 
 **My account list:** When Andrew asks to compare something to "my accounts," "my list," or "my book," use the snapshot at `SFDC_ACCOUNTS_LIST_PATH` (see ae-config.md) as the default reference. It is a point-in-time export; for always-fresh data the pipeline skills query Salesforce live instead.
 
-## Rule Precedence (added 2026-08-27)
+## Rule Precedence (added 2026-08-27; updated 2026-09-12)
 
-**This file wins on voice, copy, and cadence. The pipeline skills win on API mechanics, step
-types, personas, and process gates.** On conflict, follow the newer date and say which rule
-you followed and which you set aside.
+**`ydc-sales-voice` wins on voice, copy, and cadence. The pipeline skills win on API mechanics,
+step types, personas, and process gates.** On conflict, follow the newer date and say which rule
+you followed and which you set aside. (Before 2026-09-12 this said "this file" — the voice/copy
+content itself moved to `ydc-sales-voice`; the precedence rule is unchanged, just repointed.)
 
-Skills carry older copies of some writing rules. When they disagree with this file, this file
-is newer and authoritative.
+Skills carry older copies of some writing rules. When they disagree with `ydc-sales-voice`,
+`ydc-sales-voice` is newer and authoritative.
 
-**Settled 2026-08-27 — LinkedIn connect-note close.** Andrew's decision: the note never asks
-for the connection, so `ydc-outreach`'s ", would love to connect and share more of my
-research." close is retired. "Curious how…" is permitted but is neither the only option nor
-the top one; it became the de facto default by accident. Use the ranked close menu under
-LinkedIn Connect Rules and vary the close across a batch.
+**Settled 2026-10-08 — LinkedIn automation policy.** This supersedes the 2026-08-27
+connect-note close rule and every earlier connect-note rule.
+- LinkedIn connection requests (Touch 2, `linkedin_step_connect`) NEVER carry a note. No skill
+  generates, drafts, reviews, QAs or stores connect-note copy. Apollo connect steps are created
+  with an empty body. `connect-overrides.json` is retired.
+- `apollo-linkedin-connect.js` automates only no-note connection requests and profile-view /
+  post-engagement steps (Touch 5). It never sends a LinkedIn message or InMail. It ignores
+  connect-step template text.
+- LinkedIn message steps (Touch 7, `linkedin_step_message`) stay in sequences as MANUAL tasks.
+  Skills still draft the DM copy into the step so it is ready in Andrew's Apollo task queue.
+  Andrew reviews and sends every LinkedIn message by hand. `dm-overrides.json` is retired.
+- Why: on 2026-09-25 and 09-28 the script sent 18 Cohort 1A/1B connection requests with raw
+  `{{calls_30d}}` placeholders in the note. Apollo never renders variables in LinkedIn steps.
 
 ## Skill Architecture
 
 | Layer | What | When it loads |
 |-------|------|--------------|
-| CLAUDE.md | Sales knowledge base (YDC, products, writing rules, competitive intel) | Every conversation |
+| CLAUDE.md | Router: config pointers, resources, Slack channels, rule precedence | Every conversation |
+| ydc-sales-voice | Sales knowledge base (YDC, products, writing rules, competitive intel) | Before writing anything, or when asked about product/positioning |
 | 6 YDC pipeline skills | Pipeline procedures (research, account plan, outreach, prospects, Apollo build) | When triggered by pipeline commands |
 | Office skills | Doc/deck/spreadsheet/PDF creation | When you mention a file type |
 | Memory files | Accumulated learnings, feedback, product knowledge | Referenced by skills as needed |
@@ -46,368 +65,9 @@ When this repo runs in a Claude Code cloud session or Routine (no laptop):
 
 ---
 
-## Who We Are
+## Sales Knowledge, Voice, and Positioning
 
-You.com delivers the search infrastructure that powers modern Generative AI. We enable organizations to ground their AI agents in factual, cited, and trustworthy data sources. $100M Series C at $1.5B valuation. 1B+ queries/month. 5,000+ API customers. 57% Fortune 500 penetration.
-
-**Founded by:**
-- **Dr. Richard Socher (CEO):** 4th most cited AI researcher in the world. Former Chief Scientist & EVP at Salesforce. Stanford professor. Pioneered deep learning + NLP with Nvidia GPUs (2014). Revolutionized NLP and search with contextualized word vectors.
-- **Bryan McCann (CTO):** Former Lead AI Researcher at Salesforce. Co-invented prompt engineering in 2018. First LLM fully connected to the web. **INTERNAL CONTEXT ONLY. Never reference Bryan in prospect-facing output.** Only use Socher for founder credibility.
-
-**Messaging guidance for Socher:**
-- For CTO/VP Engineering: lead with research credentials and Stanford background
-- For executives: "founded by the 4th most cited AI researcher in the world, former Chief Scientist at Salesforce"
-- Vary placement: sometimes opener, sometimes mid-email "quick context on us," sometimes PS
-- Do NOT offer unsolicited meetings with Socher. Reference his background as company/product credibility.
-
----
-
-## What We Sell (Priority Order)
-
-1. **Search API (APEX tier):** Primary lead in all outreach. High-accuracy retrieval for agents and LLMs. Long, rich snippets. Real-time freshness. One API, all of the data. Enterprise reliability with unified billing. Includes the News Search API at no extra cost (a dedicated news endpoint for recent, time-sensitive results).
-2. **Contents API:** Fetches full page text, summaries, and metadata for many URLs in one request. Returns clean Markdown or raw HTML. Reliable extraction at scale. Powers AI tools that need site-specific data without building their own crawler. Also reachable through the Search API livecrawl parameter.
-3. **Research API:** Deep, multi-step search and synthesis by way of an API. Returns cited, source-backed answers to complex queries. Five effort tiers (Lite, Standard, Deep, Exhaustive, Frontier) trade speed for depth. Goes deeper than a single search call.
-4. **Finance Research API:** Same pattern as the Research API, but over a purpose-built financial index instead of the open web: SEC filings, company fundamentals, equity and commodity prices across 42 exchanges, FX, crypto, macro indicators, earnings transcripts, and financial news. Cited answers built to avoid fiscal-year, unit, and period errors. The vertical lead for financial services, fintech, banking, and investment accounts. Supporting angle elsewhere.
-5. **Vertical Index (aka Custom Index):** Domain-specific, real-time knowledge with citations. Purpose-built indexes by industry (retail, media, hospitality, finance, legal). Combines public web, partner data, and structured sources. Same product, different name. Supporting angle that shows depth.
-**Product tiers:** APEX (Search API, Contents API, Research API, Finance Research API).
-**NEVER sell or reference in outreach:** PRAG, AI Factory, Chat, ESL, Apex products, MCP Server. These are excluded from all pipeline runs, account plans, and outreach sequences. (MCP Server is the technical access layer for our APIs and a free-trial onboarding hook; that is internal context only, not an outreach talking point.)
-
-**The calibration:** Search API always leads, except in financial services, fintech, banking, and investment accounts, where the Finance Research API leads instead. Contents API and Research API are supporting angles for accounts that need crawled site data or deep research capabilities. Vertical Index adds depth when industry-specific signals warrant it. The goal: come across as a serious infrastructure company with range, not prescribe the biggest possible deal in the first email.
-
----
-
-## How We Sell (Pitch Framework)
-
-**Lead with the problem:** General web indexes were built for human browsing, not machine reasoning. 95% of GenAI pilots fail due to inadequate data infrastructure, not inadequate models.
-
-**Position You.com as:** AI Search Infrastructure built for the AI era. Accurate, in-depth, customizable, real-time, contextual, action-oriented.
-
-**Tech evaluation process:** Joint eval (they have golden set) or Full Custom eval (we build golden set together). 5-step process: scoping > golden set > data requirements > testing > results readout.
-
-**Benchmark angles:** Higher accuracy with lower latency than competition (SimpleQA, FreshQA, MS Marco benchmarks).
-
-**Sales Deck:** ~/Downloads/You.com - AI Search Infra Pitch Deck - January 2026.pdf (pitch bible for framing, case studies, competitive positioning, eval process, "Art of the Possible" industry use cases).
-
-**Account-fit use case lenses:** When sizing up any company, run it through two lenses on top of the industry patterns: (1) Grounding AI agents and assistants (RAG assistants, copilots, autonomous agents that reason over retrieved content, lead with accuracy and citations), and (2) Surfacing evidence to people and pipelines (search UIs, competitive/market monitoring, dataset construction, lead with precision and freshness). Full signals-to-look-for and messaging angles live in {MEMORY_PATH}/product-knowledge.md under "Account-Fit Use Case Lenses."
-
----
-
-## Named Case Studies (Safe for Outreach)
-
-**Guardrail: always reference the case study CLOSEST to the prospect's use case.** Don't default to DuckDuckGo. Match the proof point to the problem.
-
-| Case Study | Use When Prospect Needs | Proof Point |
-|---|---|---|
-| **Harvey** | AI agent accuracy, citations, regulated industries, legal/compliance | Chose You.com over incumbent search providers. Their legal AI agents needed cited, accurate retrieval during investigation workflows. |
-| **Windsurf** | AI coding agents, developer tooling, documentation retrieval | Replaced legacy search for their AI coding agent. Higher-accuracy documentation retrieval improved agent task completion. |
-| **Salesforce** | Enterprise AI platforms, agentic tooling, internal + web data grounding | Embedded You.com across Slackbot AI globally. Uses our APIs in Prompt Builder to ground agentic tooling in factual responses from the public web combined with internal data. |
-| **Strauss** | Retail, consumer products, e-commerce | Retail use case for AI-powered search and product intelligence. |
-| **DuckDuckGo** | Real-time freshness, high-volume consumer search, migration from legacy | Replaced legacy search API. Better freshness and real-time updates. 10M+ daily queries. We win freshness evals because of how they plugged us in. |
-| **Databricks** | Data platforms, partnerships, Unity Catalog customers | Unity Catalog integration. Use as co-sell angle when prospect is a Databricks customer. |
-
-**The specific metrics don't matter.** What matters is the outcome: better freshness, accuracy, latency, and relevance because our APIs are built for how agents consume data, not how humans browse.
-
-NOTE: Do not name competitors in outreach. Use "legacy search API," "incumbent providers," etc.
-
----
-
-## Competitive Positioning (Internal Only)
-
-Never name competitors in prospect-facing outreach, emails, LinkedIn, or prospect-facing docs. Use: "other search API providers," "search API incumbents," "legacy search APIs." Exception: internal account plans, Slack, battlecards, live conversations where the prospect names a competitor first.
-
-- **vs. Exa:** Developer-friendly but less enterprise-grade. We have lower barrier to entry via MCP + stronger conversion funnel.
-- **vs. Tavily:** Agentic search API competitor. We outperformed in unbiased third-party benchmarks.
-- **vs. Perplexity API:** Strong brand in consumer AI search, less focused on enterprise API grounding.
-- **vs. Google Vertex AI Search:** Heavier, more complex to integrate. We're purpose-built for AI agents.
-- **vs. Bing API:** Being deprecated/limited. Multiple customers migrated from Bing to us (DuckDuckGo, Harvey, Windsurf).
-- **vs. Internal build:** Biggest risk for well-resourced engineering teams. Counter with time-to-value and research advantage.
-
----
-
-## Social Proof (Internal Only, Never in Outreach)
-
-- A Big 4 consulting firm ran a competitive evaluation. We outperformed on accuracy, relevance, and cost.
-- They are evaluating You.com as replacement search layer for their internal RAG assistants.
-- NEVER reference this eval in any form in outreach, even anonymized. No query counts, no "head-to-head" language, no anonymized details that could narrow down the customer.
-- NEVER name any active evaluation or confidential customer in prospect-facing materials.
-
-**What to use instead:** Generic traction stats (1B+ queries, 5K+ customers, 57% F500) and named public case studies (DuckDuckGo, Windsurf, Harvey, Databricks).
-
----
-
-## Universal Writing Style (Always Apply)
-
-These rules apply to EVERYTHING Claude writes for Ryan: cold outreach, warm emails, follow-ups, Slack drafts, call scripts, LinkedIn messages, partner emails, internal docs, conference abstracts, any written output. No exceptions.
-
-**Formatting:**
-- No em dashes. Use commas, periods, colons, semicolons, or pipes instead. This is a hard rule across all writing.
-- Short paragraphs. 2-3 sentences max. White space makes everything scannable.
-- 5th-7th grade reading level. Short, punchy sentences. No compound-complex structures. If a sentence needs a semicolon, split it into two.
-- No corporate suffixes ("Teradata" not "Teradata Corporation") in any external writing.
-
-**Banned vocabulary (AI-isms):** utilize (use "use"), comprehensive, enhance (use "improve"), delve, embark, robust, streamline, strong signal. These words instantly flag copy as AI-generated. Applies to all writing, not just outreach.
-
-**Banned filler patterns:**
-- Buzzword soup: synergy, leverage, paradigm shift, best-in-class, cutting-edge, game-changer, revolutionary
-- Generic flattery: "impressive," "incredible," "amazing," "doing great work" without connecting to a specific point
-- Glazing: referencing someone's work just to compliment it without connecting to a problem or next step. Every personalization must bridge to a point. If a compliment dead-ends, cut it. BAD: "Your AI expansion is a big move." GOOD: "Your AI expansion going agentic creates new demands on the real-time data layer."
-- Self-centered openers: starting with "I," "We," "Our," or "At You.com" as the first word. Start with them.
-
-**Tone:** Plain, human, conversational. Write like a smart peer, not a corporate marketer. No markdown formatting in emails (no bold, italic, headers, numbered lists). Plain text only for anything sent via email.
-
-**Reference example (demonstrates universal style, not cold-specific mechanics):**
-
-```
-Hi Irvinder,
-
-Given the urgency you described around hallucination issues and the number of tools your team has already evaluated without a clean result, I wanted to offer something before the testing begins next week.
-
-Richard Socher, our founder, holds a patent pending specifically on connecting LLMs with real-time search to produce grounded, verifiable output. That research is the foundation of what your team will be testing. Before the other tools failed your eval, most of them were not designed with that problem as their starting point. Richard's was.
-
-If a short call with him before the eval would be useful context for you, I am happy to make that introduction. No agenda other than giving you a direct line to the thinking behind the approach.
-
-Let me know if that is of interest.
-
-Thanks, Ryan
-```
-
-Why this is the gold standard for ALL writing: starts with THEM (their urgency, their failed evals). Zero AI-isms, em dashes, superlatives, or glazing. Plain, human tone. Short paragraphs. One point per paragraph. No buzzwords. Maps credibility to their specific problem. This style applies whether you're writing cold outreach, a warm follow-up, a partner email, or a Slack message.
-
-**Andrew voice rules (Always Apply, derived from Andrew's sent email + Slack, added 2026-07-15; re-grounded 2026-08-21 against ~160 of Andrew's own Slack messages, Feb-Aug 2026):**
-
-> Sampling caution: roughly 35 posts under Andrew's Slack account are written by his own pipeline routines (meeting briefs, territory nightly, usage scans). That is Claude's writing, not his. Exclude automated posts from any future voice sampling or the bot voice gets learned as his.
-
-Every message resolves to one of four things: an ack, a question, a commitment, or a number. If a draft does not resolve to one of those, it is not his voice.
-
-*Links (hard rules):*
-- Only canonical, verified URLs, no trailing slash: `https://you.com/platform` (signup, new accounts get $100 free credits), `https://you.com/docs/welcome` (docs). NEVER invent or guess a domain. If a URL has not been verified in Andrew's own past emails or the live product, do not use it.
-- Links get their own short paragraph. The docs line stands alone.
-- **Gmail draft mechanics (verified 2026-07-15):** the Gmail API wraps every URL-shaped string in a draft's plain-text body with a `google.com/url?q=...` redirect AT WRITE TIME (scheme-less domains too). So: (1) always create drafts with an explicit `htmlBody` where each link is an anchor tag - display text = clean scheme-less URL (`you.com/platform`), href = canonical https URL; (2) never rely on a plaintext-only body for any email containing links; (3) after creating drafts with links, read one back to verify - the plaintext alternative will show wrapped URLs (unavoidable), but compose and recipients render the clean HTML part. If Andrew reports the compose window still shows wrapped links, fall back to [LINK] placeholders and flag it.
-
-*Word choice:*
-- Plain verbs: test, explore, run, try, help, connect, set up, loop in. No cute or slangy phrasing ("poke at it," "swing by," "say the word").
-- **Verified recurring phrases** (confirmed in ~160 of Andrew's own Slack messages, Feb-Aug 2026): "Happy to" as the workhorse ("Happy to jump on a call if I'm not making sense," "happy to parallelize the legal, commercial, and technical conversations"), "makes sense," "honestly," "let me," "would you be open to," "jump on a call," "no pressure if the timing is off," "ballpark estimates are totally fine," "take a look," "get it scheduled."
-- **Unverified, use with care:** "Worth a conversation?", "Happy to leave it here.", "the offer stands whenever you're ready." These appear ZERO times in Andrew's Slack. "Worth a conversation" surfaces only inside a Claude-generated bot post. They may exist in his sent email; do not treat them as confirmed voice until they turn up in a sent-mail sample.
-- Offer engineering help by name: "my engineering team," "my Eng. team," "David or others on my Eng. team."
-
-*Structure:*
-- Open with something THEY did or something concrete, often with a number ("You're already close to 15,000 calls. That's a fast ramp for week one."). No runway, no warm-up. Never open with "I," "We," or "At You.com."
-- **Give the reason for the ask.** Andrew's single most distinctive habit: nearly every request carries a because, usually as its own short sentence, often the literal phrase "I ask because." Real examples: "Any update on Ai4? I ask because I'm trying to make travel plans and have a meeting I've scheduled there already with a guy from x.ai." / "My team was looking at the QPS request and had a lot of questions." / "I think a call would be more productive than async." A bare ask does not sound like him. An ask plus one sentence of why does.
-- **Lead with the unrounded number.** He writes the exact call count and the exact dollar spend, never "significant usage." Pull the real figures from Salesforce at drafting time. Also "It's missing 23 accounts so we might want to rerun it." (Redacted example: account name and spend figures removed, public repo.)
-- One idea per paragraph, 1-2 sentences. An email is 4-6 short paragraphs max. About 40% of his Slack messages run under 10 words; almost none contain a sentence over 25 words.
-- Concrete options instead of vague asks: named times ("Tomorrow the 1st between 4:30 pm - 6 pm Madrid time? Thursday at 5 pm, or Monday between 4 pm - 6 pm Madrid time"), named features ("Website filtering, Output formats, other endpoints, etc.").
-- Close with one short, real question. Never a stacked ask, never a canned CTA. His actual closers: "Anyone object to me reaching out to them?" / "Who on your side should we sync with to scope it?" / "Who can take point on helping them this week?" / "Do any of these times work?" / "would you be open to a quick chat?"
-- Say "you or your team" when offering resources.
-- Bullets only for genuinely parallel items (resources, lanes of work), each one a fragment, not a sentence.
-
-*Tone:*
-- Plain register, clean mechanics. Andrew writes fast and a little loose in Slack because Slack is quick notes to teammates; the typos there are a byproduct of speed, NOT part of his voice. Anything drafted for him ships with correct spelling, homophones, and punctuation ("Yea" becomes "Yes," a sentence-initial "O" gets dropped). What never changes: sentence length, fragments used as answers, sentences starting with "But" or "So," and the plain vocabulary. Never upgrade a word. Direct beats elegant.
-- **The failure mode to watch for:** a draft that is grammatically cleaner AND more formal than he is. Cleaning mechanics and raising register are two separate passes, and only the first is allowed to touch anything.
-- **Show the reasoning, including the doubt.** This is what keeps him from sounding like a rep, and it is the first thing a polish pass destroys. Real examples: "honestly unless they have millions of calls a month it's not really worth our time otherwise." / "I was confused what we were going to cover for an hour... Maybe something will come of it." / "I can wing it but context is helpful." / "Snowflake is a harder pitch because we don't have anything official yet." Never assert certainty he does not have.
-- Warmth is one word, front-loaded: "Perfect," "Fantastic!", "Cool," "Nice," "100%", "Good call," "That's a great open rate!" Exclamation points are fine and frequent. Generic flattery is absent from his entire corpus: never "impressive," "incredible," or "amazing" about someone's work.
-- Low pressure everywhere. Never chase; leave doors open. Urgency only ever attaches to OUR side, never the reader's ("their all in Spain so it would be great if we can get them some answers today so they can get to work tomorrow in their AM").
-- Two-line test before any send: (1) Could this email have gone to anyone else? If yes, it is not ready. (2) Does it sound like something he would type into Slack in 30 seconds? If it sounds composed, cut it down.
-- Full evidence base and worked examples: `andrew-voice-guide.md` in this repo root.
-- Sign-off: "Warm regards," or "Cheers," (Andrew's stated preference 2026-07-15 - Warm regards for senior/enterprise contacts, Cheers for startups and peers); "Thanks," fine occasionally; then just "Andrew" (the signature block handles title/contact).
-- Slack: even shorter, first person, plain apologies ("sorry for the delay"), direct asks with the person named.
-
-*Outbound + follow-up email rules (added 2026-07-15 after the RAISE robo-blast failure; Andrew-approved):*
-- **The anyone-else test.** If the exact email could have been sent to anyone else, it does not get sent. Every email is built on ONE true, specific fact about the person: what they said at the booth, their usage number, their talk, their Brella interests, their team's presence at an event. **No fact = no email** - that contact goes to marketing nurture, never gets template copy.
-- **Show work, don't promise value.** Lead with something already done: "I ran your prompt through our eval," "I added credits to your account," "I asked my engineering team about X." (Model: Andrew's Slack to Databricks - "We've done a proper 3-way comparison on your exact prompt.")
-- **Website language is banned in email.** "The data layer under AI agents," "grounding agents in cited data," "that is our lane" - if Andrew wouldn't type it in Slack, it doesn't go in an email. Describe the problem the way a person says it out loud.
-- **30-90 words.** Sounds typed, not composed.
-- **Ask a real question, never a canned CTA.** A question about their work ("Is accuracy or latency the bigger issue?"), a routing question ("Does that live with you or someone else?"), or two named times. Vary the ask across a batch - never the same closing twice in a row.
-- **Never fake familiarity.** No "sorry we missed each other" to someone who never planned to meet. Honest framing: "Your team was all over RAISE and we never crossed paths."
-- **Batch is not blast.** Max ~5 sends per skeleton, every email gets its own first line. If a list is 50 deep, most of it belongs in nurture.
-- **Subjects short and specific**, referencing them or the event ("Snyk crew at RAISE", "your 15,000 calls").
-- **Subject formula for data/intelligence vendors (added 2026-09-02, from Ryan Reed's two biggest cold wins):
-  their named product + a property of their data.** Not our product, not a value prop, not an initiative.
-  Shape of the winners (redacted example, public repo): "{their product}'s data economics",
-  "{their product} and source freshness", "Horizon scanning source coverage", "Web search quality for
-  {their product}", "{their product} quality as the product moat", "Keeping the reg corpus current".
-  Six verified wins built on this formula, the two largest closed in 25 and 63 days. The data property is
-  the second half and it is always one of: freshness, coverage, recall, currency, economics, or quality.
-  Under 6 words still holds; every winner above is 4 to 6 words. Account names and deal values are in
-  Salesforce, not here.
-- **Never put a You.com product name in a subject line.** The existing ban on reflexive product names covers
-  the body. It now covers the subject too. Zero cold subjects that produced an opp named a You.com product.
-- **Cadence:** first touch fast; second touch day 4-5 with a NEW fact (never a reworded first email); breakup ~day 14, two sentences, easy out ("Should I close the loop, or is there still interest? Either way, no hard feelings.").
-- **Drafting workflow:** deliver drafts in reviewable batches (~10), not 50 at once.
-
----
-
-## Cold Outbound Rules (Sequences & LinkedIn Only)
-
-These rules apply ONLY when writing cold outreach sequences, LinkedIn connection requests, and first-touch prospecting. They do NOT apply to warm replies, partner emails, internal comms, or other non-cold writing. The Universal Writing Style section above always applies in addition to these.
-
-**Content bans (cold outbound specific):**
-- No competitor names in outreach.
-- No specific eval references (even anonymized). **Scope clarified 2026-09-02:** this bans OUR OWN and
-  CUSTOMER-RUN evals, including the Big 4 evaluation, in any form. It does NOT ban a **published
-  third-party eval** that anyone can read. Those are citable, consistent with the sanctioned benchmark
-  angles under How We Sell (SimpleQA, FreshQA, MS Marco). Conditions: the eval must be public at a URL,
-  we must not name search-API competitors when citing it, and we must know whether we commissioned it
-  before a technical audience is told it is independent.
-- No confidential customer names or active evaluations.
-- No ESL/Chat/Apex product references.
-- No Bryan McCann in prospect-facing copy.
-
-**Banned openers (cold outbound specific):**
-- "I hope this email finds you well"
-- "I'm reaching out because..."
-- "I wanted to introduce myself"
-- "I noticed you work at [Company]"
-- "Congrats on your role" (without specifics)
-- "I'd love to pick your brain"
-- "Just circling back"
-- "Per my last email"
-
-**Banned patterns (cold outbound specific):**
-- Feature dumps (3+ capabilities in one paragraph)
-- Multiple value props in one email (one proof point per touch)
-- Stacking CTAs (never ask for more than one thing)
-- Fake personalization ("Your company is doing impressive work")
-- Rhetorical question openers ("What if you could...")
-- Defaulting to product names or case studies: do not reflexively insert MCP server hooks, DuckDuckGo case studies, or product names into every email. Before adding a product name, case study, or MCP hook, ask: does this email work without it? If yes, leave it out. The best emails connect subject matter expertise to the prospect's problem without naming a single product.
-- Rephrasing the same ask: each follow-up email (Touch 3, Touch 5) must add a NEW reason to respond. New proof point, new angle, new context. Never reword the original pitch. Gong data: repeating the same ask in different words kills sequences.
-
----
-
-## Email Writing Structure (AIDA) — Cold Outbound Only
-
-The following structure applies to cold outreach sequences only (the email touches: 1, 3, 6). Do NOT apply AIDA, hook prioritization, or interest-based CTAs to warm replies, partner emails, or internal comms. For non-cold writing, follow the Universal Writing Style section above.
-
-Every cold outreach email must follow this structure:
-
-```
-SUBJECT: [Under 6 words. For data/intelligence vendors: their named product + a data property
-          (freshness, coverage, recall, currency, economics, quality). Otherwise: references them,
-          their initiative, or the event. Never a You.com product name.] (Touch 1 only)
-
-Hi {{first_name}},
-
-[A - Attention: Personal hook from research. 1-2 sentences. Specific to them, not generic. Start with THEM.]
-
-[I - Interest: Their problem/opportunity as a hypothesis. 1-2 sentences. Tentative language: "usually when teams do X, they tend to hit Y." Never diagnose pain as fact.]
-
-[D - Desire: One proof point. Case study, benchmark, or founder credibility. Never more than one.]
-
-[A - Action: Interest-based CTA only. One ask. Never time-based ("15 minutes," "quick call this week"). Use: "Is this something you're evaluating?" / "Worth a conversation?" / "Are you open to exploring this?"]
-```
-
-**Standardized 7-touch cadence (default for account-plan pipeline sequences):**
-
-| Touch | Day | Channel | Type |
-|-------|-----|---------|------|
-| 1 | Day 1 | Email | New thread, unique subject |
-| 2 | Day 3 | LinkedIn Connect | No-pitch connection request |
-| 3 | Day 5 | Email | Reply to Touch 1 thread |
-| 4 | Day 8 | Call | Phone task |
-| 5 | Day 10 | Action item | Manual task (e.g., LinkedIn engage / research) |
-| 6 | Day 14 | Email | Reply to Touch 1 thread (breakup) |
-| 7 | Day 17 | LinkedIn DM | Direct message, no pitch |
-
-**Cadence is a target, not enforced (clarified 2026-08-27).** No builder reads a `day` field.
-build-sequences.js sets no wait times at all, so Apollo's defaults apply; rest_build.py sets
-`0,1,3,3,3,3,3` with `wait_mode: "day"`, which ships as days 1/2/5/8/11/14/17. That means
-Touch 2 lands on day 2 and Touch 5 on day 11, not the day 3 and day 10 in the table above.
-Either change the wait values to match this table or treat the table as the manual target
-Andrew sets in the Apollo UI. Do not describe the day column as non-negotiable while no code
-reads it.
-
-**Air-cover cadence: 9 touches over 42 days (added 2026-08-28, Andrew's call).** For long-run
-account coverage where the goal is a visible touch every week for six weeks, the 7-touch table
-above does not apply. Andrew asked for weekly-looking outreach across the H2 2026 priority list
-while he works the senior contact at each account by hand. That sequence is:
-
-| Touch | Day | Week | Channel | Type |
-|-------|-----|------|---------|------|
-| 1 | 1  | 1 | Email | New thread, subject A |
-| 2 | 3  | 1 | LinkedIn Connect | No-pitch |
-| 3 | 8  | 2 | Email | Reply to thread A |
-| 4 | 15 | 3 | LinkedIn DM | No-pitch |
-| 5 | 17 | 3 | Call | Phone task |
-| 6 | 22 | 4 | Email | **New thread, subject B** |
-| 7 | 29 | 5 | Action item | LinkedIn engage |
-| 8 | 31 | 5 | Email | Reply to thread B |
-| 9 | 38 | 6 | Email | Reply to thread B (breakup) |
-
-Apollo waits that reproduce it: `0,2,5,7,2,5,7,2,7` with `wait_mode: "day"`. Reply touches on
-positions 3, 8 and 9; `new_thread` on 1 and 6.
-
-**Two deliberate departures from the 7-touch rules, both Andrew-approved:**
-1. **A second thread opens at week 4.** The threading rule below says only Touch 1 gets a subject.
-   Over 42 days a single thread five replies deep gets buried, so touch 6 starts a fresh subject
-   and touches 8 and 9 reply to *that*.
-2. **One sequence per account, 6 contacts**, rather than 4 persona sequences at 5 contacts. The
-   senior target at each account is reserved for manual work and excluded from the sequence by
-   contact ID, so the two tracks cannot collide.
-
-Copy for the first 14 accounts is in `sequences/batch{1,2,3,4}-copy.md`.
-
-**Threading:** Only Touch 1 gets a unique subject line. Touches 3 and 6 are replies to the original thread. In Apollo: use "reply to previous email" step type. Over REST this is `type: "reply_to_thread"` on the touch, which requires deleting the auto-created `new_thread` touch and verifying only one remains. See ydc-apollo-build A.2.
-**Contact cap:** 5 contacts per sequence (A, B, C, D). No duplicates across sequences. Priority: title relevance > verified email > use case alignment.
-**Word counts:** Opener 80-120 words. Follow-up 80-120 words. Breakup 80-120 words.
-**Reading level:** 5th-7th grade. Short, punchy sentences. No compound-complex structures.
-**Paragraphs:** 2-3 sentences max. White space makes emails scannable.
-**Greeting:** Every email opens with "Hi {{first_name}}," on its own line.
-
-**Hook prioritization (use highest available):**
-1. **Named product + data property** (added 2026-09-02). Their shipped product, and the freshness, coverage,
-   recall, currency, economics or quality of the data under it. Highest-converting hook on record for
-   data/intelligence vendors: two opps, $650K combined, 25 and 63 days. Requires knowing their product
-   names, so it costs research. Use it whenever the account sells a monitoring or intelligence product.
-2. Trigger event (funding, product launch, leadership change, earnings)
-3. Their content (blog post, podcast, conference talk, LinkedIn post)
-4. Mutual connection or shared context
-5. Company initiative (AI program, hiring surge, strategic pivot)
-6. Role-based pain point (last resort)
-
-> Note on why #1 was missing: the old ladder had no slot for it. A subject naming their product and its data
-> economics is not a trigger event, not their content, not a mutual connection, not an initiative, and not a
-> role-based pain. The two best cold outcomes of the year were being written against a rule that did not
-> describe them.
-
----
-
-## LinkedIn Connect Rules
-
-Zero pitch. Zero CTA. Zero generic flattery. Under 250 characters. Almost entirely about them.
-
-**Formula: Fact-to-Consequence, then a close from the menu below.**
-
-- **Fact-to-Consequence** (always): State what they did AND what problem or question it creates, in one sentence. Never characterize the initiative ("big move," "notable shift," "signals serious work"). The personalization must bridge to a problem, not evaluate the initiative.
-- **The close:** pick from the ranked menu. The connect button is the CTA, so the note never asks for the connection. No "Would be great to connect" or similar filler.
-
-**Close menu, best first (revised 2026-08-27, Andrew's call).** "Curious how…" is allowed but it is NOT the default and NOT the top option. It got treated as the gold standard by accident; it is one option among five.
-
-1. **Direct question about their approach, no preamble.** Strongest and most common. "How are you handling that today?" / "Where does that land, the index or the model?"
-2. **Either/or that narrows the problem.** Matches Andrew's habit of offering concrete options. "Is that a freshness problem or a coverage one?"
-3. **Routing or ownership question.** Closest to his real closers ("Who on your side should we sync with?"). "Does that sit with your team or further up?"
-4. **No question at all.** State the consequence and stop. Legitimate and often the strongest when the consequence is sharp — about 40% of his own messages run under 10 words, and the connect button is the ask.
-5. **"Curious how…"** Fine to use. Never as the automatic choice.
-
-Optionally add a light domain signal in parentheses on any of these: "(be it with a web index or otherwise)".
-
-**Vary the close across a batch.** Never the same close shape twice in a row, and never more than one "Curious…" per account. Four notes on one account that all open the close the same way read as generated, which is the exact failure this rule exists to prevent.
-
-- BAD: "Zoom's agentic AI Companion expansion is a big infrastructure move. Curious how... Would be great to connect."
-- GOOD (direct): "Zoom's AI Companion going agentic creates new demands on the real-time data layer. How is your team handling that today?"
-- GOOD (either/or): "Zoom's AI Companion going agentic puts weight on the real-time data layer. Is that a freshness problem for you or a coverage one?"
-- GOOD (routing): "Zoom's AI Companion going agentic creates new demands on the real-time data layer. Does that sit with your team or further up?"
-- GOOD (no question): "Zoom's AI Companion going agentic means the retrieval layer either keeps pace with live events or becomes the accuracy ceiling."
-
-**Hard bans for LinkedIn notes:**
-- No product names (Search API, PRAG, Vertical Index, etc.)
-- No CTA for meeting, call, or demo
-- No "impressive" or "incredible" or any generic flattery
-- No starting with "I" or "We" or "At You.com"
-- No role claims ("I lead X," "I'm the VP of Y")
-- No compressed pitch
-- No glazing or characterizing initiatives ("big move," "notable shift," "impressive achievement")
-- No "Would be great to connect" close (the connect button handles this)
-
-Your LinkedIn profile handles identity. The email sequence carries the pitch. The connection note just opens the door.
+Moved to the `ydc-sales-voice` skill on 2026-09-12 (product lineup, pitch framework, named case studies, competitive positioning, social proof, Universal Writing Style, Andrew's voice rules, cold-outbound rules, AIDA email structure, LinkedIn rules incl. the no-note connect policy). Nothing was cut — invoke that skill before writing anything or discussing product/positioning; see Rule Precedence above for how it interacts with the pipeline skills.
 
 ---
 
