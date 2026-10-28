@@ -1,20 +1,29 @@
 ---
 name: granola-archive-sync-cloud
-description: CLOUD version for Claude Code Routines. Weekly Granola archive sync rebuilt for cloud execution — uses the Granola connector to enumerate meetings from the last 35 days, archives any transcripts not yet backed up to the GranolaArchive Google Drive folder (one Markdown file per meeting, via the Drive connector), and appends a success line to sync-log.md. DMs Andrew on Slack ONLY on problems (auth failure, zero meetings retrievable, Drive write failures); silent on success. Also runs in watchdog mode (Thursday): re-runs the sync only if the last successful run is more than 7 days old. No local script, no API key file, no python, no rclone. Use for "run granola archive sync", "granola sync", "archive my granola meetings", or the Thursday watchdog check.
+description: CLOUD version for Claude Code Routines. Weekly Granola archive sync rebuilt for cloud execution — uses the Granola connector to enumerate meetings from the last 30 days, archives the notes and AI summary for any meeting not yet backed up to the GranolaArchive Google Drive folder (one Markdown file per meeting, via the Drive connector), and appends a success line to sync-log.md. Transcripts are NOT available on Andrew's free Granola tier. DMs Andrew on Slack ONLY on problems (auth failure, zero meetings retrievable, Drive write failures); silent on success. Also runs in watchdog mode (Thursday): re-runs the sync only if the last successful run is more than 7 days old. No local script, no API key file, no python, no rclone. Use for "run granola archive sync", "granola sync", "archive my granola meetings", or the Thursday watchdog check.
 ---
 
 # Granola Archive Sync (Cloud)
 
 ## Why this exists
 
-Granola's free tier deletes meeting recordings/transcripts 30 days after the meeting. This routine pulls Andrew's Granola transcripts before they are purged and grows the archive in the `GranolaArchive` folder on Google Drive. The sync is ADDITIVE: it adds new meetings, backfills any missing transcripts, and NEVER overwrites an already-archived transcript.
+Granola's free tier deletes meeting recordings, transcripts, and notes 30 days after the meeting. This routine pulls Andrew's Granola content before it is purged and grows the archive in the `GranolaArchive` folder on Google Drive. The sync is ADDITIVE: it adds new meetings and NEVER overwrites an already-archived file.
+
+## Free-tier reality (settled 2026-09-08, Andrew's call)
+
+Andrew is on the Granola FREE tier, deliberately. Two hard consequences:
+
+- **Transcripts are unavailable.** `get_meeting_transcript` errors with "Transcripts are only available to paid Granola tiers." This skill archives **private notes + the AI summary** instead, via `get_meetings`. Do not treat a missing transcript as a failure and do not DM about it.
+- **The old Personal API key path is dead** (`403 SUBSCRIPTION_INACTIVE`). It is paid-only. Never advise regenerating the key for that error; the key is valid, the plan gates it.
+
+The connector itself authenticates independently and works fine on the free tier. Its window is capped at `last_30_days`, so anything older than 30 days is already gone and unrecoverable by any path.
 
 **This is a cloud REBUILD, not a port.** The laptop version ran a local Python exporter (`granola_export.py`) with a `.granola_api_key` file and backed up via rclone. None of that exists here:
-- Meetings and transcripts come from the account-level claude.ai **Granola connector** (tools with function-name suffixes `get_meetings`, `list_meetings`, `get_meeting_transcript` — locate by suffix, never by a hardcoded `mcp__<uuid>__` prefix).
+- Meeting content comes from the account-level claude.ai **Granola connector** (tools with function-name suffixes `list_meetings` and `get_meetings` — locate by suffix, never by a hardcoded `mcp__<uuid>__` prefix). `get_meeting_transcript` exists but is unusable on the free tier; do not call it.
 - The archive lives directly in the **`GranolaArchive` Google Drive folder** (Drive connector `search_files` / `create_file`). No local `~/Documents/GranolaArchive`, no rclone, no API key file, no python.
 - Alerts go to Andrew as a **Slack DM, only on problems**. Silent on success — same semantics as the original.
 
-**WRITE BOUNDARY:** this skill creates meeting transcript files and `sync-log.md` in the `GranolaArchive` Drive folder, and (only on problems) sends one Slack DM to Andrew. Nothing else. Never posts to a public channel, never writes to Salesforce or Apollo, never deletes or overwrites archived transcripts.
+**WRITE BOUNDARY:** this skill creates meeting note files and `sync-log.md` in the `GranolaArchive` Drive folder, and (only on problems) sends one Slack DM to Andrew. Nothing else. Never posts to a public channel, never writes to Salesforce or Apollo, never deletes or overwrites an archived file.
 
 **Env vars:**
 
@@ -44,13 +53,15 @@ Granola's free tier deletes meeting recordings/transcripts 30 days after the mee
 
 ### Step 1: Enumerate recent Granola meetings
 
-Use the Granola connector tool `get_meetings` (or `list_meetings` if `get_meetings` is unavailable) to enumerate ALL meetings from the last **35 days** (35, not 30 — a safety margin over Granola's deletion window). Paginate until the full window is covered.
+Use the Granola connector tool `list_meetings` with `time_range: "last_30_days"` and `involvement: {captured_by_me: true, listed_as_participant: true}` to enumerate meetings.
+
+`last_30_days` is the widest window the tool accepts (the parameter is an enum: `this_week`, `last_week`, `last_30_days`), so there is no safety margin over Granola's deletion window. That is exactly why the Thursday watchdog matters: a meeting that ages past 30 days is gone before any run can reach it.
 
 For each meeting record, capture: meeting ID, title, and date (YYYY-MM-DD).
 
 **Failure handling:**
 - **Auth failure** (connector not connected, authorization rejected/expired): this is the cloud equivalent of the old `AUTH FAILURE`. DM Andrew (Step 6 alert format) with: "Granola archive sync failed — the Granola connector authorization was rejected. Reconnect the Granola connector in claude.ai connector settings, then I'll resume next run." Include the error output. Then STOP (do not touch Drive).
-- **Zero meetings retrievable** (calls succeed but return nothing for 35 days, which is implausible for Andrew's calendar, or every call errors): DM Andrew with the error output and note that nothing could be archived. Then STOP.
+- **Zero meetings retrievable** (calls succeed but return nothing for the full 30 days, which is implausible for Andrew's calendar, or every call errors): DM Andrew with the error output and note that nothing could be archived. Then STOP.
 
 ### Step 2: Locate the Drive archive folder
 
@@ -72,18 +83,21 @@ List the folder's existing files via the Drive connector `search_files` (query t
 
 The **missing set** = meetings from Step 1 with no matching file.
 
-### Step 4: Archive missing transcripts
+### Step 4: Archive missing meetings (notes + summary)
 
-For each meeting in the missing set, one at a time:
+Fetch the missing meetings via the Granola connector tool `get_meetings`, passing up to 10 meeting IDs per call and batching as needed. This returns private notes, the AI summary, attendees, and metadata.
 
-1. Fetch the transcript via the Granola connector tool `get_meeting_transcript` with the meeting ID.
-2. If the transcript comes back empty or the call errors, record the meeting in a `failures` list and continue to the next meeting. **Never write an empty file** — an empty archive entry would mask a lost transcript.
-3. Otherwise create the file via the Drive connector `create_file`:
+**Do NOT call `get_meeting_transcript`.** It fails on the free tier and its failure is expected, not reportable.
+
+Then for each meeting:
+
+1. If the meeting has neither private notes nor a summary, record it in a `failures` list and continue. **Never write an empty file** — an empty archive entry would mask a real loss.
+2. Otherwise create the file via the Drive connector `create_file`:
    - `title`: `"{YYYY-MM-DD} - {title}.md"`
    - `mimeType`: `"text/markdown"` (or `"text/plain"` if markdown is not accepted)
-   - `content`: a small header (meeting title, date, attendees if available) followed by the full transcript text (base64-encoded if the tool requires it)
+   - `content`: a header (meeting title, date, attendees), a one-line note that this came through the connector and has no transcript, then `## Private Notes` (only if present) and `## Summary` (base64-encoded if the tool requires it)
    - `parentId`: the GranolaArchive folder ID
-4. If the Drive write fails, retry once; if it still fails, add the meeting to `failures` and continue.
+3. If the Drive write fails, retry once; if it still fails, add the meeting to `failures` and continue.
 
 Count successful writes as `N` (archived N new). Meetings already archived count zero.
 
@@ -106,16 +120,16 @@ If any meetings failed in Step 4, append instead:
 PARTIAL {ISO timestamp} archived N new, {M} failed: {comma-separated meeting titles}
 ```
 
-(A PARTIAL line does not count as `OK` for the watchdog — a failed transcript still needs rescue before deletion.)
+(A PARTIAL line does not count as `OK` for the watchdog — a meeting that failed to archive still needs rescue before deletion.)
 
 ### Step 6: Alerts — problems only, silent on success
 
-**If everything succeeded (all missing transcripts archived, log updated): DO NOT post to Slack. Stay silent.** The sync-log.md line is the record.
+**If everything succeeded (all missing meetings archived, log updated): DO NOT post to Slack. Stay silent.** The sync-log.md line is the record. Archiving zero new meetings is a normal success, not a problem.
 
 **DM Andrew ONLY on problems:**
 - Granola auth failure (Step 1)
 - Zero meetings retrievable (Step 1)
-- One or more Drive write failures / empty transcripts (Step 4 `failures` non-empty)
+- One or more Drive write failures, or meetings with neither notes nor summary (Step 4 `failures` non-empty)
 - sync-log.md write failure (Step 5)
 
 To DM: resolve Andrew's Slack user with the Slack connector tool `slack_search_users` using email `{AE_EMAIL}` (fall back to `{SLACK_USER_ID}` if the search fails), then send a direct message via `slack_send_message` with what failed, the raw error output, and what was still archived successfully. Always a DM, never a public channel.
@@ -127,8 +141,9 @@ To DM: resolve Andrew's Slack user with the Slack connector tool `slack_search_u
 | Failure | Action |
 |---------|--------|
 | Granola connector auth rejected | DM Andrew: reconnect the Granola connector; STOP before Drive |
-| Zero meetings retrievable in 35 days | DM Andrew with error output; STOP |
-| Single transcript empty or fetch error | Skip that meeting (never write empty), record in failures, continue |
+| Zero meetings retrievable in 30 days | DM Andrew with error output; STOP |
+| Transcript unavailable (free tier) | EXPECTED. Not a failure. Archive notes + summary, never DM about it |
+| Single meeting has neither notes nor summary | Skip that meeting (never write empty), record in failures, continue |
 | Drive write fails for one meeting | Retry once, then record in failures, continue |
 | sync-log.md write fails | DM Andrew; the archived files themselves are already safe |
 | Everything succeeded | Silent. No Slack post. |
@@ -148,4 +163,5 @@ To DM: resolve Andrew's Slack user with the Slack connector tool `slack_search_u
 
 | Date | Change | Reason |
 |------|--------|--------|
+| 2026-09-08 | Step 4 switched from `get_meeting_transcript` to `get_meetings` (notes + AI summary); window corrected from 35 days to the connector's actual `last_30_days` cap; transcript absence and `SUBSCRIPTION_INACTIVE` demoted to expected-and-silent | Andrew moved to the Granola free tier on purpose. `get_meeting_transcript` returns "Transcripts are only available to paid Granola tiers", so the old Step 4 would have failed EVERY meeting, written nothing, and DM'd Andrew on every run. The 35-day window was never reachable: the tool's `time_range` is an enum capped at `last_30_days`. |
 | 2026-07-17 | Cloud port created from skills/granola-archive-sync (rebuilt from routines/granola-archive-sync + routines/granola-archive-sync-watchdog) | Migration to Claude Code Routines: full rebuild — Granola connector (`get_meetings`/`get_meeting_transcript`) replaces the local python exporter + `.granola_api_key` file, archive moved from ~/Documents/GranolaArchive + rclone to the GranolaArchive Drive folder via the Drive connector, sync-log.md kept on Drive with append-by-recreate, Thursday watchdog folded into the same skill as a mode, problem-only Slack DM semantics preserved (silent on success) |
