@@ -451,10 +451,11 @@ If an account is flagged by parent matching but you're not sure it's actually a 
 subsidiary (SFDC parent data is sometimes wrong), verify with You.com search:
 
 ```bash
-curl -s -G "https://api.you.com/v1/search" \
+curl -s -X POST "https://api.you.com/v1/search" \
   -H "X-API-Key: $YDC_API_KEY" \
-  --data-urlencode "query=Is [AccountName] a subsidiary of [ParentName]? Who owns [AccountName]?" \
-  --data-urlencode "result_type=news" | python3 -c "import json,sys; d=json.load(sys.stdin); [print(h.get('title',''),'-',h.get('description','')[:100]) for h in d.get('hits',[])]"
+  -H "Content-Type: application/json" \
+  -d '{"query": "Is [AccountName] a subsidiary of [ParentName]? Who owns [AccountName]?", "count": 5}' \
+  | python3 -c "import json,sys; d=json.load(sys.stdin).get('results',{}); hits=(d.get('news') or [])+(d.get('web') or []); [print(h.get('title',''),'-',h.get('description','')[:100]) for h in hits]"
 ```
 
 If verification confirms the account is NOT actually a competitor subsidiary, add it to
@@ -579,6 +580,7 @@ On re-runs: the script overwrites `ydc_account_rankings.csv`. Previous version i
 | Date | Change | Reason |
 |------|--------|--------|
 | 2026-10-28 | Removed `LIMIT 700` from the account pull, added paging note, raised usage query limits (200 to 2000, 100 to 500), description count updated | Andrew's book grew to 7,878 accounts; the cap had frozen rankings and the territory queue at ~690 since June |
+| 2026-09-22 | Fixed the Step 5 verification call: dropped the fake `result_type=news` param and rewrote the response parser to read `results.web`/`results.news` instead of a nonexistent top-level `hits` field | Auditing all You.com endpoint docs; the old snippet's parser silently returned zero results against the real API response shape, so false-positive verification was effectively a no-op |
 | 2026-06-02 | Changelog initialized | Tracking all skill changes going forward |
 | (prior) | Added `SFDC_BAD_PARENT_DATA` exclusion list; Wilson Elser added | SFDC incorrectly listed Wilson Elser (law firm) as an Alphabet subsidiary |
 | (prior) | Removed "exa" from `COMPETITOR_ACCOUNTS` | SFDC has an "EXA" under Uniguest (hospitality tech) — not exa.ai; was incorrectly excluded |

@@ -96,7 +96,7 @@ curl -s -X POST \
 curl -s -X POST \
   -H "X-API-Key: $YDC_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"query": "{COMPANY} news 2026", "num_web_results": 10}' \
+  -d '{"query": "{COMPANY} news 2026", "count": 10, "freshness": "week"}' \
   "$YDC_SEARCH_ENDPOINT"
 ```
 
@@ -309,4 +309,5 @@ Never abort the full run because one meeting's research or doc creation failed.
 
 | Date | Change | Reason |
 |------|--------|--------|
+| 2026-09-22 | Fixed the Search API call: `num_web_results` isn't a real param (silently ignored), replaced with `count` + `freshness: "week"` | Auditing all You.com endpoint docs after the search API's `knowledge` param launched; the news call was relying on manual post-filtering instead of the API's own freshness control |
 | 2026-07-17 | Cloud port created from skills/ydc-meeting-brief | Migration to Claude Code Routines: connector tools instead of hardcoded local MCP IDs, env-var defaults, YDC_API_KEY made optional with connector fallback, rclone fallback removed, explicit write boundary added |
