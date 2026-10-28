@@ -14,8 +14,7 @@
           "body": "Hi {{first_name}},\n\nFirst paragraph.\n\nSecond paragraph.\n\nRyan Reed\nYou.com"
         },
         {
-          "type": "linkedin_connect",
-          "message": "LinkedIn connect note under 250 chars. No pitch, no CTA."
+          "type": "linkedin_connect"
         },
         {
           "type": "automatic_email",
@@ -38,8 +37,8 @@
     "automatic_email": "Auto-sent email. Requires body, optionally subject (Touch 1 only) and email_type (new_thread|reply).",
     "manual_email": "Email requiring manual send. Same fields as automatic_email.",
     "phone_call": "Phone task. Requires task_note (call script).",
-    "linkedin_connect": "Connection request. Requires message (the connect note).",
-    "linkedin_message": "InMail / LinkedIn message. Requires message.",
+    "linkedin_connect": "Connection request. Never carries a note: no message field. Builders leave the step empty and ignore any text given.",
+    "linkedin_message": "LinkedIn message. Requires message (drafted copy). Andrew sends it by hand from the Apollo task; it is never automated.",
     "action_item": "Generic task. Requires task_note."
   }
 }

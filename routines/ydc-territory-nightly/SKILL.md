@@ -134,7 +134,7 @@ For each account:
    - Phase 1: Qualify (SFDC + Slack + Sumble + web validation + UC selection)
    - Phase 2: Account brief (.md file written to Drive)
    - Phase 3: Prospect discovery via Apollo
-   - Phase 4: Outreach generation (7-touch sequences, LinkedIn connect T2 + DM T7 inline)
+   - Phase 4: Outreach generation (7-touch sequences. LinkedIn connect T2 has an empty body, no note. DM T7 copy is drafted inline as a manual task)
    - Phase 5: Apollo sequence build via build-sequences.js (Playwright) — 4 sequences × 7 touches, no Drive queue file
 
    **Note:** Phase 1 skip gates still apply as a safety net. If Phase 1 triggers a skip that pre-flight missed, mark the account accordingly and move to the next account in the confirmed batch (do not run pre-flight again mid-run).
@@ -166,7 +166,7 @@ Pipeline progress: {X}/{total} complete | {Y} skipped | {Z} in cooling period
 Next batch: pre-validating now...
 
 Review Touch 1 drafts in Apollo → Sequences → activate when ready.
-LinkedIn connects (T2) and DMs (T7) fire automatically from the sequence after T1 is activated.
+LinkedIn connects (T2, no note) are worked by the LinkedIn script after T1 is activated. DMs (T7) are manual tasks. Review and send each one by hand.
 ```
 
 ## Step 6: Pre-validate tomorrow's batch

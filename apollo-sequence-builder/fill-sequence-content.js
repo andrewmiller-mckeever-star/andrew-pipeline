@@ -440,6 +440,15 @@ async function fillSequence(page, seq) {
       continue;
     }
 
+    // Connection requests never carry a note (Andrew, 2026-10-08), so a connect
+    // step is never filled. It still has an edit button in the UI.
+    if (step.type === 'linkedin_connect') {
+      log.info(`${label}: [linkedin_connect] skipping — connection requests never carry a note`);
+      editButtonIdx++;
+      results.push({ step: i + 1, type: step.type, status: 'skipped_no_note_policy' });
+      continue;
+    }
+
     // Skip steps with no content
     if (!step.body && !step.subject && !step.message) {
       log.info(`${label}: [${step.type}] skipping — no content provided`);

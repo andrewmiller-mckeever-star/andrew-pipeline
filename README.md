@@ -285,7 +285,7 @@ Each sequence follows a 5-touch cadence:
 
 ```
 Touch 1: Email (opener — AIDA structure, 100-150 words)
-Touch 2: LinkedIn Connect (under 250 chars, zero pitch)
+Touch 2: LinkedIn Connect (no note, empty body. Policy 2026-10-08)
 Touch 3: Email reply (follow-up — new proof point, 80-120 words)
 Touch 4: Call
 Touch 5: Email reply (breakup — 80-120 words)

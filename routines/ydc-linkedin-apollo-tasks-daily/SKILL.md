@@ -1,9 +1,11 @@
 ---
 name: ydc-linkedin-apollo-tasks-daily
-description: Weekdays at 9 AM — runs apollo-linkedin-connect.js to process all pending LinkedIn connect and DM tasks, posts results to Slack
+description: Weekdays at 9 AM — runs apollo-linkedin-connect.js to send no-note connection requests and do Touch 5 post likes, posts results to Slack. Never sends DMs
 ---
 
 Run Andrew's Apollo LinkedIn task queue via the Playwright script and post results to Slack.
+
+LinkedIn policy (2026-10-08): the script automates only no-note connection requests and Touch 5 profile-view / post-like steps. It never sends LinkedIn messages. Touch 7 DMs are manual tasks Andrew sends by hand, so any completed linkedin_step_message task was sent by Andrew, not by a script.
 
 ## Step 1: Run the script
 
@@ -17,12 +19,10 @@ Capture the full stdout/stderr output.
 ## Step 2: Parse the output
 
 From the script output, extract:
-- Connects sent (count + names)
-- DMs sent (count + names)
+- Connects sent (count + names). All go out with no note
+- Posts liked (count + names)
 - Skipped — cap reached (count)
 - Skipped — already connected/pending/no URL (count)
-- Skipped — not connected yet (count)
-- Skipped — unfilled placeholder (count + names, if any)
 - Errors (count + details, if any)
 
 ## Step 3: Handle special cases
@@ -56,9 +56,8 @@ Post to #automated-linkedin-outbound-summary (channel ID: C0B4LF2MPUJ) using sla
 Format:
 ```
 <@{SLACK_USER_ID}> LinkedIn tasks done.
-Connects: {N sent} sent{, N skipped — cap if applicable}
-DMs: {N sent} sent
-{If unfilled placeholders: "⚠️ {N} DMs skipped — unfilled placeholder: [names]. Edit in Apollo and re-run."}
+Connects: {N sent} sent, no note{, N skipped — cap if applicable}
+Posts liked: {N}
 {If errors: "❌ {N} errors: [details]"}
 ```
 

@@ -523,7 +523,8 @@ async function populateSequence(page, seq) {
           log.step(seq.name, touchNum, 'Phone call — task note filled manually');
           break;
         case 'linkedin_connect':
-          await configureTextareaStep(page, step.message, seq.name, touchNum, 'connection note');
+          // Connection requests never carry a note (Andrew, 2026-10-08).
+          log.step(seq.name, touchNum, 'LinkedIn connect — no note');
           break;
         case 'linkedin_message':
           await configureTextareaStep(page, step.message, seq.name, touchNum, 'LinkedIn message');

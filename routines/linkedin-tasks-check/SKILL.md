@@ -14,7 +14,9 @@ curl -s -X POST "https://api.apollo.io/api/v1/tasks/search" \
   -d '{"sort_by_field":"task_due_at","sort_ascending":true,"per_page":100}'
 ```
 
-Filter client-side: `user_id === "{APOLLO_USER_ID}"` AND type in `["linkedin_step_connect", "linkedin_step_message"]` AND `status === "scheduled"`.
+Filter client-side: `user_id === "{APOLLO_USER_ID}"` AND type in `["linkedin_step_connect", "linkedin_step_view_profile", "linkedin_step_interact_post"]` AND `status === "scheduled"`.
+
+Do NOT count `linkedin_step_message` tasks. Since 2026-10-08 Touch 7 DMs are manual tasks Andrew sends by hand. The script never sends them, so a pending DM task is expected and is never a reason to re-run.
 
 ## Step 2: Determine outcome
 
@@ -50,9 +52,8 @@ Stop here.
 Post to #automated-linkedin-outbound-summary (channel ID: C0B4LF2MPUJ):
 ```
 <@{SLACK_USER_ID}> LinkedIn watchdog: 9 AM run missed — re-ran at 2 PM.
-Connects: {N} sent
-DMs: {N} sent
-{If unfilled placeholders: "⚠️ {N} DMs skipped — unfilled placeholder: [names]. Edit in Apollo and re-run."}
+Connects: {N} sent (no note)
+Posts liked: {N}
 {If errors: "❌ {N} errors: [details]"}
 ```
 

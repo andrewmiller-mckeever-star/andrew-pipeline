@@ -46,8 +46,8 @@ See `schema.example.json` for the full schema. Each sequence has a name and arra
 |-----------|----------------|
 | `automatic_email` | `body`, optionally `subject` (Touch 1), `email_type` (`new_thread` or `reply`) |
 | `phone_call` | `task_note` (call script) |
-| `linkedin_connect` | `message` (connect note) |
-| `linkedin_message` | `message` |
+| `linkedin_connect` | `message` is always `""`. Connection requests carry no note (policy 2026-10-08) |
+| `linkedin_message` | `message` (drafted DM. A manual task Andrew sends by hand) |
 | `action_item` | `task_note` |
 
 ## Troubleshooting

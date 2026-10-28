@@ -96,8 +96,13 @@ async function buildSequence(seq) {
       try { await api('PUT', `/emailer_touches/${touch.id}`, { status: 'active' }); } catch (e) { rec.touch_status_warn = e.message.slice(0,80); }
       rec.template_id = tmplId;
     }
-    // fill linkedin message content
-    if (apolloType === 'linkedin_step_connect' || apolloType === 'linkedin_step_message') {
+    // Connection requests never carry a note (Andrew, 2026-10-08): the connect
+    // step's template is left empty whatever the content file says.
+    if (apolloType === 'linkedin_step_connect' && step.message) {
+      console.warn(`  !! T${i+1} connect note in content file ignored — connection requests never carry a note`);
+    }
+    // fill linkedin message content (sent manually by Andrew from the Apollo task)
+    if (apolloType === 'linkedin_step_message') {
       const tmplId = touch.emailer_template_id;
       await api('PUT', `/emailer_templates/${tmplId}`, { body_text: step.message, body_html: htmlize(step.message) });
       rec.template_id = tmplId;

@@ -352,7 +352,7 @@ For each missing sequence, use the **Sequence JSON Template** at the bottom of t
 2. Add each step: `POST https://api.apollo.io/v1/emailer_steps` with `emailer_campaign_id`, `type` (`manual_email`, `auto_email`, `action_item`), `wait_time`, and `emailer_template` or `note`.
 3. Verify steps were created (fetch sequence, confirm step count matches template).
 
-Note: LinkedIn steps (Touch 2 / Touch 6) cannot be created via API. Usage outreach sequences use email + action_item steps only. LinkedIn outreach for usage contacts is handled separately via ydc-linkedin-queue if linkedin_url is available.
+Note: LinkedIn steps (Touch 2 / Touch 6) cannot be created via API. Usage outreach sequences use email + action_item steps only. Any LinkedIn connect for usage contacts goes out with no note. LinkedIn DMs are manual tasks that Andrew sends by hand (policy 2026-10-08).
 
 ---
 
@@ -812,13 +812,13 @@ Andrew
 | Touch | Day | Type | Notes |
 |-------|-----|------|-------|
 | 1 | D1 | manual_email | New thread. Andrew reviews and sends. Personalized with usage data. |
-| 2 | D3 | linkedin_connect | No pitch. Fact-to-consequence formula. Under 250 chars. |
+| 2 | D3 | linkedin_connect | No note. `message` is an empty string (2026-10-08). |
 | 3 | D6 | automatic_email | Reply to T1 thread. Resources + eval harness + free credits. |
 | 4 | D9 | phone_call | 90-second check-in script. |
 | 5 | D13 | automatic_email | Reply to T1 thread. Breakup email. |
-| 6 | D18 | linkedin_message | Short DM. Under 300 chars. |
+| 6 | D18 | linkedin_message | Short DM. Under 300 chars. Manual task, Andrew sends it by hand. |
 
-**LinkedIn (T2 + T6):** Only fires if `linkedin_url` is set on the Apollo contact.
+**LinkedIn (T2 + T6):** T2 is a no-note connect worked by the LinkedIn script. It only fires if `linkedin_url` is set on the Apollo contact. T6 is always a manual task Andrew sends by hand. No script sends it.
 Flag contacts without LinkedIn as "T2/T6 manual."
 
 ---
@@ -838,7 +838,7 @@ Use the structure below as the content reference when building sequences via Apo
       "name": "YDC | Usage | Seq A: New Signup",
       "steps": [
         { "type": "manual_email", "email_type": "new_thread", "subject": "Getting started with the API", "body": "Hi {{first_name}},\n\nYou signed up for the You.com API recently. If you haven't had a chance to make your first call yet, a few things that cut the ramp time:\n\nThe quickstart guide walks through authentication and your first query in under 10 minutes. We also have an eval harness and free credits if you want to test at scale before committing to a plan.\n\nHappy to walk through it live if that's easier.\n\nAndrew\nYou.com" },
-        { "type": "linkedin_connect", "message": "Your team signed up for the You.com API recently. Getting the first query right tends to unlock the rest of the eval, would love to connect and share what I've seen work." },
+        { "type": "linkedin_connect", "message": "" },
         { "type": "automatic_email", "email_type": "reply", "body": "Hi {{first_name}},\n\nDropping these in case you haven't seen them:\n\nQuickstart guide: https://documentation.you.com/docs/quick-start\nAPI docs: https://documentation.you.com\nEval harness: https://github.com/youcom/eval-harness\n\nFree credits are available if you want to push volume before a budget decision. Let me know if anything is blocking your first test.\n\nAndrew" },
         { "type": "phone_call", "task_note": "Hi {{first_name}}, this is Andrew from You.com. You signed up for the API recently and I wanted to quickly check in to see if you've had a chance to make your first call. Do you have 90 seconds?" },
         { "type": "automatic_email", "email_type": "reply", "body": "Hi {{first_name}},\n\nHappy to leave it here if the timing isn't right. The credits offer stands whenever you're ready.\n\nAndrew" },
@@ -849,7 +849,7 @@ Use the structure below as the content reference when building sequences via Apo
       "name": "YDC | Usage | Seq B: Active Tester",
       "steps": [
         { "type": "manual_email", "email_type": "new_thread", "subject": "{{company}} + You.com", "body": "Hi {{first_name}},\n\nYour team has been active on the API this week. That level of usage usually means a few things are working and a few are starting to create friction: freshness, citation quality, or snippet depth.\n\nIf any of those have come up, happy to dig in. We also have an eval harness and free credits if you want to stress-test at higher volume.\n\nWorth a quick sync?\n\nAndrew\nYou.com" },
-        { "type": "linkedin_connect", "message": "Your team has been active on the You.com API this week. At that volume, freshness and citation depth tend to become the limiting factors, would love to connect and share what I've seen." },
+        { "type": "linkedin_connect", "message": "" },
         { "type": "automatic_email", "email_type": "reply", "body": "Hi {{first_name}},\n\nA few things useful at this stage:\n\nAPI docs: https://documentation.you.com\nQuickstart: https://documentation.you.com/docs/quick-start\nEval harness: https://github.com/youcom/eval-harness\n\nFree credits available if you need to scale testing before a budget call.\n\nAndrew" },
         { "type": "phone_call", "task_note": "Hi {{first_name}}, this is Andrew from You.com. I saw your team has been active on the API and wanted to check in quickly to see how testing is going. Do you have 90 seconds?" },
         { "type": "automatic_email", "email_type": "reply", "body": "Hi {{first_name}},\n\nIf you want to talk through the infrastructure or see how other teams are using this at scale, open to connecting.\n\nAndrew" },
@@ -860,7 +860,7 @@ Use the structure below as the content reference when building sequences via Apo
       "name": "YDC | Usage | Seq C: Stalled Tester",
       "steps": [
         { "type": "manual_email", "email_type": "new_thread", "subject": "Still evaluating?", "body": "Hi {{first_name}},\n\nYour team was active on the API a few weeks ago and then went quiet. That usually means the eval surfaced something, a comparison is running, or the project paused.\n\nIf something came up in testing, happy to dig into it.\n\nAndrew\nYou.com" },
-        { "type": "linkedin_connect", "message": "Your team was testing the You.com API a few weeks back and went quiet. That usually means the eval surfaced something worth discussing, would love to connect." },
+        { "type": "linkedin_connect", "message": "" },
         { "type": "automatic_email", "email_type": "reply", "body": "Hi {{first_name}},\n\nIn case it helps with wherever the eval stands:\n\nAPI docs: https://documentation.you.com\nQuickstart: https://documentation.you.com/docs/quick-start\nEval harness: https://github.com/youcom/eval-harness\n\nFree credits available if you want to run a side-by-side or pick up where you left off.\n\nAndrew" },
         { "type": "phone_call", "task_note": "Hi {{first_name}}, this is Andrew from You.com. I saw your team was testing the API a few weeks back and wanted to check in quickly to see how it went. Do you have 90 seconds?" },
         { "type": "automatic_email", "email_type": "reply", "body": "Hi {{first_name}},\n\nLeaving it here. If the eval reopens, you know where to find me.\n\nAndrew" },
@@ -871,7 +871,7 @@ Use the structure below as the content reference when building sequences via Apo
       "name": "YDC | Usage | Seq D: Customer New Signup",
       "steps": [
         { "type": "manual_email", "email_type": "new_thread", "subject": "You.com API: welcome", "body": "Hi {{first_name}},\n\nYou recently signed up for the You.com API. You may or may not know, but {{company}} is already a customer of ours.\n\nI'm Andrew, your point of contact here. Quick question: are you part of the team at {{company}} already using the API, or is this something you're exploring separately? Either way, happy to make sure you have what you need.\n\nWe also have additional credits available for customer teams who want to run more thorough tests.\n\nAndrew\nYou.com" },
-        { "type": "linkedin_connect", "message": "{{company}} is already a You.com customer, and I noticed you just signed up for the API. Worth connecting to make sure you have what you need, would love to share more." },
+        { "type": "linkedin_connect", "message": "" },
         { "type": "automatic_email", "email_type": "reply", "body": "Hi {{first_name}},\n\nA few things useful early on:\n\nAPI docs: https://documentation.you.com\nQuickstart: https://documentation.you.com/docs/quick-start\nEval harness: https://github.com/youcom/eval-harness\n\nAs a {{company}} team member, you also have access to additional credits for testing. Let me know how I can help.\n\nAndrew" },
         { "type": "phone_call", "task_note": "Hi {{first_name}}, this is Andrew from You.com. I noticed you recently signed up for the API. Since your company is already a customer of ours, I wanted to make sure you're connected to the right resources. Do you have 90 seconds?" },
         { "type": "automatic_email", "email_type": "reply", "body": "Hi {{first_name}},\n\nHappy to leave it here. If you want to connect me with the right person at {{company}} or need anything on the API side, I'm here.\n\nAndrew" },
@@ -882,7 +882,7 @@ Use the structure below as the content reference when building sequences via Apo
       "name": "YDC | Usage | Seq E: Re-engagement",
       "steps": [
         { "type": "manual_email", "email_type": "new_thread", "subject": "Checking back in", "body": "Hi {{first_name}},\n\nWe connected before but it's been a while. I noticed your team has been back on the API recently ({{calls_7d}} calls this week) and wanted to check in.\n\nWhere do things stand? Happy to pick up where we left off or start fresh depending on what's changed.\n\nAndrew\nYou.com" },
-        { "type": "linkedin_connect", "message": "Your team has been back on the You.com API recently. That usually means something has changed, would love to connect and pick up where we left off." },
+        { "type": "linkedin_connect", "message": "" },
         { "type": "automatic_email", "email_type": "reply", "body": "Hi {{first_name}},\n\nIn case anything has changed since we last spoke:\n\nAPI docs: https://documentation.you.com\nQuickstart: https://documentation.you.com/docs/quick-start\nEval harness: https://github.com/youcom/eval-harness\n\nFree credits available if the evaluation is back on the table.\n\nAndrew" },
         { "type": "phone_call", "task_note": "Hi {{first_name}}, this is Andrew from You.com. We spoke before — I saw your team is back on the API and wanted to check in quickly. Do you have 90 seconds?" },
         { "type": "automatic_email", "email_type": "reply", "body": "Hi {{first_name}},\n\nLeaving it here. If the timing changes, you know where to find me.\n\nAndrew" },
@@ -893,7 +893,7 @@ Use the structure below as the content reference when building sequences via Apo
       "name": "YDC | Usage | Seq F: Customer Existing User",
       "steps": [
         { "type": "manual_email", "email_type": "new_thread", "subject": "You.com API: your point of contact", "body": "Hi {{first_name}},\n\nI noticed you've been using the You.com API. Since {{company}} is one of our customers, I wanted to introduce myself. I'm Andrew, your point of contact here.\n\nIf there's anything you need, a deeper walk-through, help with a specific use case, or resources, I'm here. We also have additional credits available for customer teams who want to test at higher volume.\n\nWhat are you building?\n\nAndrew\nYou.com" },
-        { "type": "linkedin_connect", "message": "{{company}} has been active on the You.com API and I noticed you specifically have been building with it. Worth connecting as your point of contact, would love to help." },
+        { "type": "linkedin_connect", "message": "" },
         { "type": "automatic_email", "email_type": "reply", "body": "Hi {{first_name}},\n\nA few things in case they're useful:\n\nAPI docs: https://documentation.you.com\nQuickstart: https://documentation.you.com/docs/quick-start\nEval harness: https://github.com/youcom/eval-harness\n\nAs a {{company}} customer, you have access to additional credits for broader testing. Let me know how I can help.\n\nAndrew" },
         { "type": "phone_call", "task_note": "Hi {{first_name}}, this is Andrew from You.com. Since your company is a customer of ours, I wanted to reach out and introduce myself as your point of contact. Do you have 90 seconds?" },
         { "type": "automatic_email", "email_type": "reply", "body": "Hi {{first_name}},\n\nLast note. If there's ever a question or you want to connect with someone deeper on the technical side, happy to make that happen.\n\nAndrew" },
@@ -903,6 +903,8 @@ Use the structure below as the content reference when building sequences via Apo
   ]
 }
 ```
+
+Every `linkedin_connect` message is `""`. Connection requests carry no note (policy 2026-10-08). The `linkedin_message` copy is drafted for Andrew's manual task.
 
 ---
 
@@ -927,6 +929,7 @@ Use the structure below as the content reference when building sequences via Apo
 
 | Date | Change | Reason |
 |------|--------|--------|
+| 2026-10-08 | Connect-step copy removed: every `linkedin_connect` message is now `""`. T6 DM documented as a manual task Andrew sends by hand | On 2026-09-25 and 09-28 the LinkedIn script sent 18 Cohort 1A/1B invites with raw `{{calls_30d}}` notes. Apollo never renders variables in LinkedIn steps |
 | 2026-09-01 | **Foreign-sequence policy reversed: move, do not hold.** Anyone live in a sequence that is not Andrew's is removed from it and enrolled in the usage sequence on a plain "go". New `reclassify_from_foreign` field; Step 10 covers both reclassify paths and must VERIFY the removal by re-reading the contact; a failed removal still enrolls (with `sequence_active_in_other_campaigns: true`) and is reported by name. `flagged_conflict` now means only "the move failed mechanically". New "go, leave {email}" opt-out. Supersedes the cross-rep hold added 2026-07-17. | Andrew's call. Joe Hindle's "product user journey" campaign took alex.w@example.com 43 minutes after the 08-28 review said he was clean, so the best signup on the book was getting another rep's cold email while Andrew's "go" sat held. |
 | 2026-06-22 | Step 2 rewritten to check interaction across ALL channels (SFDC EmailMessage, all SFDC Tasks incl. LinkedIn, SFDC Events, Google Calendar, Slack threads/DMs by name+email, Gmail). Cold buckets reachable only when every channel is empty. | Contacts with calendar meetings, Slack DMs, or SFDC LinkedIn tasks (e.g. dana@example-ai.com) were tagged "never contacted" and routed to cold sequences — calendar was never queried, Slack was domain-only, and the Task filter excluded LinkedIn/upcoming activity |
 | 2026-06-02 | Changelog initialized | Tracking all skill changes going forward |

@@ -25,13 +25,13 @@ Query Apollo for today's completed LinkedIn tasks:
 curl -s -X POST "https://api.apollo.io/api/v1/tasks/search" -H "X-Api-Key: $APOLLO_API_KEY" -H "Content-Type: application/json" -d '{"sort_by_field":"task_completed_at","sort_ascending":false,"per_page":100}'
 If $APOLLO_API_KEY is unset or the call fails, post to C0B4LF2MPUJ: "<@{SLACK_USER_ID}> LinkedIn summary watchdog — the 9:30 run did not post AND the catch-up could not reach the Apollo API (check APOLLO_API_KEY)." and stop.
 
-Filter client-side: user_id === "{APOLLO_USER_ID}"; type in ["linkedin_step_connect","linkedin_step_message"]; status "complete" or "completed"; completed_at is today. Tally connects and DMs with contact + company names.
+Filter client-side: user_id === "{APOLLO_USER_ID}"; type in ["linkedin_step_connect","linkedin_step_message"]; status "complete" or "completed"; completed_at is today. Tally connects and DMs with contact + company names. LinkedIn policy (2026-10-08): the script automates only no-note connection requests and Touch 5 profile-view / post-like steps. It never sends LinkedIn messages. Touch 7 DMs are manual tasks Andrew sends by hand, so any completed linkedin_step_message task was sent by Andrew, not by a script.
 
 Post to C0B4LF2MPUJ, plain text, opening with <@{SLACK_USER_ID}>:
 "<@{SLACK_USER_ID}> LinkedIn morning summary — {today's date}
 Connects sent: {N}
   {First Last} @ {Company}
-DMs sent: {N}
+DMs sent by hand: {N}
   {First Last} @ {Company}
 (11:30 catch-up run — the 9:30 scheduled run did not post. Check the Routine's Runs panel.)"
 If 0 results: "Nothing completed yet. 2pm laptop watchdog will re-run the task runner if tasks are still pending." plus the catch-up line.

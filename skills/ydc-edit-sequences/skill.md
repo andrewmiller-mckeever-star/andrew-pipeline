@@ -56,8 +56,8 @@ Content lives in JSON files at `APOLLO_BUILDER_PATH`. Each sequence has a JSON f
 Step types supported:
 - `automatic_email` — needs `email_type` (new_thread/reply), `subject` (new_thread only), `body`
 - `phone_call` — needs `task_note` (note: auto-fill blocked by Apollo collapsed card UI — fill manually)
-- `linkedin_connect` — needs `message`
-- `linkedin_message` — needs `message`
+- `linkedin_connect` — `message` is always `""`. Connection requests carry no note (policy 2026-10-08)
+- `linkedin_message` — needs `message` (drafted DM for a manual task Andrew sends by hand)
 - `linkedin_view_profile` — no content needed
 - `action_item` — needs `task_note`
 
@@ -105,10 +105,10 @@ tail -f /tmp/populate-run.log
 | Step Type | Auto-filled | Manual |
 |-----------|------------|--------|
 | Automatic email (T1) | Subject + body | — |
-| LinkedIn connect (T2) | Connection note | — |
+| LinkedIn connect (T2) | Nothing. Leave empty, no note | — |
 | Automatic email reply (T3/T5) | Body | — |
 | Phone call (T4) | — | Task note (Apollo card stays collapsed) |
-| LinkedIn message (T6) | Message | — |
+| LinkedIn message (T6) | Message (drafted copy) | Andrew sends it by hand from the task queue |
 | View profile | — | Nothing needed |
 
 Phone call task notes must be filled manually in Apollo after the script runs.
@@ -154,6 +154,7 @@ Navigate to the sequence editor → click Step N: Phone call → expand → past
 
 | Date | Change | Reason |
 |------|--------|--------|
+| 2026-10-08 | LinkedIn connect step is left empty (no note). LinkedIn message copy is still filled, but sent by hand | On 2026-09-25 and 09-28 the LinkedIn script sent 18 Cohort 1A/1B invites with raw `{{calls_30d}}` notes. Apollo never renders variables in LinkedIn steps |
 | 2026-06-02 | Changelog initialized | Tracking all skill changes going forward |
 | 2026-04 | Added CRITICAL note: must click Template tab and clear AI chips before filling content | Apollo changed step editor default to "Assisted" AI tab; content was landing in wrong tab or appending after AI placeholders |
 | (prior) | Documented that populate-sequences.js requires Chrome to be closed; build-sequences.js does not | Different auth mechanisms: populate-sequences.js uses launchPersistentContext (profile lock conflict); build-sequences.js also uses launchPersistentContext but handles it correctly |

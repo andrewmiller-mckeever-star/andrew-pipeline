@@ -1,9 +1,11 @@
 ---
 name: ydc-linkedin-queue
-description: Daily 9:33am report — summarizes Apollo LinkedIn tasks completed this morning (connects + DMs), posts to #automated-linkedin-outbound-summary
+description: Daily 9:33am report — summarizes Apollo LinkedIn tasks completed this morning (no-note connects + DMs Andrew sent by hand), posts to #automated-linkedin-outbound-summary
 ---
 
 You are a morning completion reporter for Andrew's Apollo LinkedIn outreach. The 9am task runner (ydc-linkedin-apollo-tasks-daily) has already fired. Your job is to query Apollo, summarize what was completed today, and post to Slack.
+
+LinkedIn policy (2026-10-08): the script automates only no-note connection requests and Touch 5 profile-view / post-like steps. It never sends LinkedIn messages. Touch 7 DMs are manual tasks Andrew sends by hand, so any completed linkedin_step_message task was sent by Andrew, not by a script.
 
 ## Step 1: Query Apollo for today's completed LinkedIn tasks
 
@@ -24,7 +26,7 @@ Filter client-side:
 
 From the filtered tasks, count:
 - Connects completed (type = linkedin_step_connect)
-- DMs completed (type = linkedin_step_message)
+- DMs Andrew sent by hand (type = linkedin_step_message)
 - Collect contact names and company names for each
 
 ## Step 3: Post to Slack
@@ -37,7 +39,7 @@ If tasks were completed:
 Connects sent: {N}
   {First Last} @ {Company}
   ...
-DMs sent: {N}
+DMs sent by hand: {N}
   {First Last} @ {Company}
   ...
 ```

@@ -258,12 +258,12 @@ Generate 2 sequences, each with 7 touches:
 | Touch | Day | Type | JSON step_type | Notes |
 |-------|-----|------|----------------|-------|
 | 1 | Day 1 | Email | `automatic_email`, `email_type: "new_thread"` | Unique subject, AIDA structure |
-| 2 | Day 2 | LinkedIn | `linkedin_connect` | Fact-to-Consequence + Curiosity Hook, under 250 chars |
+| 2 | Day 2 | LinkedIn | `linkedin_connect` | No note. `message` is an empty string (`""`) |
 | 3 | Day 5 | Email reply | `automatic_email`, `email_type: "reply"` | New context, not rephrase |
 | 4 | Day 8 | Call | `phone_call` | Call script in `task_note` |
 | 5 | Day 11 | LinkedIn action | `action_item` | View profile + engage recent post, note content for Touch 7 |
 | 6 | Day 14 | Email reply | `automatic_email`, `email_type: "reply"` | Breakup, new angle |
-| 7 | Day 17 | LinkedIn DM | `linkedin_message` | Peer-to-peer, references their LinkedIn content, under 300 chars |
+| 7 | Day 17 | LinkedIn DM | `linkedin_message` | Peer-to-peer, references their LinkedIn content, under 300 chars. Manual task, Andrew sends it by hand |
 
 #### Writing Rules (ALL apply)
 
@@ -283,7 +283,7 @@ Full rules in ydc-outreach/references/writing-rules.md. Key updates for territor
 - Strip corporate suffixes.
 - No hide-the-company language: "You.com's APIs" not "our APIs," "You.com's founder" not "our founder."
 - No qualifier openers on follow-up bodies: after "Hi {{first_name}}," jump to the new hook. "Last note," "One more angle," "Closing the loop," "Quick follow-up," "Additional context" are all banned.
-- LinkedIn notes: zero pitch, zero CTA, zero flattery. Fact-to-Consequence + Research-Share Close. End every note with ", would love to connect and share more of my research." Never "Curious how your team is thinking about [X]."
+- LinkedIn connect notes: none. Since 2026-10-08 connection requests carry no note. Do not write, draft or review connect-note copy. Touch 7 DM copy is still drafted into the step, and Andrew sends it by hand.
 
 #### Reactivation Targets
 
@@ -309,7 +309,7 @@ After generating both sequences but BEFORE writing JSON, check every touch again
 - [ ] At least one Socher reference per sequence
 - [ ] At least one public proof point per sequence
 - [ ] Plain text only (no markdown formatting)
-- [ ] LinkedIn connect note (Touch 2) under 250 chars, zero pitch, ends with ", would love to connect and share more of my research."
+- [ ] LinkedIn connect (Touch 2) has an empty body. No connect-note copy anywhere
 - [ ] Action item task note (Touch 5) instructs: view profile, engage recent post, note content for Touch 7
 - [ ] LinkedIn DM (Touch 7) under 300 chars, different hook from Touch 6, references their LinkedIn content
 - [ ] LinkedIn DM has zero product mention and zero meeting CTA
@@ -323,7 +323,7 @@ Fix any violations before proceeding to JSON.
 Use ydc-apollo-build skill. It will:
 1. Write content JSON to `{company}-4seq-content.json`, run:
    `HEADED=true node build-sequences.js {company}-4seq-content.json`
-   Creates 4 sequences (A-D), 7 touches each. Auth: launchPersistentContext + ~/.apollo-playwright-profile. LinkedIn connect (T2) and DM (T7) are sequence steps.
+   Creates 4 sequences (A-D), 7 touches each. Auth: launchPersistentContext + ~/.apollo-playwright-profile. LinkedIn connect (T2) and DM (T7) are sequence steps. T2 has an empty body (no note). T7 is a manual task with drafted copy that Andrew sends by hand.
 2. Enroll contacts via Apollo REST API
 3. Post completion summary
 
@@ -488,6 +488,7 @@ All rules from CLAUDE.md apply. Critical reminders:
 | Date | Change | Reason |
 |------|--------|--------|
 | 2026-10-28 | Book size wording no longer hardcodes 690; added merge-not-reset rule for refreshing territory-progress.json | Andrew's book grew to 7,878 accounts and the queue was refreshed by merge, keeping the 20 completed and all skipped/failed entries |
+| 2026-10-08 | Touch 2 connect notes retired: empty body, no connect copy written or reviewed. Touch 7 marked as a manual task Andrew sends by hand | On 2026-09-25 and 09-28 the LinkedIn script sent 18 Cohort 1A/1B invites with raw `{{calls_30d}}` notes. Apollo never renders variables in LinkedIn steps |
 | 2026-06-02 | Changelog initialized | Tracking all skill changes going forward |
 | (prior) | Added PRE-PHASE SKIP GATE CHECK before Phase 0 | Skip gate logic was being bypassed; accounts with skip_until dates were still running CTD and incurring API costs |
 | (prior) | Added mandatory apollo_people_bulk_match enrichment in Phase 3 | apollo_mixed_people_api_search returns `has_email: true` flag only, not the actual email; contacts were being enrolled without verified email addresses |

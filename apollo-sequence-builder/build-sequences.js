@@ -489,7 +489,7 @@ async function addStep(page, step, stepIndex, sequenceName) {
   }
 
   // Post-fill verification for non-email steps (textarea-based)
-  if (step.type === 'linkedin_connect' || step.type === 'linkedin_message') {
+  if (step.type === 'linkedin_message') {
     const expectedContent = step.message;
     if (expectedContent) {
       await verifyStepContent(page, expectedContent, touchNum, sequenceName, 'LinkedIn note');
@@ -923,17 +923,13 @@ async function configurePhoneStep(page, step, touchNum, seqName, beforeSnapshot)
   }
 }
 
+// Connection requests never carry a note (Andrew, 2026-10-08). The step is added
+// with its note field left empty, whatever the content file says.
 async function configureLinkedInConnectStep(page, step, touchNum, seqName, beforeSnapshot) {
   if (step.message) {
-    log.step(seqName, touchNum, 'Filling LinkedIn connect note...');
-
-    const filled = await fillNewStepInput(page, step.message, beforeSnapshot);
-    if (filled) {
-      log.step(seqName, touchNum, `LinkedIn note filled (${step.message.length} chars)`);
-    } else {
-      log.err(`LinkedIn note could not be filled for Touch ${touchNum}. No new visible input found.`);
-    }
+    log.warn(`[${seqName}] Touch ${touchNum}: connect note in content file ignored — connection requests never carry a note`);
   }
+  log.step(seqName, touchNum, 'LinkedIn connect step left with no note');
 }
 
 async function configureLinkedInMessageStep(page, step, touchNum, seqName, beforeSnapshot) {

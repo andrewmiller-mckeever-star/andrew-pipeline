@@ -25,23 +25,15 @@ const WEEKLY_CONNECT_CAP = parseInt(process.env.WEEKLY_CONNECT_CAP || '200', 10)
 // up in activity history alongside the [Apollo] and [Gong] email records.
 // Set SFDC_LOG=false to disable.
 const { execFile } = require('child_process');
-const SFDC_LOG_ENABLED = process.env.SFDC_LOG !== 'false';
-// This repo is public. Account identifiers live in ae-config.md, which is gitignored.
-// Env wins; ae-config.md is the fallback.
-function aeConfig(key) {
-  if (process.env[key]) return process.env[key];
-  for (const base of [__dirname, path.join(__dirname, '..')]) {
-    const p = path.join(base, 'ae-config.md');
-    if (fs.existsSync(p)) {
-      const m = fs.readFileSync(p, 'utf8').match(new RegExp('^' + key + ':\\s*(.+)$', 'm'));
-      if (m) return m[1].trim().replace(/`/g, '');
-    }
-  }
-  console.error(`${key} is not set. Add it to ae-config.md or export it.`);
-  process.exit(1);
+// SFDC_USER_ID (the Salesforce User Id that owns the logged Tasks) comes from the
+// environment only; run-linkedin-tasks.sh reads it from settings.json. Without it,
+// Salesforce logging is turned off rather than writing Tasks with no owner.
+const SFDC_OWNER_ID = process.env.SFDC_USER_ID || '';
+const SFDC_LOG_ENABLED = process.env.SFDC_LOG !== 'false' && SFDC_OWNER_ID !== '';
+if (process.env.SFDC_LOG !== 'false' && !SFDC_OWNER_ID) {
+  console.warn('[WARN] SFDC_USER_ID is not set: Salesforce activity logging is off for this run.');
 }
-const SFDC_ORG = process.env.SFDC_USERNAME || aeConfig('AE_EMAIL');
-const SFDC_OWNER_ID = aeConfig('SFDC_USER_ID');
+const SFDC_ORG = process.env.SFDC_USERNAME || 'andrew.miller-mckeever@you.com';
 // SFDC_API_VERSION is set as "66.0" in the environment, with no leading "v". The
 // REST path needs "v66.0", so an unnormalized value produced /services/data/66.0/...
 // and a 404 that looked like an auth problem. Normalize rather than trust the env.
@@ -59,7 +51,7 @@ const ONLY_TYPE = process.env.ONLY_TYPE || '';
 // ONLY_CONTACT restricts a run to a single contact (Apollo contact id, or a name substring).
 // Used for supervised one-person verification runs.
 const ONLY_CONTACT = process.env.ONLY_CONTACT || '';
-const ANDREW_USER_ID = aeConfig('APOLLO_USER_ID');
+const ANDREW_USER_ID = '69c2b4822d0a4900117855af';
 
 // Apollo task type for "LinkedIn - interact with post" sequence steps (Touch 5).
 // Apollo's REST API returns this as 'linkedin_step_interact_post' — a distinct type,
@@ -88,36 +80,19 @@ function isPostEngagementTask(t) {
          (t.type === 'action_item' && POST_LIKE_NOTE_MARKERS.some((m) => (t.note || '').includes(m)));
 }
 
-// DM overrides: contact_id → dm_text (bypasses Apollo custom-field template lookup)
-// Used when {{contact.Draft LinkedIn Message XXXX}} fields are not yet populated in Apollo.
-const DM_OVERRIDES_FILE = path.join(__dirname, 'dm-overrides.json');
-// Per-contact Touch-2 connect notes, used when the campaign's connect step has no
-// note text. Same pattern as dm-overrides.json: keyed by Apollo contact id.
-const CONNECT_OVERRIDES_FILE = path.join(__dirname, 'connect-overrides.json');
-let DM_OVERRIDES = {};
-try {
-  const raw = fs.readFileSync(DM_OVERRIDES_FILE, 'utf-8');
-  const parsed = JSON.parse(raw);
-  // Strip the _note key if present
-  DM_OVERRIDES = Object.fromEntries(Object.entries(parsed).filter(([k]) => !k.startsWith('_')));
-  if (Object.keys(DM_OVERRIDES).length > 0) {
-    console.log(`[INFO] Loaded ${Object.keys(DM_OVERRIDES).length} DM overrides from dm-overrides.json`);
-  }
-} catch (e) {
-  // File doesn't exist or can't be parsed — run without overrides
-}
-
-let CONNECT_OVERRIDES = {};
-try {
-  const raw = fs.readFileSync(CONNECT_OVERRIDES_FILE, 'utf-8');
-  const parsed = JSON.parse(raw);
-  CONNECT_OVERRIDES = Object.fromEntries(Object.entries(parsed).filter(([k]) => !k.startsWith('_')));
-  if (Object.keys(CONNECT_OVERRIDES).length > 0) {
-    console.log(`[INFO] Loaded ${Object.keys(CONNECT_OVERRIDES).length} connect-note overrides from connect-overrides.json`);
-  }
-} catch (e) {
-  // File doesn't exist or can't be parsed — run without overrides
-}
+// ============================================================
+//  AUTOMATION POLICY (Andrew, 2026-10-08). Not configurable.
+// ============================================================
+// This script automates exactly two things:
+//   1. Connection requests, ALWAYS sent with no note.
+//   2. Profile-view / post-engagement steps (Touch 5).
+// It never sends a LinkedIn message or InMail. linkedin_step_message tasks are not
+// fetched and stay in Andrew's Apollo queue for him to send by hand.
+//
+// Why: on 2026-09-25/28 eighteen Cohort 1A/1B invites went out with raw
+// "{{calls_30d}} API calls out of {{company}}" notes. The connect step's template
+// text, connect-overrides.json and dm-overrides.json are deliberately no longer
+// read, so no sequence copy or override file can put words in an automated send.
 
 // --- Logging ---
 const log = {
@@ -214,10 +189,11 @@ async function fetchAndrewLinkedInTasks() {
     const data = await resp.json();
     const pageTasks = data.tasks || [];
 
+    // linkedin_step_message is intentionally absent: messages are manual only
+    // (see AUTOMATION POLICY at the top of this file).
     const matching = pageTasks.filter((t) =>
       t.user_id === ANDREW_USER_ID &&
       (t.type === 'linkedin_step_connect' ||
-       t.type === 'linkedin_step_message' ||
        isPostEngagementTask(t)) &&
       t.status === 'scheduled'
     );
@@ -243,21 +219,11 @@ async function fetchAndrewLinkedInTasks() {
     }
   }
 
-  // ONEOFF_CONTACT_ID re-does a Touch 7 whose Apollo task is already completed.
-  // The task record is bookkeeping; when a send failed for a bug rather than for
-  // unreachability, the message still needs to go out. This runs the SAME verified
-  // send path with no task attached, so there is no second implementation to drift.
-  const oneoff = (process.env.ONEOFF_CONTACT_ID || '').trim();
-  if (oneoff) {
-    // Fetch by id. contacts/search does not resolve an id passed as a keyword.
-    const resp = await fetch(`https://api.apollo.io/v1/contacts/${encodeURIComponent(oneoff)}`, {
-      headers: apolloHeaders(),
-    }).catch(() => null);
-    const data = resp && resp.ok ? await resp.json().catch(() => ({})) : {};
-    const c = data.contact || null;
-    if (!c) { log.err(`ONEOFF_CONTACT_ID=${oneoff} — contact not found in Apollo`); return []; }
-    log.warn(`ONEOFF mode: ${c.name} <${c.email || 'no email'}> — no Apollo task will be modified`);
-    return [{ id: null, type: 'linkedin_step_message', due_at: new Date().toISOString(), emailer_campaign_id: null, contact: c }];
+  // ONEOFF_CONTACT_ID used to re-send a Touch 7 DM. Messages are manual now, so
+  // the mode is gone; refuse loudly rather than silently run a normal queue.
+  if ((process.env.ONEOFF_CONTACT_ID || '').trim()) {
+    log.err('ONEOFF_CONTACT_ID is retired: LinkedIn messages are sent manually, never by this script.');
+    return [];
   }
 
   // ONLY_CONTACT limits a run to one person (name or Apollo contact id). Used to
@@ -276,61 +242,6 @@ async function fetchAndrewLinkedInTasks() {
 
   // Sort oldest due_at first — process overdue tasks before upcoming ones
   return allTasks.sort((a, b) => new Date(a.due_at) - new Date(b.due_at));
-}
-
-/**
- * Fetch the LinkedIn step template body from a campaign.
- * Returns empty string for connect steps with no note — that's valid (send without note).
- *
- * 3-step lookup:
- *   emailer_steps[] → find step with matching type
- *   emailer_touches[] → find touch with emailer_step_id == step.id
- *   emailer_templates[] → find template with id == touch.emailer_template_id
- */
-const campaignCache = {};
-
-async function getLinkedInTemplate(campaignId, taskType) {
-  if (!campaignCache[campaignId]) {
-    const resp = await fetch(`https://api.apollo.io/v1/emailer_campaigns/${campaignId}`, {
-      headers: apolloHeaders(),
-    });
-    if (!resp.ok) {
-      log.warn(`Could not fetch campaign ${campaignId}: HTTP ${resp.status}`);
-      return '';
-    }
-    campaignCache[campaignId] = await resp.json();
-  }
-
-  const data = campaignCache[campaignId];
-  const step = (data.emailer_steps || []).find((s) => s.type === taskType);
-  if (!step) {
-    log.warn(`No step of type "${taskType}" found in campaign ${campaignId}`);
-    return '';
-  }
-  const touch = (data.emailer_touches || []).find((t) => t.emailer_step_id === step.id);
-  if (!touch) {
-    log.warn(`No touch found for step ${step.id} in campaign ${campaignId}`);
-    return '';
-  }
-  const template = (data.emailer_templates || []).find((t) => t.id === touch.emailer_template_id);
-  return template?.body_text || '';
-}
-
-/**
- * Substitute template variables. Both {{first_name}} (newer sequences) and
- * {{contact.first_name}} (older sequences) formats are used in Apollo.
- * Also strips em dashes (—) and replaces with a comma+space, since LinkedIn DMs
- * go out as plain text and em dashes look unprofessional / break some clients.
- */
-function renderTemplate(text, contact) {
-  if (!text) return '';
-  return text
-    .replace(/\{\{contact\.first_name\}\}/g, contact.first_name || '')
-    .replace(/\{\{contact\.last_name\}\}/g, contact.last_name || '')
-    .replace(/\{\{contact\.name\}\}/g, contact.name || '')
-    .replace(/\{\{first_name\}\}/g, contact.first_name || '')
-    .replace(/\{\{last_name\}\}/g, contact.last_name || '')
-    .replace(/\s*—\s*/g, ', ');  // em dash → comma (e.g. "Hey Elise — Staff PM" → "Hey Elise, Staff PM")
 }
 
 /**
@@ -438,8 +349,36 @@ async function logSfdcActivity(contact, subject, description) {
     }
   }
 
+  // Third resolution path: match on the LinkedIn profile URL. Apollo contacts created
+  // by hand often have no email at all, which made both earlier paths fail and silently
+  // dropped the activity for 5 real connects on 2026-09-03. SFDC stores the profile in
+  // LinkedIn_Profile__c, so the slug is a usable key when email is absent.
+  if (!whoId && contact.linkedin_url && sfdcAuth) {
+    const slug = extractLinkedInSlug(contact.linkedin_url);
+    if (slug) {
+      const soql = `SELECT Id, AccountId FROM Contact WHERE LinkedIn_Profile__c LIKE '%${slug.replace(/'/g, "\\'")}%' LIMIT 2`;
+      const lk = await fetch(
+        `${sfdcAuth.instanceUrl}/services/data/${SFDC_API_VERSION}/query?q=${encodeURIComponent(soql)}`,
+        { headers: { Authorization: `Bearer ${sfdcAuth.token}` } },
+      ).catch(() => null);
+      if (lk && lk.ok) {
+        const f = await lk.json().catch(() => ({}));
+        const recs = f.records || [];
+        // Exactly one match only. Two contacts sharing a slug means ambiguity, and
+        // guessing is how an activity ends up on the wrong person's timeline.
+        if (recs.length === 1) {
+          whoId = recs[0].Id;
+          if (!whatId) whatId = recs[0].AccountId || null;
+          log.info(`Resolved ${contact.name} in Salesforce by LinkedIn profile (/in/${slug})`);
+        } else if (recs.length > 1) {
+          log.warn(`LinkedIn slug ${slug} matches ${recs.length} Salesforce contacts — refusing to guess`);
+        }
+      }
+    }
+  }
+
   if (!whoId) {
-    log.warn(`No Salesforce contact for ${contact.name} (${contact.email || 'no email'}) — SFDC activity not logged`);
+    log.warn(`No Salesforce contact for ${contact.name} (${contact.email || 'no email'}, ${contact.linkedin_url || 'no linkedin'}) — SFDC activity not logged`);
     results.sfdc_skipped.push({ name: contact.name, reason: 'not found in Salesforce' });
     return;
   }
@@ -539,23 +478,6 @@ async function addContactNote(contactId, noteBody) {
   if (resp && !resp.ok) {
     log.warn(`Note write returned HTTP ${resp.status} for contact ${contactId}`);
   }
-}
-
-/**
- * Returns true if the DM text contains unfilled template placeholders that
- * require manual editing before sending.
- */
-function hasUnfilledPlaceholder(text) {
-  if (!text) return false;
-  // [ALL CAPS IN BRACKETS] — manual fill-in markers
-  if (/\[[A-Z][A-Z\s]{2,}\]/.test(text)) return true;
-  // Any {{...}} that isn't a known name variable — catches {{contact.Draft LinkedIn Message XXXX}} etc.
-  const knownVars = ['first_name}}', 'last_name}}', 'contact.first_name}}', 'contact.last_name}}', 'contact.name}}'];
-  const templateTokens = text.match(/\{\{[^}]+\}\}/g) || [];
-  for (const token of templateTokens) {
-    if (!knownVars.some((v) => token.endsWith(v))) return true;
-  }
-  return false;
 }
 
 // ============================================================
@@ -678,6 +600,12 @@ async function detectLinkedInState(liPage) {
  *   5. Any primary send button inside a detected modal (last resort)
  */
 async function handleConnectModal(liPage, note, email) {
+  // Last line of defence for the no-note policy: every connect path ends here, so
+  // even a caller that passes text cannot get it typed into an invite.
+  if (note) {
+    log.err('A connect note reached handleConnectModal — discarded. Connection requests never carry a note.');
+    note = '';
+  }
   await sleep(2500);
 
   // Pattern 0: email input
@@ -1081,34 +1009,46 @@ async function getProfileDisplayName(liPage) {
 async function getProfileUrn(liPage) {
   return await liPage.evaluate(() => {
     // DANGER, read before editing. This returns the identity anchor that every
-    // downstream recipient check is compared against. If it returns the wrong
-    // person, all three Sales Navigator checks "pass" against a stranger.
+    // downstream recipient check is compared against. A wrong value makes all the
+    // Sales Navigator checks "pass" against a stranger.
     //
-    // The old version took the first `main a` with a profileUrn. LinkedIn puts
-    // "People also viewed" cards inside <main>, each with its own Message link, so
-    // on any profile lacking its OWN Message button (i.e. every non-connection) the
-    // first match was a sidebar stranger. Verified on Frank Munz, where it returned
-    // the URN behind aria-label "Message Carine Oliveira".
+    // TWO sources, because relying on the Message link alone under-reported:
+    //   A. the profile's own Message link  (?profileUrn=urn:li:fsd_profile:XXXX)
+    //   B. the mutual-connections link     (?connectionOf=["XXXX"])
+    // Plenty of non-connection profiles expose no Message link at all but do carry
+    // connectionOf. Checking only A made four reachable people look anchorless and
+    // got them reported as undeliverable.
     //
-    // Rules now: ignore anything inside <aside>, and require every remaining
-    // candidate to agree on one member id. Disagreement or absence returns null,
-    // which makes the caller abort rather than guess.
-    const own = [...document.querySelectorAll('main a')].filter((el) => {
-      if (el.closest('aside')) return false;
-      return /profileUrn=/.test(el.getAttribute('href') || '');
-    });
-    if (!own.length) return null;
+    // Anything inside <aside> is ignored: "People also viewed" cards carry their own
+    // Message links, and taking the first one returned a sidebar stranger's URN.
+    //
+    // Every candidate from both sources must agree on ONE member id. Zero, or any
+    // disagreement, returns null and the caller aborts rather than guessing.
+    const urns = new Set();
 
-    const urns = [...new Set(own.map((el) => {
-      const m = decodeURIComponent(el.getAttribute('href'))
-        .match(/profileUrn=urn:li:fsd_profile:([A-Za-z0-9_-]+)/);
-      return m ? m[1] : null;
-    }).filter(Boolean))];
+    for (const a of document.querySelectorAll('main a')) {
+      if (a.closest('aside')) continue;
+      const raw = a.getAttribute('href') || '';
+      let href;
+      try { href = decodeURIComponent(raw); } catch (_) { href = raw; }
 
-    if (urns.length !== 1) return null;   // ambiguous: refuse to pick one
-    return urns[0];
+      const m1 = href.match(/profileUrn=urn:li:fsd_profile:([A-Za-z0-9_-]+)/);
+      if (m1) urns.add(m1[1]);
+
+      const m2 = href.match(/connectionOf=\[?"?([A-Za-z0-9_-]{20,})"?\]?/);
+      if (m2) urns.add(m2[1]);
+    }
+
+    if (!urns.size) return null;
+
+    // Compare on the member id (chars 3-12), since the two sources can carry
+    // different entity-type prefixes for the same person.
+    const keys = new Set([...urns].map((u) => u.slice(3, 12)));
+    if (keys.size !== 1) return null;   // sources disagree: refuse to pick one
+    return [...urns][0];
   }).catch(() => null);
 }
+
 
 
 /**
@@ -1345,25 +1285,19 @@ async function sendViaSalesNavigator(liPage, message, contact, profileUrn, displ
   const wantKey = memberKeyFromUrn(profileUrn);
   if (!wantKey) {
     log.warn(`Sales Navigator: no trustworthy identity anchor for ${contactName} — refusing. `
-      + `A non-connection's profile exposes no Message link of its own, so there is no URN to verify against.`);
+      + `Neither the profile's own Message link nor its mutual-connections link yielded a single agreed URN.`);
     return { ok: false, reason: 'no_member_key' };
   }
 
-  // Non-connection InMail is DISABLED (2026-08-25).
+  // Non-connection InMail is ENABLED. It demonstrably works (Constantinos Yenis,
+  // Laith Al-Saadoon and others received verified InMails) and the account holds
+  // InMail credits for exactly this.
   //
-  // The only identity anchor available on a profile is its own Message link's
-  // profileUrn, and non-connections do not have one. Scraping "the first profileUrn
-  // in <main>" returned a sidebar stranger's id, which would have let all three
-  // recipient checks pass against the wrong person. A Sales Navigator lead page
-  // exposes no public /in/ slug either, so there is currently no safe way to prove
-  // a non-connection's identity end to end.
-  //
-  // Re-enable only once a verified anchor exists for non-connections. The override
-  // is here for a supervised experiment, not for production runs.
-  if (degree && degree !== '1st' && process.env.ALLOW_INMAIL_NON_CONNECTION !== 'true') {
-    log.warn(`Sales Navigator: InMail to non-connections is disabled (${contactName} is ${degree} degree) — nothing sent`);
-    return { ok: false, reason: 'sn_non_connection_disabled' };
-  }
+  // It was blanket-disabled on 2026-08-25 as belt-and-braces while getProfileUrn
+  // could return a sidebar stranger's URN. That bug is fixed: the anchor now comes
+  // from two sources that must agree, and returns null otherwise, which aborts the
+  // send on its own. The degree block outlived its reason and was blocking real,
+  // reachable prospects. The safety condition is a trustworthy anchor, NOT degree.
 
   // Variation selectors and ZWJ are combining marks, so \p{M} would keep them and
   // leave an invisible character in the query. Strip those first, then anything
@@ -2135,9 +2069,8 @@ async function main() {
     }
 
     const connects = tasks.filter((t) => t.type === 'linkedin_step_connect');
-    const dms = tasks.filter((t) => t.type === 'linkedin_step_message');
     const postLikes = tasks.filter(isPostEngagementTask);
-    log.info(`Found ${tasks.length} tasks: ${connects.length} connect requests | ${dms.length} DMs | ${postLikes.length} post likes`);
+    log.info(`Found ${tasks.length} tasks: ${connects.length} connect requests (no note) | ${postLikes.length} profile views/post likes | LinkedIn messages are manual and not fetched`);
 
     // 3. CHECK CONNECT CAPS
     const stats = loadStats();
@@ -2150,16 +2083,9 @@ async function main() {
       log.warn(`Weekly connect cap reached (${sentThisWeek}/${WEEKLY_CONNECT_CAP}) — all connect tasks will be skipped today`);
     }
 
-    // 4. PREFETCH CAMPAIGN TEMPLATES
-    const uniqueCampaignIds = [...new Set(tasks.map((t) => t.emailer_campaign_id).filter(Boolean))];
-    log.info(`Prefetching templates for ${uniqueCampaignIds.length} sequences...`);
-    for (const id of uniqueCampaignIds) {
-      await getLinkedInTemplate(id, 'linkedin_step_connect'); // populates cache
-    }
-    log.info('Templates loaded');
     log.info('');
 
-    // 5. PROCESS EACH TASK
+    // 4. PROCESS EACH TASK
     let dailyConnectCount = sentToday;
     const today = todayISO();
 
@@ -2228,22 +2154,9 @@ async function main() {
             continue;
           }
 
-          // Connect note: per-contact override first, else the campaign template.
-          // Campaigns frequently carry an empty connect step, which would otherwise
-          // send a bare invite to a senior prospect.
-          let rawNote;
-          if (CONNECT_OVERRIDES[contact.id]) {
-            rawNote = CONNECT_OVERRIDES[contact.id];
-            log.info(`[OVERRIDE] Using connect-overrides.json for ${contactName}`);
-          } else {
-            rawNote = await getLinkedInTemplate(task.emailer_campaign_id, 'linkedin_step_connect');
-          }
-          const note = renderTemplate(rawNote, contact);
-          if (note) {
-            log.info(`Connect note (${note.length} chars): "${note.substring(0, 60)}${note.length > 60 ? '...' : ''}"`);
-          } else {
-            log.info('No connect note (will send without)');
-          }
+          // Connection requests never carry a note (AUTOMATION POLICY). Whatever text
+          // the sequence's connect step holds is ignored.
+          const note = '';
 
           // Navigate to LinkedIn profile
           log.info(`Navigating to ${contact.linkedin_url}`);
@@ -2313,155 +2226,6 @@ async function main() {
               + `NO connection request or message was sent. The Apollo task was completed so the sequence advances.\n`
               + `Profile: ${contact.linkedin_url || 'unknown'}`);
             await markTaskComplete(task.id);
-          }
-
-        // ---- DM TASK ----
-        } else if (taskType === 'linkedin_step_message') {
-
-          // Check dm-overrides.json first (bypasses Apollo custom-field template lookup)
-          let dmText;
-          let dmSubject = '';
-          // An override is either a plain string (body only) or {subject, body}.
-          // InMail to a non-connection REQUIRES a subject, so the object form exists
-          // to carry it. String form stays valid for 1st-degree regular messages.
-          if (DM_OVERRIDES[contact.id]) {
-            const ov = DM_OVERRIDES[contact.id];
-            if (typeof ov === 'object' && ov !== null) {
-              dmText = ov.body || '';
-              dmSubject = ov.subject || '';
-            } else {
-              dmText = ov;
-            }
-            log.info(`[OVERRIDE] Using dm-overrides.json for ${contactName}`);
-          } else {
-            // Get DM text from campaign template
-            const rawDm = await getLinkedInTemplate(task.emailer_campaign_id, 'linkedin_step_message');
-            dmText = renderTemplate(rawDm, contact);
-
-            // Check for unfilled placeholders
-            if (hasUnfilledPlaceholder(dmText)) {
-              log.warn(`Unfilled placeholder in DM for ${contactName} — skipping (needs manual fill)`);
-              results.skipped_placeholder.push({ name: contactName });
-              // DO NOT mark complete — leave for manual editing
-              continue;
-            }
-          }
-
-          if (!dmText) {
-            log.warn(`Empty DM text for ${contactName} — skipping`);
-            results.skipped_placeholder.push({ name: contactName, reason: 'empty template' });
-            continue;
-          }
-
-          log.info(`DM text (${dmText.length} chars): "${dmText.substring(0, 80)}${dmText.length > 80 ? '...' : ''}"`);
-
-          // Navigate to LinkedIn profile
-          log.info(`Navigating to ${contact.linkedin_url}`);
-          await liPage.goto(contact.linkedin_url, { waitUntil: 'domcontentloaded', timeout: 30000 });
-
-          // Close any chat overlay left open from the previous contact — LinkedIn's
-          // messaging panel survives navigation. sendDirectMessage re-verifies this and
-          // refuses to send if it cannot reach a clean state, so a failure here is not silent.
-          await closeMessageOverlays(liPage);
-
-          // Verify connection status before sending DM
-          const state = await detectLinkedInState(liPage);
-          log.info(`LinkedIn state: ${state}`);
-
-          // Connection status is NOT a gate. This account has Sales Navigator with
-          // InMail, so a non-1st-degree contact is still reachable: the ordinary
-          // linkedin.com Message control just does nothing for them, so those DMs
-          // route through Sales Navigator instead. An unaccepted invite must never
-          // park a Touch 7 task in the queue forever.
-          const degree = await getProfileDegree(liPage);
-          log.info(`Connection degree: ${degree || 'unknown'} (state: ${state})`);
-
-          // Capture the profile URN before leaving the profile — it is the identity
-          // key that lets a Sales Navigator name search be resolved safely.
-          const profileUrn = await getProfileUrn(liPage);
-          const displayName = await getProfileDisplayName(liPage);
-          if (displayName && displayName !== contactName) {
-            log.info(`LinkedIn shows this person as "${displayName}" (Apollo has "${contactName}")`);
-          }
-
-          // Compose-URL path first: it has a stronger anchor (profile slug) than the
-          // overlay path, which cannot verify a recipient at all since LinkedIn stopped
-          // rendering the "Close your conversation with X" label.
-          let sendRes = await sendDirectMessageViaComposeUrl(liPage, dmText, contact);
-          if (!sendRes.ok && !String(sendRes.reason).startsWith('compose_wrong_recipient')) {
-            log.info(`Compose-URL DM unavailable for ${contactName} (${sendRes.reason}) — trying the legacy overlay path`);
-            await liPage.goto(contact.linkedin_url, { waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => null);
-            sendRes = await sendDirectMessage(liPage, dmText, contact);
-          }
-
-          // A guardrail block means we could not PROVE the recipient. Never retry
-          // those through another channel; that is exactly how cross-delivery happens.
-          const guardrailBlocked = !sendRes.ok && (
-            sendRes.reason === 'overlay_not_cleared'
-            || sendRes.reason === 'ledger_conflict'
-            || sendRes.reason.startsWith('recipient_mismatch')
-            || sendRes.reason.startsWith('multiple_conversations_open')
-            || sendRes.reason === 'compose_content_mismatch'
-            || sendRes.reason.startsWith('compose_fill_failed')
-          );
-
-          // Ordinary linkedin.com messaging simply does not open for non-connections.
-          // That is a channel limitation, not an identity doubt, so fall back to
-          // Sales Navigator InMail, which this account has credits for.
-          if (!sendRes.ok && !guardrailBlocked) {
-            log.info(`Direct DM unavailable for ${contactName} (${sendRes.reason}) — trying Sales Navigator InMail`);
-            let subjectForInMail = dmSubject;
-            if (!subjectForInMail) {
-              subjectForInMail = await getLastEmailSubject(contact);
-              if (subjectForInMail) {
-                log.info(`InMail subject reused from the last email sent: "${subjectForInMail}"`);
-              } else {
-                log.warn(`No prior email subject found for ${contactName} — an InMail will stop rather than invent one`);
-              }
-            }
-            const snRes = await sendViaSalesNavigator(liPage, dmText, contact, profileUrn, displayName, subjectForInMail, degree);
-            if (snRes.ok) sendRes = snRes;
-            else log.warn(`Sales Navigator fallback failed for ${contactName} (${snRes.reason})`);
-          }
-
-          if (sendRes.ok) {
-            // Only a verified recipient + confirmed send reaches this branch.
-            const via = sendRes.reason === 'sales_navigator' ? 'Sales Navigator InMail' : 'LinkedIn DM';
-            await markTaskComplete(task.id);
-            await addContactNote(contact.id, `${via} sent — ${today}`);
-            await logSfdcActivity(contact, `[LinkedIn] ${via} sent`,
-              `${via} sent via apollo-linkedin-connect.js (Apollo Touch 7).\nProfile: ${contact.linkedin_url || 'unknown'}\n\nMessage:\n${dmText}`);
-            results.dms_sent.push({ name: contactName, thread: sendRes.thread, via });
-          } else if (guardrailBlocked) {
-            log.err(`DM to ${contactName} BLOCKED by safety check (${sendRes.reason}) — nothing sent, task left open`);
-            results.blocked_wrong_thread.push({ name: contactName, reason: sendRes.reason });
-          } else {
-            // Could not reach them on either channel. Per Andrew: a non-acceptance is
-            // not a gate, so the task still advances rather than retrying nightly
-            // forever. It is reported loudly so the miss is never silent.
-            log.warn(`Could not message ${contactName} on either channel (${sendRes.reason}) — completing task so the sequence advances`);
-            await markTaskComplete(task.id);
-            await addContactNote(contact.id,
-              `LinkedIn Touch 7 could not be delivered (${sendRes.reason}) — task completed to advance the sequence — ${today}`);
-            // Every path that closes a task must leave a CRM record. This one did not,
-            // so 8 Touch 7s were closed with no trace in Salesforce and the account
-            // history showed nothing at all for them.
-            await logSfdcActivity(contact, '[LinkedIn] Step closed — could not be delivered',
-              `linkedin_step_message could not be delivered on either channel (${sendRes.reason}).\n`
-              + `Tried the direct LinkedIn DM and Sales Navigator InMail.\n`
-              + `NO message was sent. The Apollo task was completed so the sequence advances.\n`
-              + `Profile: ${contact.linkedin_url || 'unknown'}`);
-            results.dm_undeliverable.push({ name: contactName, reason: sendRes.reason });
-          }
-
-          // Circuit breaker: one thread was about to receive two people's messages.
-          // Stop the entire run rather than risk another cross-delivery.
-          if (runAborted) {
-            log.err('');
-            log.err('=== RUN ABORTED BY CIRCUIT BREAKER ===');
-            log.err(runAbortReason);
-            log.err('Remaining tasks left untouched. Investigate before re-running.');
-            break;
           }
 
         // ---- POST-LIKE / PROFILE-VIEW TASK (Touch 5) ----

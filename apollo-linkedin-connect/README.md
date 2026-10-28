@@ -1,8 +1,17 @@
 # apollo-linkedin-connect
 
-Processes Apollo LinkedIn tasks (Touch 2 connects, Touch 5 post likes, Touch 7 DMs) by way
-of headless Playwright. Fetches tasks from the Apollo REST API, acts on LinkedIn, marks
+Processes Apollo LinkedIn tasks (Touch 2 connects and Touch 5 profile views / post likes) by
+way of headless Playwright. Fetches tasks from the Apollo REST API, acts on LinkedIn, marks
 tasks complete by way of the API.
+
+## Automation policy (Andrew, 2026-10-08)
+
+- Connection requests always go out with NO note. Connect-step template text is ignored.
+- The script never sends a LinkedIn message or InMail. Touch 7 (`linkedin_step_message`)
+  tasks are not fetched. They stay in Andrew's Apollo queue and he sends each one by hand.
+- `connect-overrides.json` and `dm-overrides.json` are retired and no longer read.
+- Why: on 2026-09-25 and 09-28 the script sent 18 Cohort 1A/1B invites with raw
+  `{{calls_30d}}` notes. Apollo never renders variables in LinkedIn steps.
 
 ## Where this actually runs
 
@@ -18,10 +27,14 @@ drift if you skip that step.
 
 ## What is deliberately not committed
 
-Auth tokens (`storageState.json`), per-prospect DM copy (`dm-overrides.json`), and research
+Auth tokens (`storageState.json`), retired per-prospect override files (`dm-overrides.json`,
+`connect-overrides.json`), and research
 output (`founders.json`, `founder-connection-results.json`). See `.gitignore`.
 
-## Safety design for DMs
+## Safety design for DMs (historical)
+
+The message send paths are no longer called (policy 2026-10-08). This section is kept as the
+requirements for any future send path.
 
 `sendDirectMessage()` will not send unless it can prove the open LinkedIn chat belongs to
 the task's contact. It checks that exactly one conversation is open, that its recipient

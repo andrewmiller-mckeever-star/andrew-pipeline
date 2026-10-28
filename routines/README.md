@@ -11,9 +11,9 @@ All times are local (America/Denver). Schedules as of 2026-09-12.
 | ydc-usage-outreach-daily | `0 9 * * 1-5` | 9am Mon-Fri | yes | Scans new API signups and active users, classifies them, posts review list to Slack |
 | ydc-usage-outreach-enroll-watcher | `0 16 * * 1-5` | 4pm Mon-Fri | yes | Watches the review channel for a "go" reply and auto-enrolls approved contacts (cut from every-15-min → 3x/day → 1x/day, 2026-09-12, to reduce cost; open-list logic looks back 7-8 days so a "go" is only delayed, never missed) |
 | ydc-usage-outreach-watchdog | `0 10 * * 1-5` | 10am Mon-Fri | yes | Confirms the 9am usage scan ran; alerts if it didn't |
-| ydc-linkedin-apollo-tasks-daily | `0 9 * * 1-5` | 9am Mon-Fri | yes | Processes pending Apollo LinkedIn connect/DM tasks via script, posts results |
-| linkedin-tasks-check | `0 14 * * 1-5` | 2pm Mon-Fri | yes | Watchdog for the 9am LinkedIn run; re-runs if tasks still pending |
-| ydc-linkedin-queue | `30 9 * * 1-5` | 9:33am Mon-Fri | yes | Posts a morning summary of completed LinkedIn connects and DMs |
+| ydc-linkedin-apollo-tasks-daily | `0 9 * * 1-5` | 9am Mon-Fri | yes | Sends no-note connection requests and Touch 5 post likes via script, posts results. Never sends DMs (manual since 2026-10-08) |
+| linkedin-tasks-check | `0 14 * * 1-5` | 2pm Mon-Fri | yes | Watchdog for the 9am LinkedIn run; re-runs if connect or post-like tasks are still pending (DM tasks are manual and ignored) |
+| ydc-linkedin-queue | `30 9 * * 1-5` | 9:33am Mon-Fri | yes | Posts a morning summary of completed LinkedIn connects and the DMs Andrew sent by hand |
 | ydc-linkedin-queue-watchdog | `0 12 * * 1-5` | noon Mon-Fri | no | (disabled) Re-runs the LinkedIn queue if the morning run failed |
 | ydc-meeting-brief | `0 15 * * 0-4` | 3pm Sun-Thu | yes | Pulls tomorrow's calendar, researches external meetings, creates Google Doc briefs |
 | meeting-brief-monitor | `45 15 * * 0-4` | 3:45pm Sun-Thu | yes | Confirms the meeting brief job ran, posts confirmation to Slack |

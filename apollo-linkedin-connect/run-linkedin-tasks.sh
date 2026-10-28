@@ -64,6 +64,12 @@ if [ -z "$APOLLO_API_KEY" ] && [ -r "$SETTINGS" ]; then
 fi
 export APOLLO_API_KEY
 
+# Same pattern for the Salesforce User Id the script stamps on logged Tasks.
+if [ -z "$SFDC_USER_ID" ] && [ -r "$SETTINGS" ]; then
+  SFDC_USER_ID=$("$JQ" -r '.env.SFDC_USER_ID // empty' "$SETTINGS" 2>/dev/null)
+fi
+export SFDC_USER_ID
+
 if [ -z "$APOLLO_API_KEY" ]; then
   say "[ERR] APOLLO_API_KEY is not set and could not be read from $SETTINGS"
   say "[ERR] Aborting before launching the browser. No tasks were touched."

@@ -1,24 +1,28 @@
 ---
 name: ydc-linkedin-apollo-tasks
 description: >-
-  Processes Apollo LinkedIn tasks (connect requests and DMs) via Playwright script.
+  Processes Apollo LinkedIn tasks via Playwright script: no-note connection requests
+  and Touch 5 profile-view / post-like steps. Never sends LinkedIn messages or InMail.
+  Touch 7 DMs are manual Apollo tasks that Andrew sends by hand.
   Fetches tasks from Apollo REST API (no Chrome MCP / no Apollo UI required), sends
   each action on LinkedIn via headless Chrome, marks tasks complete via REST API.
   Use when user says "run linkedin tasks", "process apollo linkedin tasks",
-  "clear linkedin queue", "run linkedin connects", or "send linkedin messages".
+  "clear linkedin queue", or "run linkedin connects".
 ---
 
 # YDC: LinkedIn Apollo Tasks
 
 ## Purpose
 
-Clear Apollo's LinkedIn task queue using a Playwright script + Apollo REST API. Handles both task types from the 7-touch sequence:
+Clear Apollo's automatable LinkedIn tasks using a Playwright script + Apollo REST API:
 
 | Touch | Task type              | Action                                        |
 |-------|------------------------|-----------------------------------------------|
-| Touch 2 | `linkedin_step_connect` | Send connection request with pre-written note |
+| Touch 2 | `linkedin_step_connect` | Send connection request with NO note. Template text is ignored |
 | Touch 5 | `linkedin_step_interact_post` | Like prospect's most recent post (last 14 days); mark complete regardless |
-| Touch 7 | `linkedin_step_message` | Send DM to already-connected contact          |
+| Touch 7 | `linkedin_step_message` | **Not automated.** Manual task. Andrew sends it by hand from the Apollo queue. The script does not fetch it |
+
+**Automation policy (Andrew, 2026-10-08).** The script automates only two things: connection requests, always with no note, and Touch 5 profile-view / post-like steps. It never sends a LinkedIn message or InMail. Touch 7 (`linkedin_step_message`) stays in the sequence as a manual task. The DM copy is drafted into the step, and Andrew reviews and sends every LinkedIn message by hand. `connect-overrides.json` and `dm-overrides.json` are retired. Why: on 2026-09-25 and 09-28 the script sent 18 Cohort 1A/1B invites with raw `{{calls_30d}}` notes, because Apollo never renders variables in LinkedIn steps.
 
 Tasks are fetched via Apollo REST API (not scraped from the UI). LinkedIn automation runs in a headless Playwright browser (not Chrome MCP — fully immune to the Chrome MCP domain lock issue).
 
@@ -44,7 +48,7 @@ curl -s -X POST "https://api.apollo.io/api/v1/tasks/search" \
   -H "X-Api-Key: $APOLLO_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"sort_by_field":"task_due_at","sort_ascending":false,"per_page":100}' \
-  | jq '[.tasks[] | select(.user_id == "{APOLLO_USER_ID}" and (.type == "linkedin_step_connect" or .type == "linkedin_step_message") and .status == "scheduled") | {type, due_at, name: .contact.name}] | sort_by(.due_at)'
+  | jq '[.tasks[] | select(.user_id == "{APOLLO_USER_ID}" and (.type == "linkedin_step_connect" or .type == "linkedin_step_view_profile" or .type == "linkedin_step_interact_post") and .status == "scheduled") | {type, due_at, name: .contact.name}] | sort_by(.due_at)'
 ```
 
 Present the count and list, ask "Ready to run?" before invoking the script.
@@ -66,13 +70,13 @@ DRY_RUN=true APOLLO_API_KEY=$APOLLO_API_KEY node apollo-linkedin-connect.js
 
 The script handles all of the following automatically:
 - Fetches Andrew's pending LinkedIn tasks from Apollo REST API (filters to `user_id == "{APOLLO_USER_ID}"` client-side — the API's own filters are broken)
-- Prefetches DM/connect note text from campaign templates via Apollo API
+- Ignores connect-step template text. Every connection request goes out with no note
 - Navigates headless Chrome to each LinkedIn profile
-- Sends connection requests or DMs
+- Sends no-note connection requests and likes recent posts (Touch 5). Never sends a message or InMail
 - Marks each task complete via Apollo REST API
 - Logs a note on each Apollo contact after action
 - Enforces daily (40) and weekly (200) connect caps — skipped tasks are left incomplete for the next run
-- Skips DMs with unfilled `[ALL CAPS IN BRACKETS]` placeholders — leaves task for manual editing
+- Does not fetch `linkedin_step_message` tasks. They stay in Andrew's Apollo queue for him to send by hand
 
 ---
 
@@ -82,21 +86,19 @@ The script prints a full summary on exit:
 
 ```
 ✅ Connects sent (N):
-  • First Last [with note]
+  • First Last
   • ...
 
-✅ DMs sent (N):
+✅ Posts liked (N):
   • First Last
   • ...
 
 ⏭  Skipped — cap reached (N): ...
 ⏭  Skipped — already connected/pending/no URL (N): ...
-⏳ Skipped — not connected yet (N): ...
-⚠️  Skipped — unfilled placeholder (N): ... → Edit these DMs manually in Apollo
 ❌ Errors (N): ...
 ```
 
-Review for errors and placeholder-skipped contacts. Call out any `⚠️` or `❌` buckets explicitly so Andrew knows what needs manual follow-up.
+Review for errors. Call out any `❌` bucket explicitly so Andrew knows what needs manual follow-up. Touch 7 DMs never appear here. They wait in Andrew's Apollo task queue.
 
 ---
 
@@ -133,7 +135,7 @@ If Salesforce returns an Apollo API auth error (401): verify `APOLLO_API_KEY` is
 - **Weekly cap:** 200 connects per week (Mon–Sun rolling window)
 - When the daily cap is hit, remaining connect tasks are left in Apollo and will be processed on the next day's run
 - When the weekly cap is hit, ALL connect tasks are skipped for the day with a warning in the summary
-- DM tasks are not subject to caps — they always run
+- DM tasks are not run by the script. Touch 7 is a manual task
 
 **Andrew's note:** Periodically withdraw old pending connection requests in LinkedIn (anyone pending > 3 weeks who hasn't accepted). This preserves the 200/week headroom — if pending requests pile up, LinkedIn silently reduces the cap.
 
@@ -141,7 +143,7 @@ If Salesforce returns an Apollo API auth error (401): verify `APOLLO_API_KEY` is
 
 ## Notes
 
-- This skill reads from **Apollo's task queue** — for sequences that generate LinkedIn tasks automatically (Touch 2 connect, Touch 5 post like, Touch 7 DM from `build-sequences.js`).
+- This skill reads from **Apollo's task queue** — for sequences that generate LinkedIn tasks automatically (Touch 2 no-note connect and Touch 5 post like). Touch 7 DM tasks stay in the queue for Andrew to send by hand.
 - The Drive-based `ydc-linkedin-queue` skill is a separate legacy flow for pre-May-2026 whale pipeline accounts with Drive queue files.
 - Touch 5 tasks surface as `linkedin_step_interact_post` in the Apollo REST API — a distinct type, not `action_item`. The script also includes a legacy fallback for any `action_item` tasks whose note contains `"Like most recent LinkedIn post"` (older sequences built before the type was confirmed).
 - The Apollo task API filters (`task_types`, `assignee_ids`) are broken — they return all org-wide tasks regardless. The script filters client-side on `user_id == "{APOLLO_USER_ID}"`.
@@ -183,6 +185,7 @@ This is the **same root cause as Bug 1** (interop-outlet shadow DOM), just in th
 
 | Date | Change | Reason |
 |------|--------|--------|
+| 2026-10-08 | **Automation narrowed (Andrew's policy).** The script automates only no-note connection requests and Touch 5 profile-view / post-like steps. It never sends a LinkedIn message or InMail. `linkedin_step_message` tasks are not fetched and stay in Andrew's Apollo queue as manual tasks. Connect template text is ignored. `connect-overrides.json`, `dm-overrides.json` and `ONEOFF_CONTACT_ID` retired | On 2026-09-25 and 09-28 the script sent 18 Cohort 1A/1B connection requests with raw `{{calls_30d}}` notes. Apollo never renders variables in LinkedIn steps |
 | 2026-06-02 | Changelog initialized | Tracking all skill changes going forward |
 | 2026-06-02 | Bug 3 fix: connect modal buttons blocked by `#interop-outlet` shadow DOM | 43 errors in a single run; Playwright `.click()` was timing out on "Send without a note" / "Add a note" buttons. Fix: use `el.evaluate((el) => el.click())` in `handleConnectModal()` |
 | 2026-05-28 | Bug 2 fix: em dashes in DM text causing LinkedIn send failures | LLM-generated templates sometimes contained em dashes despite the "no em dashes" rule; added `.replace(/\s*—\s*/g, ', ')` in `renderTemplate()` |
