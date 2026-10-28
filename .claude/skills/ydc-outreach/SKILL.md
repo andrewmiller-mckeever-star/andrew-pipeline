@@ -1,15 +1,16 @@
 ---
 name: ydc-outreach
-description: CLOUD version for Claude Code Routines. Generates 4 personalized outreach sequences (A: Engineering Leader, B: Executive Sponsor, C: Product Leader, D: AI/ML Leader) for You.com whale account pipeline. Each sequence has 7 touches: Email Day 1 (new thread), LinkedIn Connect Day 2, Email reply Day 5, Phone call Day 8, LinkedIn interact-with-post Day 11, Email reply/breakup Day 14, LinkedIn direct message Day 17. Outputs in-memory JSON for Apollo injection — no local file created. Includes mandatory self-review gate before producing JSON. Use when user says "draft outreach for [company]", "write sequences for [company]", "outreach sequences", "generate outreach copy", or "Step 4" in the pipeline.
+description: CLOUD version for Claude Code Routines. Generates 4 personalized outreach sequences (A: Engineering Leader, B: Executive Sponsor, C: Product Leader, D: AI/ML Leader) for You.com whale account pipeline. Each sequence has 12 touches over 38 days on two email threads (default since 2026-10-27): Email Day 1 (thread A), LinkedIn Connect Day 2 (no note), Email reply Day 4, Call Day 7, LinkedIn engage Day 9, Email reply Day 12 (proof), LinkedIn DM Day 15 (manual task, sent by hand), Email Day 19 (thread B, show work), Call Day 22, Email reply Day 26 (meeting ask), LinkedIn engage Day 31, Email reply Day 38 (breakup). Outputs in-memory JSON for Apollo injection — no local file created. Includes mandatory self-review gate before producing JSON. Use when user says "draft outreach for [company]", "write sequences for [company]", "outreach sequences", "generate outreach copy", or "Step 4" in the pipeline.
 ---
 
 # YDC: Outreach Sequence Generation (Step 4) (Cloud)
 
 ## Rule precedence (added 2026-08-27)
 
-CLAUDE.md wins on voice, copy, and cadence. This skill wins on API mechanics, step types,
-personas, and process gates. On conflict, follow the newer date and say which rule you
-followed and which you set aside. Never silently pick one.
+`ydc-sales-voice` wins on voice, copy, and cadence (moved out of CLAUDE.md 2026-09-12; same
+authority, new location). This skill wins on API mechanics, step types, personas, and process
+gates. On conflict, follow the newer date and say which rule you followed and which you set
+aside. Never silently pick one.
 
 
 **Cloud execution notes (differences from the laptop version):**
@@ -41,24 +42,37 @@ Before writing sequences, check the CRM Intelligence Brief (Section 9 of researc
 4. **Existing Customer:** If the account has closed-won opps, this is expansion outreach. Reference the existing partnership. Do not cold-pitch.
 5. **Databricks Partnership:** If the account is a Databricks customer, consider weaving in the Databricks/Unity Catalog integration as a proof point.
 
-**7-Touch Cadence (identical for all 4 sequences):**
+**12-Touch Cadence (identical for all 4 sequences, default since 2026-10-27):**
 
-| Touch | Day | Channel | Type |
-|-------|-----|---------|------|
-| 1 | Day 1 | Email | automatic_email, new_thread — same body per sequence |
-| 2 | Day 2 | LinkedIn | No-pitch connection request |
-| 3 | Day 5 | Email | Reply to Touch 1 thread |
-| 4 | Day 8 | Call | Phone task |
-| 5 | Day 11 | LinkedIn | Interact with post: like most recent post (last 14 days), auto-complete if none |
-| 6 | Day 14 | Email | Reply to Touch 1 thread (breakup) |
-| 7 | Day 17 | LinkedIn | Direct message — completely different hook from breakup email |
+| Touch | Day | Channel | Type | What it does |
+|-------|-----|---------|------|--------------|
+| 1 | Day 1 | Email | automatic_email, new_thread (thread A) | Their problem in their words, one question. 50-90 words |
+| 2 | Day 2 | LinkedIn | linkedin_connect, empty body | No note |
+| 3 | Day 4 | Email | reply to thread A | A new fact, never a reworded Touch 1 |
+| 4 | Day 7 | Call | phone_call | Task note holds a 20-second script |
+| 5 | Day 9 | LinkedIn | linkedin_interact_post | Like most recent post, automated |
+| 6 | Day 12 | Email | reply to thread A | Proof: the current benchmark (see `current-benchmark-source` memory) or the closest named public case study. Socher credibility can live here |
+| 7 | Day 15 | LinkedIn | linkedin_message, manual | DM Andrew sends by hand, only if they accepted. No pitch |
+| 8 | Day 19 | Email | automatic_email, new_thread (thread B) | Show work: a real You.com API result we ran for their use case, pasted in. New subject |
+| 9 | Day 22 | Call | phone_call | Script refers to the Touch 8 result |
+| 10 | Day 26 | Email | reply to thread B | Meeting ask: a named event, city or time. The one touch where a time-based ask is allowed |
+| 11 | Day 31 | LinkedIn | linkedin_interact_post | Automated |
+| 12 | Day 38 | Email | reply to thread B | Breakup, two sentences, easy out |
 
-Touches 3 and 6 are replies to the original thread. Only Touch 1 gets a unique subject line. In Apollo, Touches 3 and 6 use "reply to previous email" step type.
+Apollo waits: `0,1,2,3,2,3,3,4,3,4,5,7` with `wait_mode: "day"`. Touches 3, 6, 10 and 12 are
+replies. Touches 1 and 8 open new threads, so only they get subject lines. Over 38 days one thread
+eight replies deep gets buried, which is why Touch 8 starts thread B.
+
+**Touch 8 is the one that wins.** Before the build, run one real query per sequence through the
+You.com API (Search, Contents, Research or Finance Research, whichever the sequence leads with) on
+something specific to the account, and paste a short excerpt of the real output into the email.
+Never invent output. If no real query was run, Touch 8 is not ready and the sequence is not built.
 
 **Touch 5 — LinkedIn Interact with Post (linkedin_interact_post):**
 Created as an Apollo task. (On the laptop this was automated by `apollo-linkedin-connect.js`; in cloud it is completed manually in Apollo or by the laptop automation later. The step definition is identical either way.) Task note must be exactly: `"Like most recent LinkedIn post (last 14 days). If no post found, mark complete."`
 
 **Touch 7 — LinkedIn Direct Message:**
+Manual task. Draft the copy into the `linkedin_message` step so it waits in Andrew's Apollo task queue. Andrew reviews and sends it by hand. No script sends LinkedIn messages.
 Completely different angle from the breakup email. Casual, peer-to-peer. Must reference something specific and real from the contact's LinkedIn profile — a post they wrote, a conference talk they gave, a job anniversary, a project they announced publicly. No pitch. No CTA for a meeting. One observation, one open question. Under 300 characters.
 
 **Touch 7 is the hardest touch to write correctly. Most LLM-generated T7s are garbage. Read these rules carefully.**
@@ -120,7 +134,7 @@ If `hook_type: "role_pain"` for more than 3 contacts in an account, flag this in
 
 ## Touch 1 AIDA Rules (Per Contact)
 
-Touch 1 is an `automatic_email` step (`email_type: "new_thread"`) — same templated body per sequence, sent automatically when the sequence activates. All 7 touches fire automatically once Andrew activates the sequence in Apollo.
+Touch 1 is an `automatic_email` step (`email_type: "new_thread"`) — same templated body per sequence, sent automatically when the sequence activates. The email touches fire automatically once Andrew activates the sequence in Apollo. The LinkedIn and call steps become tasks. Touch 2 (no-note connect) and Touch 5 are worked by `apollo-linkedin-connect.js`. Touch 7 is always sent by hand.
 
 **Word count: 80-120 words. Plain text only. Opens with "Hi {{first_name}}," on its own line.**
 
@@ -171,7 +185,7 @@ See references/writing-rules.md for full detail. Non-negotiables:
 - Plain text only in email bodies. No markdown (no bold, italic, headers, numbered lists).
 - AIDA structure required for every email touch (see references/writing-rules.md).
 - Every opener starts with THEM, never "I," "We," "Our," or "At You.com."
-- Word counts: Touch 1 email 80-120 words, Touch 3 and 5 emails 80-120 words.
+- Word counts: Touch 1 email 50-90 words. Other email touches 80-120 words, except the Touch 12 breakup (two sentences).
 - Interest-based CTAs only. No time-based asks ("15 minutes," "quick call this week").
 - One proof point per email, one CTA per email. Never stack.
 - 5th-7th grade reading level. Short sentences, no compound-complex structures.
@@ -181,10 +195,9 @@ See references/writing-rules.md for full detail. Non-negotiables:
 - Never name competitors, never reference specific evaluations (even anonymized).
 - Every email opens with "Hi {{first_name}}," on its own line.
 - Never write "our APIs," "our founder," or "our case studies." Name You.com explicitly: "You.com's APIs," "You.com's founder."
-- LinkedIn notes: **superseded by CLAUDE.md (2026-08-27, Andrew's call).** Use Fact-to-Consequence
-  plus a close from CLAUDE.md's ranked close menu. The note never asks for the connection, so the
-  ", would love to connect and share more of my research." close is retired. "Curious how..." is
-  permitted but is the last of five options, never the default, and at most once per account.
+- LinkedIn connect notes: **none (Andrew, 2026-10-08).** Touch 2 goes out with no note. Do not write,
+  draft, review or store connect-note copy. This supersedes the 2026-08-27 close menu. Touch 7 DM copy
+  is still drafted, but it is a manual task Andrew sends by hand. No script sends LinkedIn messages.
 
 ## Self-Review Gate (MANDATORY — Run Before Writing JSON)
 
@@ -193,13 +206,15 @@ After generating all 4 sequences but BEFORE producing the in-memory JSON, explic
 | Rule | Check |
 |------|-------|
 | No em dashes | Scan all copy. Replace with comma, colon, or period. |
-| AIDA structure | Touch 1: A/I/D(optional)/A. Touches 3+6: A/I/D/A. Desire omitted only when no case study fits cleanly. |
+| AIDA structure | Touch 1: A/I/D(optional)/A. Touches 3, 6, 8, 10: A/I/D/A. Desire omitted only when no case study fits cleanly. Touch 12 is two sentences. |
+| 12 touches, right waits | Every sequence has 12 steps in the order of the cadence table and `"waits": [0,1,2,3,2,3,3,4,3,4,5,7]`. Touches 1 and 8 are `new_thread` with subjects. 3, 6, 10, 12 are replies. |
+| Touch 8 shows real work | Touch 8 contains an excerpt of a real You.com API result for this account. No invented output. |
 | Touch 1 is automatic_email | Touch 1 type must be `automatic_email`, NOT `manual_email`. |
 | Per-contact Touch 1 fields present | Every contact has `touch1_subject`, `touch1_body`, `touch1_hook`, `touch1_hook_type`. |
 | Touch 1 hook bridges to a problem | No compliment dead-ends. Every hook connects to a consequence or pain point. |
 | Openers start with THEM | No email begins with "I," "We," "Our," or "At You.com." |
 | Interest = hypothesis | "Usually when teams do X..." not "You're clearly struggling with X." |
-| Interest-based CTA only | No "15 minutes," "quick call this week," or day/time asks. |
+| Interest-based CTA only | No "15 minutes," "quick call this week," or day/time asks, except Touch 10. |
 | One proof point per email | Never two case studies or two stats in a single touch. |
 | One CTA per email | Never stack asks. |
 | No AI glazing | Every research hook bridges to a problem. No compliment dead-ends. |
@@ -209,11 +224,11 @@ After generating all 4 sequences but BEFORE producing the in-memory JSON, explic
 | No banned openers | Check against 8 banned openers in references/writing-rules.md. |
 | Socher credibility present | At least one touch per sequence references Socher (not McCann). |
 | Public proof point present | At least one touch per sequence uses named case study (Harvey, Windsurf, Salesforce, Databricks, Strauss) or traction stats. |
-| Word counts | All email touches: 80-120 words. (Gong 28M analysis: 50-80 is the sweet spot; 80-120 gives AIDA room.) LinkedIn connect (Touch 2): under 250 chars. LinkedIn DM (Touch 7): under 300 chars. |
-| Follow-up qualifier openers | Touches 3 and 6: body after greeting starts with the new hook. No qualifier phrases: "Last note," "One more thing," "One more angle," "Closing the loop," "Quick follow-up," "Additional context." |
-| New reason in every follow-up | Touch 3 angle is substantively different from Touch 1. Touch 6 (breakup) introduces a third distinct angle. If 3 distinct angles don't exist for the account, collapse to 3 email touches. |
+| Word counts | Touch 1: 50-90 words. Touches 3, 6, 8, 10: 80-120 words. Touch 12: two sentences. (Gong 28M analysis: 50-80 is the sweet spot.) LinkedIn connect (Touch 2): no note, empty body. LinkedIn DM (Touch 7): under 300 chars. |
+| Follow-up qualifier openers | Touches 3, 6, 10 and 12: body after greeting starts with the new hook. No qualifier phrases: "Last note," "One more thing," "One more angle," "Closing the loop," "Quick follow-up," "Additional context." |
+| New reason in every follow-up | Touches 1, 3, 6, 8 and 10 each carry a different angle (problem, new fact, proof, real output, meeting ask). Never reword an earlier email. If the account cannot support five distinct angles, say so and ask Andrew before building. |
 | No hide-the-company language | No "our APIs," "our founder," "our case studies." Every product/founder reference names You.com explicitly. |
-| LinkedIn connect: zero pitch + varied close | Touch 2: No product names, no flattery, no role claim, no "would be great to connect." Close comes from CLAUDE.md's ranked menu; vary the shape across a batch, max one "Curious..." per account. |
+| LinkedIn connect: no note | Touch 2 `linkedin_connect` body is exactly `""`. Any connect-note text = delete it. Policy 2026-10-08. |
 | Action item task note | Touch 5: instructs AE to view profile, engage with recent post, note content for Touch 7. |
 | LinkedIn DM: specific LinkedIn signal | Touch 7: names a specific post, talk, project, or milestone from their actual LinkedIn. "CTO is one of those roles..." or any role-pain sentence = automatic rewrite. Zero product mention. Zero meeting CTA. |
 | LinkedIn DM: no em dashes | Scan every T7 for "—". One em dash = rewrite the whole message. |
@@ -235,7 +250,7 @@ See references/json-format.md for the full in-memory schema.
 
 Sequences are built by ydc-apollo-build using the Apollo.io connector tools (e.g. function names ending in `apollo_emailer_campaigns_search`, `apollo_contacts_create`, `apollo_emailer_campaigns_add_contact_ids`). The laptop Playwright path (`build-sequences.js` + `~/.apollo-playwright-profile`) is not available in cloud and is not used.
 
-LinkedIn connect (T2) and LinkedIn DM (T7) ARE Apollo sequence steps. Their copy is included inline in the content structure below. No LinkedIn queue Drive file is written.
+LinkedIn connect (T2) and LinkedIn DM (T7) ARE Apollo sequence steps. No LinkedIn queue Drive file is written. T2 has an empty body (no note). T7 carries the drafted DM copy inline as a manual task that Andrew sends by hand.
 
 Content structure (held in memory, handed to ydc-apollo-build):
 ```json
@@ -244,19 +259,28 @@ Content structure (held in memory, handed to ydc-apollo-build):
   "sequences": [
     {
       "name": "YDC | Company | Seq A: Engineering Leader",
+      "waits": [0, 1, 2, 3, 2, 3, 3, 4, 3, 4, 5, 7],
+      "wait_mode": "day",
       "steps": [
         { "type": "automatic_email", "email_type": "new_thread", "subject": "...", "body": "Hi {{first_name}},\n\n..." },
-        { "type": "linkedin_connect", "message": "..." },
+        { "type": "linkedin_connect", "message": "" },
         { "type": "automatic_email", "email_type": "reply", "body": "Hi {{first_name}},\n\n..." },
         { "type": "phone_call", "task_note": "..." },
         { "type": "linkedin_interact_post", "task_note": "Like most recent LinkedIn post (last 14 days). If no post found, mark complete." },
         { "type": "automatic_email", "email_type": "reply", "body": "Hi {{first_name}},\n\n..." },
-        { "type": "linkedin_message", "message": "..." }
+        { "type": "linkedin_message", "message": "..." },
+        { "type": "automatic_email", "email_type": "new_thread", "subject": "...", "body": "Hi {{first_name}},\n\n..." },
+        { "type": "phone_call", "task_note": "..." },
+        { "type": "automatic_email", "email_type": "reply", "body": "Hi {{first_name}},\n\n..." },
+        { "type": "linkedin_interact_post", "task_note": "Like most recent LinkedIn post (last 14 days). If no post found, mark complete." },
+        { "type": "automatic_email", "email_type": "reply", "body": "Hi {{first_name}},\n\n..." }
       ]
     }
   ]
 }
 ```
+
+`linkedin_connect.message` is always `""`. Connection requests carry no note (policy 2026-10-08). `linkedin_message.message` holds the drafted DM for Andrew's manual task.
 
 ---
 
@@ -264,6 +288,8 @@ Content structure (held in memory, handed to ydc-apollo-build):
 
 | Date | Change | Reason |
 |------|--------|--------|
+| 2026-10-27 | Default cadence moved from 7 touches to 12 touches over 38 days on two threads (waits `0,1,2,3,2,3,3,4,3,4,5,7`). Touch 6 is now proof, Touch 8 opens thread B with real API output, Touch 10 is the meeting ask, Touch 12 is the breakup. Touch 1 is 50-90 words | Andrew, after the 2026-10-26 review of Seyar's outbound (6.6 touches per account vs 4.1) |
+| 2026-10-08 | Connect notes retired. Touch 2 is built with an empty body and no skill writes, reviews or stores connect-note copy. Touch 7 DM copy is still drafted into the step, but it is a manual task Andrew sends by hand. `connect-overrides.json` and `dm-overrides.json` retired | On 2026-09-25 and 09-28 the LinkedIn script sent 18 Cohort 1A/1B connection requests with raw `{{calls_30d}}` notes. Apollo never renders variables in LinkedIn steps |
 | 2026-07-17 | Cloud port created from skills/ydc-outreach | Migration to Claude Code Routines: per-person research falls back from `$YDC_API_KEY` to You.com Search connector/WebSearch, Playwright build path (`build-sequences.js`, local profile) replaced by ydc-apollo-build over the Apollo.io connector, Touch 5 laptop automation (`apollo-linkedin-connect.js`) noted as manual Apollo task in cloud, explicit no-write boundary added; copy rules, cadence, gates, and templates unchanged |
 | 2026-06-02 | Changelog initialized | Tracking all skill changes going forward |
 | (prior) | Added mandatory T7 research step before writing any LinkedIn DM | LLM-generated T7s were defaulting to role-pain templates instead of contact-specific signals |

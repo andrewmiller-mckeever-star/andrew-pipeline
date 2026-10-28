@@ -42,14 +42,14 @@ STEP 3.5: Per-Person Research (Sonnet subagent per contact, runs inside ydc-outr
     - Web + LinkedIn search: "{first} {last}" "{company}" posts, articles, talks, announcements
     - Outputs one-line hook + hook_type (trigger_event | their_content | company_initiative | role_pain)
     - Falls back to role_pain if nothing specific is findable
-    - LinkedIn connect note (T2) and DM message (T7) are written directly into the Apollo sequence by build-sequences.js — no separate Drive queue file is generated
+    - LinkedIn connect (T2) is built with an empty body, never a note. DM copy (T7) is written into the Apollo sequence as a manual task Andrew sends by hand. No separate Drive queue file is generated
   This step runs WITHIN the ydc-outreach skill before any copy is written.
   If 3+ contacts fall back to role_pain, outreach skill flags it for Andrew's review.
   |
   v
 STEP 4: Outreach Sequence Generation (in-memory, Opus main thread) -> use ydc-outreach skill
   Touch 1 for each contact uses their individual Step 3.5 hook as the Attention line.
-  Touch 1 is automatic_email type. All 7 touches are in the Apollo sequence including LinkedIn connect (T2) and LinkedIn DM (T7).
+  Touch 1 is automatic_email type. All 12 touches (38 days, two email threads, default since 2026-10-27) are in the Apollo sequence including LinkedIn connect (T2, no note) and LinkedIn DM (T7, manual task sent by hand).
   |
   v
 STEP 5 + 6: Drive Upload + Apollo Build & Enrollment -> use ydc-apollo-build skill
@@ -131,6 +131,7 @@ See references/quality-checklist.md before delivering any account's outputs.
 
 | Date | Change | Reason |
 |------|--------|--------|
+| 2026-10-08 | T2 connect documented as an empty-body step (no note). T7 DM documented as a manual task Andrew sends by hand | On 2026-09-25 and 09-28 the LinkedIn script sent 18 Cohort 1A/1B invites with raw `{{calls_30d}}` notes. Apollo never renders variables in LinkedIn steps |
 | 2026-06-02 | Changelog initialized | Tracking all skill changes going forward |
 | 2026-06-03 | Removed deprecation — restored as manual one-off skill | Deprecation was too aggressive; skill is valid for explicit one-off runs outside the territory pipeline |
 | (prior) | Added Step 7: Referral Daily Doc compile | CTD Bucket A/B paths were being generated per-account but not persisted anywhere; nightly doc collects all paths |

@@ -17,7 +17,8 @@ Before delivering outputs for any account, verify:
 - [ ] Third-party validation included in at least one sequence (anonymized evals, case studies, or benchmarks; NEVER name confidential customers)
 - [ ] Subject lines are specific (reference company name or initiative)
 - [ ] Email word counts within guidelines (opener 100-150, follow-up 80-120, breakup 80-120)
-- [ ] LinkedIn connect notes use Recognition + Curiosity Hook + Connect formula; under 250 chars; zero pitch, zero CTA, zero flattery, zero role claims; problem seed planted without naming product
+- [ ] LinkedIn connect (T2) step has an empty body. No connect-note copy anywhere (policy 2026-10-08)
+- [ ] LinkedIn DM (T7) copy is drafted into the step as a manual task for Andrew to send by hand
 - [ ] No generic/templated language that could apply to any company
 - [ ] Every email follows the AIDA micro-structure (Attention, Interest, Desire, Action)
 - [ ] No banned anti-pattern phrases appear in any outreach copy

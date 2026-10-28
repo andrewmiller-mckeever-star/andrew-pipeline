@@ -4,7 +4,7 @@
 
 **Layer 1: Universal Writing Style** is defined in CLAUDE.md and applies to ALL writing (cold outreach, warm emails, Slack, call scripts, everything). It covers: no em dashes, no AI-isms, no glazing, short paragraphs, 5th-7th grade reading level, plain human tone.
 
-**Layer 2: Cold Outbound Rules** (this file) apply ONLY to cold outreach sequences and LinkedIn connection requests. These rules are in addition to Layer 1, not a replacement.
+**Layer 2: Cold Outbound Rules** (this file) apply ONLY to cold outreach sequences and LinkedIn DMs. LinkedIn connection requests carry no note (2026-10-08), so there is nothing to write for them. These rules are in addition to Layer 1, not a replacement.
 
 If you are writing a warm reply, partner email, internal message, or anything other than cold prospecting, only Layer 1 applies. Do not apply sequence-specific rules (AIDA structure, hook prioritization, interest-based CTAs, etc.) to non-cold writing.
 
@@ -43,9 +43,9 @@ This section applies to post-call recaps, warm thread replies, and any email sen
 3. **Personalize to the prospect.** Reference their specific role, department, or publicly known work when possible.
 4. **Founder credibility in every sequence.** At least one touch in every sequence must reference Richard Socher's background. Only use Socher for prospect-facing founder credibility (Bryan McCann is internal context only). Vary the placement.
 5. **Include third-party validation proof.** At least one touch should reference named public case studies (Harvey, Windsurf, Salesforce, Databricks), benchmark data, or generic traction stats (1B+ queries/month, 5K+ customers, 57% Fortune 500). NEVER reference specific evaluations (even anonymized) or name competitors. NEVER name confidential customers or active evaluations.
-7. **Subject lines only on Touch 1.** The first email gets a unique, specific subject line (reference company name, initiative, or provocative insight). All subsequent emails are replies to the original thread (no new subjects). Never use generic subjects like "Quick question" or "Following up."
-8. **Keep emails concise.** Opener emails should be 80-120 words max. Follow-ups should be 80-120 words. Breakup emails should be 80-120 words. Gong data from 28M+ emails shows shorter wins; 50-80 words is the sweet spot but 80-120 gives AIDA room.
-9. **LinkedIn connect notes: no pitch, no CTA, no meeting ask, no role claims.** Use the Fact-to-Consequence + Research-Share Close formula. State what they did, bridge to the problem it creates, end with ", would love to connect and share more of my research." Never use "Curious how your team is thinking about [X]" — it asks a stranger for internal strategy and gets zero replies. No glazing or characterizing initiatives. See references/linkedin-rules.md.
+7. **Subject lines only on Touches 1 and 8.** Under the 12-touch cadence (2026-10-27) Touch 1 opens thread A and Touch 8 opens thread B. Each gets a unique, specific subject line (reference company name, initiative, or provocative insight). Every other email is a reply in its thread. Never use generic subjects like "Quick question" or "Following up."
+8. **Keep emails concise.** Touch 1 is 50-90 words. Follow-ups are 80-120 words. The Touch 12 breakup is two sentences. Gong data from 28M+ emails shows shorter wins; 50-80 words is the sweet spot.
+9. **LinkedIn connect notes: none.** Since 2026-10-08 connection requests go out with no note. Do not write, draft or review connect-note copy. The Touch 2 step body is an empty string. See references/linkedin-rules.md.
 10. **Each touch should have:** a labeled subject line, the full email body, and any special instructions (e.g., "Do Not Cold Outreach, Warm Intro Only" for CEOs).
 11. **Include a Founder Credibility Toolkit section** at the top of the document for quick reference.
 12. **Label each email with:** Touch number, Day number, Channel (Email/LinkedIn), and a descriptive name.
@@ -94,9 +94,9 @@ Hi {{first_name}},
 
 For follow-up emails (80-120 words), compress to: New hook + new proof point + CTA. No re-introduction needed. These are replies to the original thread (no new subject line). CRITICAL: each follow-up must add a genuinely NEW reason to respond (new proof point, new angle, new context). Never rephrase the same ask in different words. Gong data: repeating the same pitch kills sequences.
 
-Escalation gate: before writing Touch 3, confirm the angle is substantively different from Touch 1. Before writing the breakup, confirm it introduces a third distinct angle, not a softer version of Touch 3. If fewer than 3 distinct angles exist for the account, write 3 touches instead of 4 (Touch 1 + one follow-up + breakup). A shorter sequence with fresh angles beats a full sequence that repeats itself.
+Escalation gate (12-touch cadence, 2026-10-27): Touches 1, 3, 6, 8 and 10 each need a distinct angle: the problem, a new fact, a proof point, real API output, and a meeting ask. Confirm each is substantively different before writing it. If the account cannot support five distinct angles, stop and tell Andrew before building. A shorter sequence with fresh angles beats a full sequence that repeats itself.
 
-For breakup emails (80-120 words): Acknowledge silence without guilt, offer one new angle, simple yes/no question. Also a reply to the original thread.
+For the Touch 12 breakup: two sentences, easy out, simple yes/no question. A reply in thread B.
 
 ---
 

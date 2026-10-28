@@ -38,8 +38,8 @@ Sequences are built via Apollo REST API (cloud-native). No local JSON file is wr
           "title": "VP Engineering",
           "linkedin_url": "https://linkedin.com/in/sarahchen",
           "warm_intro": false,
-          "connect_note": "Under 250 chars. Fact-to-Consequence + Curiosity Hook. Zero pitch, zero CTA.",
-          "dm_message": "Under 300 chars. References their LinkedIn content. Zero product mention. Zero meeting CTA.",
+          "connect_note": "",
+          "dm_message": "Under 300 chars. References their LinkedIn content. Zero product mention. Zero meeting CTA. Manual task, Andrew sends it by hand.",
           "touch1_hook": "One-line hook used in Touch 1 subject/opener",
           "touch1_hook_type": "trigger_event"
         }
@@ -51,14 +51,15 @@ Sequences are built via Apollo REST API (cloud-native). No local JSON file is wr
 
 ## Step Types (Apollo REST API)
 
-| Type | Touch | Day | Notes |
-|------|-------|-----|-------|
-| `manual_email` | 1 | 0 | Andrew reviews and sends |
-| `auto_email` | 3 | +4 | Reply thread, fires after Touch 1 sent |
-| `action_item` | 5 | +6 | LinkedIn profile view task |
-| `auto_email` | 6 | +3 | Breakup reply, fires after Touch 1 sent |
+The schema example above is an older, shorter shape. The step order and types that ship are the
+12-touch cadence in SKILL.md (Content JSON format), with
+`"waits": [0,1,2,3,2,3,3,4,3,4,5,7]` and `"wait_mode": "day"` on each sequence (default since
+2026-10-27). Touches 1 and 8 are new threads with subjects. Touches 3 and 6 reply to thread A.
+Touches 10 and 12 reply to thread B.
 
-LinkedIn connect and LinkedIn DM are handled via the LinkedIn queue file in Drive — NOT sequence steps.
+LinkedIn connect (T2) and LinkedIn DM (T7) are Apollo sequence steps (see SKILL.md Build Method). The Drive queue file is retired.
+- `connect_note` is always an empty string. Connection requests carry no note (policy 2026-10-08).
+- `dm_message` is drafted copy for a manual task. Andrew reviews and sends every LinkedIn message by hand. No script sends it.
 
 ## Sequence Naming Convention
 
@@ -70,18 +71,18 @@ Whale pipeline: Seq A: Engineering Leader / Seq B: Executive Sponsor / Seq C: Pr
 
 ## Writing Rules (all apply)
 
-- Touch 1 subject: under 6 words
-- Touch 1 body: 80-120 words, AIDA structure, opens with "Hi {{first_name}},"
-- Follow-ups: 80-120 words, each adds NEW proof point or angle (never rephrase)
+- Touch 1 and Touch 8 subjects: under 6 words
+- Touch 1 body: 50-90 words, AIDA structure, opens with "Hi {{first_name}},"
+- Follow-ups: 80-120 words, each adds NEW proof point or angle (never rephrase). Touch 12 breakup: two sentences
 - No em dashes. Plain text only. 5th-7th grade reading level.
-- Interest-based CTAs only (no time-based asks)
+- Interest-based CTAs only (no time-based asks), except the Touch 10 meeting ask
 - Tentative language in Interest section
 - At least one Socher reference per sequence
 - At least one public proof point per sequence
 - Never name competitors. Never reference specific evals.
 - Strip corporate suffixes.
-- connect_note: Fact-to-Consequence + Curiosity Hook, under 250 chars, zero pitch, zero CTA, zero flattery
-- dm_message: peer-to-peer, references their actual LinkedIn posts/content, under 300 chars, zero product mention, zero meeting CTA, different hook from Touch 6
+- connect_note: always "". No connect-note copy is written (2026-10-08)
+- dm_message: peer-to-peer, references their actual LinkedIn posts/content, under 300 chars, zero product mention, zero meeting CTA, different hook from Touch 6. Sent by hand from Andrew's Apollo task queue
 
 ## touch1_hook_type Values
 

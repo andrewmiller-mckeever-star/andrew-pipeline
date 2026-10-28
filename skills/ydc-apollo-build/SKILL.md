@@ -1,6 +1,6 @@
 ---
 name: ydc-apollo-build
-description: Uploads You.com account plan to Google Drive and builds Apollo.io sequences with contact enrollment. Builds 4-sequence 7-touch Apollo sequences by one of two paths, chosen at A.0: build-sequences.js (Playwright, when the ~/.apollo-playwright-profile session is live) or rest_build.py (Apollo REST, the apollo_rest_fallback used when that session is expired). LinkedIn connect (T2) and DM (T7) are Apollo sequence steps — no Drive queue file. Contact enrollment via Apollo REST API. Sequences ALWAYS left INACTIVE; a run is not complete until contacts are enrolled and every assertion is verified by reading Apollo. Use when user says "build apollo sequences", "enroll contacts", "upload to drive", "Step 5", "Step 6", or "apollo build for [company]".
+description: Uploads You.com account plan to Google Drive and builds Apollo.io sequences with contact enrollment. Builds 4-sequence 12-touch Apollo sequences by one of two paths, chosen at A.0: build-sequences.js (Playwright, when the ~/.apollo-playwright-profile session is live) or rest_build.py (Apollo REST, the apollo_rest_fallback used when that session is expired). LinkedIn connect (T2, always an empty body, no note) and DM (T7, drafted copy, a manual task Andrew sends by hand) are Apollo sequence steps — no Drive queue file. Contact enrollment via Apollo REST API. Sequences ALWAYS left INACTIVE; a run is not complete until contacts are enrolled and every assertion is verified by reading Apollo. Use when user says "build apollo sequences", "enroll contacts", "upload to drive", "Step 5", "Step 6", or "apollo build for [company]".
 ---
 
 # YDC: Drive Upload + Apollo Build & Enrollment (Steps 5 + 6)
@@ -64,25 +64,28 @@ If authentication fails: run `$RCLONE config create gdrive drive scope drive`
 
 ## Step 6: Apollo Sequence Build (API-based, fully cloud-native)
 
-### Sequence Structure (7 touches)
+### Sequence Structure (12 touches, default since 2026-10-27)
 
 | Touch | Day | Type | Notes |
 |-------|-----|------|-------|
-| T1 | Day 1  | automatic_email (new_thread) | Unique subject per sequence |
-| T2 | Day 2  | linkedin_connect             | message <250 chars |
-| T3 | Day 5  | automatic_email (reply)      | New proof point |
-| T4 | Day 8  | phone_call                   | Call script in task_note |
-| T5 | Day 11 | action_item                  | View profile, engage post, note for T7 |
-| T6 | Day 14 | automatic_email (reply)      | Breakup, third angle |
-| T7 | Day 17 | linkedin_message             | message <300 chars, no pitch, no CTA |
+| T1  | Day 1  | automatic_email (new_thread) | Thread A, unique subject per sequence |
+| T2  | Day 2  | linkedin_connect             | message `""` (empty). No connect note, ever (2026-10-08) |
+| T3  | Day 4  | automatic_email (reply)      | Reply to thread A, new fact |
+| T4  | Day 7  | phone_call                   | Call script in task_note |
+| T5  | Day 9  | linkedin_interact_post       | Automated like / profile view |
+| T6  | Day 12 | automatic_email (reply)      | Reply to thread A, proof point |
+| T7  | Day 15 | linkedin_message             | message <300 chars, no pitch, no CTA. Manual task, Andrew sends it by hand |
+| T8  | Day 19 | automatic_email (new_thread) | Thread B, new subject, real API output |
+| T9  | Day 22 | phone_call                   | Script refers to T8 output |
+| T10 | Day 26 | automatic_email (reply)      | Reply to thread B, meeting ask |
+| T11 | Day 31 | linkedin_interact_post       | Automated |
+| T12 | Day 38 | automatic_email (reply)      | Reply to thread B, breakup |
 
-**Cadence is a target, not enforced by the builders (clarified 2026-08-27).** Neither
-build-sequences.js nor the REST path reads a `day` field from the content JSON.
-build-sequences.js sets no `wait_time` at all, so Apollo's defaults apply. `rest_build.py`
-sets `0,1,3,3,3,3,3` with `wait_mode: "day"`, which reproduces days 1/2/5/8/11/14/17. If the
-day column above is ever changed, change the wait values too, or the table is fiction.
-CLAUDE.md's table lists T2 on Day 3 and T5 on Day 10; that difference is unresolved, and the
-wait values above are what actually ships. Andrew adjusts intervals in the Apollo UI.
+**Waits ship per sequence.** The content JSON carries `"waits": [0,1,2,3,2,3,3,4,3,4,5,7]` and
+`"wait_mode": "day"` on each sequence, and `rest_build.py` applies them, so the day column is
+what actually ships on the REST path. build-sequences.js sets no `wait_time`, so a Playwright
+build needs the intervals set by hand in the Apollo UI. T8 is a second `new_thread`; T10 and T12
+reply to it, so the reply-touch fix below runs against the T8 thread for those two.
 
 ### Naming Convention
 ```
@@ -157,6 +160,7 @@ Per sequence:
                                 # a nested emailer_template here is IGNORED
 4. Fill the auto-created template on each email / LinkedIn step:
    PUT /v1/emailer_templates/{template_id}  {subject, body_html}
+   The T2 connect step stays EMPTY. Never put connect-note text in it (policy 2026-10-08).
 5. REPLY steps (touch 3 and 6) only:
    POST   /v1/emailer_touches  {emailer_step_id, type:"reply_to_thread"}
    DELETE /v1/emailer_touches/{auto_new_thread_touch_id}
@@ -165,7 +169,8 @@ Per sequence:
 
 Step types:  auto_email | linkedin_step_connect | call | action_item |
              linkedin_step_message
-Waits that reproduce the canonical cadence:  0,1,3,3,3,3,3 (wait_mode "day")
+Waits that reproduce the canonical cadence:  0,1,2,3,2,3,3,4,3,4,5,7 (wait_mode "day")
+                                             (12 touches, since 2026-10-27; old 7-touch was 0,1,3,3,3,3,3)
 ```
 
 **Known-broken and silently-ignored (verified 2026-08-26):**
@@ -188,7 +193,8 @@ The results JSON is a log, never evidence. It is absent when a run dies early, a
 - `num_steps == 7`
 - exactly one touch per email/LinkedIn step
 - `reply_to_thread` on positions 3 and 6, `new_thread` on 1, 2 and 7
-- non-empty `body_text` on every template, and a subject on position 1 only
+- non-empty `body_text` on every template except T2, and a subject on position 1 only
+- an EMPTY body on the T2 connect step. Any connect-note text fails the check
 
 Print the assertion table in the run report. **Any failure blocks Phase B.** Do not enroll
 contacts into a sequence that has not passed this check.
@@ -205,7 +211,7 @@ Run pre-flight checks in parallel:
 - **B.0B:** `apollo_emailer_campaigns_search` q_name="YDC | {Company}" — confirm sequence IDs
 - **B.0C:** `apollo_contacts_search` q_keywords="{Company}" — check for existing contacts/account
 
-**HARD RULE: Phase B must always execute. There is no "deferred" path.** If bulk_match returns zero verified emails, still create all contacts found and enroll with `sequence_no_email: true`. Contacts without email receive T2 (LinkedIn connect), T4 (call), T5 (action item), and T7 (LinkedIn DM) — 4 of 7 touches. Never write `enrollment_status: "deferred"` in progress notes.
+**HARD RULE: Phase B must always execute. There is no "deferred" path.** If bulk_match returns zero verified emails, still create all contacts found and enroll with `sequence_no_email: true`. Contacts without email receive T2 (LinkedIn connect), T4 and T9 (calls), T5 and T11 (LinkedIn engage), and T7 (LinkedIn DM): 6 of 12 touches. Never write `enrollment_status: "deferred"` in progress notes.
 
 **This rule is about more than missing emails (clarified 2026-08-27).** It also means: do not
 finish a run after Phase A. A build with four sequences and zero enrolled contacts fails the
@@ -253,7 +259,7 @@ Then:
 
 See references/phase-b-api.md for full API call details and error handling.
 
-LinkedIn connect (T2) and DM (T7) are already in the sequence — no Drive queue file is needed. ydc-linkedin-queue does not apply to sequences built with build-sequences.js.
+LinkedIn connect (T2) and DM (T7) are already in the sequence — no Drive queue file is needed. T2 has an empty body (no note). T7 holds the drafted DM as a manual task. ydc-linkedin-queue does not apply to sequences built with build-sequences.js.
 
 ---
 
@@ -279,7 +285,7 @@ STATUS: INACTIVE (sequence toggle off, individual steps active) — Andrew only 
 
 NEXT STEPS:
   1. Apollo > Sequences — review Touch 1 copy per sequence, activate when ready
-  2. LinkedIn connect (T2) and DM (T7) fire automatically from the sequence
+  2. LinkedIn connect (T2, no note) and Touch 5 are worked by apollo-linkedin-connect.js. Touch 7 DMs are manual tasks: review and send each one by hand
   3. Touches 3 and 6 auto-fire after Touch 1 is sent
 ```
 
@@ -307,6 +313,7 @@ NEXT STEPS:
 
 | Date | Change | Reason |
 |------|--------|--------|
+| 2026-10-08 | T2 connect step built with an empty body and verified empty in A.3. T7 documented as a manual task Andrew sends by hand | On 2026-09-25 and 09-28 the LinkedIn script sent 18 Cohort 1A/1B invites with raw `{{calls_30d}}` notes. Apollo never renders variables in LinkedIn steps |
 | 2026-08-27 | Added A.0 path-selection gate and documented the REST build path (A.2) with full call sequence | Playwright profile expires routinely; the skill only covered a *missing* profile, so a dead session dead-ended the run. REST already built Liftoff, Sap Concur and ShiftUp but was recorded nowhere except a progress-file field |
 | 2026-08-27 | Documented the ignored/broken Apollo endpoints (nested emailer_template, PUT emailer_touches, type_of_email) | Cost ~10 probe calls to rediscover; the ydc-ctd-warmintro example showed the nested-template pattern as though it worked |
 | 2026-08-27 | Added Definition of Done; clarified the Phase B hard rule covers stopping after Phase A | A run shipped four sequences with zero enrolled contacts and was reported as a clean checkpoint |

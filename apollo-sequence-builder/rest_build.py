@@ -1,10 +1,27 @@
 #!/usr/bin/env python3
-"""Build YDC 4-sequence 7-touch Apollo sequences via REST (apollo_rest_fallback path).
+"""Build YDC Apollo sequences of any length via REST (apollo_rest_fallback path).
 
-Matches the Liftoff build (2026-07-01):
-  step types : auto_email, linkedin_step_connect, call, action_item, linkedin_step_message
-  waits      : 0/1/3/3/3/3/3 day  -> days 1,2,5,8,11,14,17
-  touches    : new_thread on 1,2,7 ; reply_to_thread on 3,6 ; subject only on step 1
+Step count and waits come from the content JSON. Nothing about the cadence is hardcoded.
+
+  step types : auto_email, manual_email, linkedin_step_connect, linkedin_step_message,
+               call, action_item
+  touches    : new_thread by default; reply_to_thread on any step with email_type "reply"
+  subjects   : required on new_thread email steps, forbidden on replies
+
+Wait resolution, most specific wins (see resolve_waits):
+  1. per-step   "wait_time" / "wait_mode" on the step object
+  2. per-seq    "waits" list (and optional "wait_mode") on the sequence object
+  3. legacy     a 7-step sequence with neither of the above gets 0/1/3/3/3/3/3 day,
+                which is the original hardcoded cadence, so existing 7-step content
+                files built by the territory and usage pipelines are unchanged.
+                A 12-step sequence gets the 12-touch standard below.
+  4. fallback   any other length gets 0 then 3s, and prints a warning
+
+Known cadences:
+  12-touch standard  waits 0,1,2,3,2,3,3,4,3,4,5,7 -> days 1,2,4,7,9,12,15,19,22,26,31,38
+                     (default since 2026-10-27; new threads on steps 1 and 8)
+  7-touch legacy     waits 0,1,3,3,3,3,3     -> days 1,2,5,8,11,14,17
+  9-touch air cover  waits 0,2,5,7,2,5,7,2,7 -> days 1,3,8,15,17,22,29,31,38
 
 Method notes learned by probing the API (2026-08-26):
   - POST /emailer_steps ignores a nested emailer_template; it creates an EMPTY template
@@ -16,6 +33,10 @@ Method notes learned by probing the API (2026-08-26):
 
 Sequences are created INACTIVE, ownership moves to Andrew immediately, and nothing is
 ever activated. Final state is read back from Apollo, not assumed.
+
+LinkedIn policy (2026-10-08): linkedin_step_connect templates are always left EMPTY,
+and verify() fails a connect step that carries text. linkedin_step_message steps keep
+their drafted copy; Andrew sends those by hand from the Apollo task queue.
 """
 import json, os, sys, time, urllib.request, urllib.error
 
@@ -51,9 +72,57 @@ TYPE_MAP = {
     "action_item": "action_item",
     "linkedin_interact_post": "action_item",
 }
-WAITS = [0, 1, 3, 3, 3, 3, 3]
+LEGACY_WAITS_7 = [0, 1, 3, 3, 3, 3, 3]
+STANDARD_WAITS_12 = [0, 1, 2, 3, 2, 3, 3, 4, 3, 4, 5, 7]
+WAITS = LEGACY_WAITS_7  # kept as an alias; nothing should read this directly any more
 EMAIL_TYPES = ("auto_email", "manual_email")
 LINKEDIN_TYPES = ("linkedin_step_connect", "linkedin_step_message")
+
+
+def resolve_waits(seq):
+    """Return [(wait_time, wait_mode)] per step. Most specific source wins.
+
+    A 7-step sequence that specifies nothing keeps the original 0/1/3/3/3/3/3 day
+    cadence, so every content file written before this function existed builds
+    byte-identically. Any other length must say what it wants, or it gets 0 then 3s
+    and a warning.
+    """
+    steps = seq["steps"]
+    n = len(steps)
+    seq_mode = seq.get("wait_mode", "day")
+    seq_waits = seq.get("waits")
+
+    if seq_waits is not None and len(seq_waits) != n:
+        raise SystemExit(
+            f"{seq['name']!r}: waits has {len(seq_waits)} entries for {n} steps")
+
+    if seq_waits is None and not any("wait_time" in s for s in steps):
+        if n == len(LEGACY_WAITS_7):
+            seq_waits = LEGACY_WAITS_7
+        elif n == len(STANDARD_WAITS_12):
+            seq_waits = STANDARD_WAITS_12
+        else:
+            seq_waits = [0] + [3] * (n - 1)
+            print(f"   !! {n} steps and no waits given; defaulting to "
+                  f"{','.join(str(w) for w in seq_waits)} {seq_mode}")
+
+    out = []
+    for i, s in enumerate(steps):
+        wt = s.get("wait_time")
+        if wt is None:
+            wt = seq_waits[i] if seq_waits is not None else (0 if i == 0 else 3)
+        out.append((int(wt), s.get("wait_mode", seq_mode)))
+    return out
+
+
+def cadence_days(waits):
+    """Cumulative day number per step, for printing. Day-mode entries only."""
+    day, days = 1, []
+    for i, (wt, mode) in enumerate(waits):
+        if i > 0:
+            day += wt if mode == "day" else 0
+        days.append(day)
+    return days
 
 
 def call(method, path, body=None, tolerate=False):
@@ -102,6 +171,16 @@ def apply_content(cid, seq):
             continue
         atype = step["type"]
         if atype not in EMAIL_TYPES + LINKEDIN_TYPES:
+            continue
+        # Connection requests never carry a note (Andrew, 2026-10-08). The step's
+        # template is left empty whatever the content file says. On 09-25/28 notes
+        # with raw {{calls_30d}} tokens went to 18 prospects, because Apollo never
+        # renders variables in LinkedIn steps.
+        if atype == "linkedin_step_connect":
+            if spec.get("body") or spec.get("message"):
+                print(f"   !! pos {pos} connect step had note text in the content file; "
+                      f"ignored, connection requests never carry a note")
+            print(f"   pos {pos} {atype:<22} {'no note':<11} left empty")
             continue
 
         touches = touch_by_step.get(step["id"], [])
@@ -156,10 +235,15 @@ def create(seq):
     own = call("PUT", f"/emailer_campaigns/{cid}", {"user_id": ANDREW})
     ec = own.get("emailer_campaign", {})
     print(f"   owner user_id={ec.get('user_id')} object_owner_id={ec.get('object_owner_id')}")
+    waits = resolve_waits(seq)
+    days = cadence_days(waits)
+    print(f"   {len(seq['steps'])} steps, cadence days "
+          f"{','.join(str(d) for d in days)}")
     for i, spec in enumerate(seq["steps"]):
         atype = TYPE_MAP[spec["type"]]
+        wt, mode = waits[i]
         payload = {"emailer_campaign_id": cid, "type": atype,
-                   "wait_time": WAITS[i], "wait_mode": "day", "position": i + 1}
+                   "wait_time": wt, "wait_mode": mode, "position": i + 1}
         if atype in ("call", "action_item"):
             payload["note"] = spec.get("task_note", "")
         call("POST", "/emailer_steps", payload)
@@ -177,18 +261,27 @@ def verify(cid, seq):
         problems.append("SEQUENCE IS ACTIVE")
     if c.get("user_id") != ANDREW:
         problems.append(f"owner is {c.get('user_id')}")
-    if c.get("num_steps") != 7:
-        problems.append(f"num_steps={c.get('num_steps')}")
-    print(f"    active={c.get('active')}  owner_ok={c.get('user_id') == ANDREW}  steps={c.get('num_steps')}")
+    want_steps = len(seq["steps"])
+    if c.get("num_steps") != want_steps:
+        problems.append(f"num_steps={c.get('num_steps')} expected {want_steps}")
+    print(f"    active={c.get('active')}  owner_ok={c.get('user_id') == ANDREW}  "
+          f"steps={c.get('num_steps')}/{want_steps}")
+    waits = resolve_waits(seq)
     for i, spec in enumerate(seq["steps"]):
         pos = i + 1
         step = next((s for s in steps if s.get("position") == pos), None)
         if not step:
             problems.append(f"pos {pos} missing")
             continue
+        want_wt, want_mode = waits[i]
+        got_wt, got_mode = step.get("wait_time"), step.get("wait_mode")
+        if (got_wt, got_mode) != (want_wt, want_mode):
+            problems.append(
+                f"pos {pos} wait={got_wt}{got_mode} expected {want_wt}{want_mode}")
         ts = touch_by_step.get(step["id"], [])
         if step["type"] in ("call", "action_item"):
-            print(f"    pos {pos} {step['type']:<22} task step")
+            print(f"    pos {pos} {step['type']:<22} task step         "
+                  f"wait={got_wt}{got_mode}")
             continue
         if len(ts) != 1:
             problems.append(f"pos {pos} has {len(ts)} touches")
@@ -199,13 +292,18 @@ def verify(cid, seq):
         want = "reply_to_thread" if spec.get("email_type") == "reply" else "new_thread"
         if t.get("type") != want:
             problems.append(f"pos {pos} touch={t.get('type')} expected {want}")
-        if blen == 0:
+        if step["type"] == "linkedin_step_connect":
+            if blen:
+                problems.append(f"pos {pos} connect step carries a {blen}c note; "
+                                f"connection requests must be empty")
+        elif blen == 0:
             problems.append(f"pos {pos} EMPTY body")
         if want == "new_thread" and step["type"] in EMAIL_TYPES and not subj:
             problems.append(f"pos {pos} missing subject")
         if want == "reply_to_thread" and subj:
             problems.append(f"pos {pos} reply should have no subject, has {subj!r}")
-        print(f"    pos {pos} {step['type']:<22} {str(t.get('type')):<16} body={blen:<5}c subj={subj[:30]!r}")
+        print(f"    pos {pos} {step['type']:<22} {str(t.get('type')):<16} "
+              f"body={blen:<5}c wait={got_wt}{got_mode} subj={subj[:30]!r}")
     return problems
 
 
