@@ -2,7 +2,7 @@
 name: ydc-account-ranking
 description: >-
   CLOUD version for Claude Code Routines. Ranks all of Andrew's Salesforce accounts by
-  likelihood to close. Pulls all ~700 SFDC accounts via the hosted Salesforce connector
+  likelihood to close. Pulls every SFDC account he owns (7,878 on 2026-10-28) via the hosted Salesforce connector
   (with parent company data for competitor exclusion), merges Product_User__c API usage
   data, CTD warm intro scores ($CTD_API_KEY) for the top 40, and Slack signals. Scores
   each account using a weighted model and outputs ALL scored accounts to a ranked CSV
@@ -64,8 +64,13 @@ SELECT Id, Name, NumberOfEmployees, Website, Industry, OwnerId,
 FROM Account
 WHERE OwnerId = '{SFDC_USER_ID}'
 ORDER BY Account_Score__c DESC NULLS LAST
-LIMIT 700
 ```
+
+**No LIMIT on the account pull.** Andrew owns 7,878 accounts as of 2026-10-28, and a `LIMIT 700`
+here capped every ranking at ~690 from June to October. If a tool returns at most 2,000 rows per
+call, page instead: add `AND Id > '{last_id}'`, order by `Id`, `LIMIT 2000`, and repeat until a
+page comes back short. Confirm the row count matches
+`SELECT COUNT() FROM Account WHERE OwnerId = ...` before scoring.
 
 Save the raw result to `sfdc_raw.json` in the working directory (wrap the connector's records array as `{"result": {"records": [...]}}` if it isn't already in that shape, or rely on the flexible parser below).
 
@@ -129,7 +134,7 @@ FROM Product_User__c
 WHERE Account__r.OwnerId = '{SFDC_USER_ID}'
 AND Email_Free_Provider__c = false
 ORDER BY API_Calls_Last_30_Days__c DESC NULLS LAST
-LIMIT 200
+LIMIT 2000
 ```
 
 **Query B — New signups last 7 days:**
@@ -142,7 +147,7 @@ WHERE Signup_Date__c = LAST_N_DAYS:7
 AND Email_Free_Provider__c = false
 AND Account__r.OwnerId = '{SFDC_USER_ID}'
 ORDER BY Signup_Date__c DESC
-LIMIT 100
+LIMIT 500
 ```
 
 **Query C — New signups last 30 days:**
@@ -155,7 +160,7 @@ WHERE Signup_Date__c = LAST_N_DAYS:30
 AND Email_Free_Provider__c = false
 AND Account__r.OwnerId = '{SFDC_USER_ID}'
 ORDER BY Signup_Date__c DESC
-LIMIT 100
+LIMIT 500
 ```
 
 Save each query result to `usage_a.json`, `usage_b.json`, `usage_c.json` in the working
@@ -615,6 +620,7 @@ On re-runs: each run creates a new dated CSV in the Drive accountplans folder
 
 | Date | Change | Reason |
 |------|--------|--------|
+| 2026-10-28 | Removed `LIMIT 700` from the account pull, added paging note, raised usage query limits (200 to 2000, 100 to 500), description count updated | Andrew's book grew to 7,878 accounts; the cap had frozen rankings and the territory queue at ~690 since June |
 | 2026-07-17 | Cloud port created from skills/ydc-account-ranking | Migration to Claude Code Routines: `sf data query` CLI replaced by Salesforce connector `soqlQuery`, /tmp intermediates moved to the session working directory, output CSV now uploaded to the accountplans Drive folder as `ydc_account_rankings_{YYYY-MM-DD}.csv` via Drive connector `create_file` (dated, so prior runs are preserved), CTD key moved to `$CTD_API_KEY` env var (step skipped if unset), Slack tool referenced by function-name suffix, YDC verification falls back to WebSearch if `$YDC_API_KEY` unset, explicit write boundary added |
 | 2026-06-02 | Changelog initialized | Tracking all skill changes going forward |
 | (prior) | Added `SFDC_BAD_PARENT_DATA` exclusion list; Wilson Elser added | SFDC incorrectly listed Wilson Elser (law firm) as an Alphabet subsidiary |

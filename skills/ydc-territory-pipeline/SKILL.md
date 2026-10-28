@@ -1,7 +1,7 @@
 ---
 name: ydc-territory-pipeline
 description: >-
-  Automated outbound pipeline covering Andrew's full book of business (690 accounts),
+  Automated outbound pipeline covering Andrew's full book of business (every account he owns, 7,878 on 2026-10-28),
   prioritized by composite Final_Score. Runs 3 accounts per night. 4 sequences per account
   (Engineering Leader, Executive Sponsor, Product Leader, AI/ML Leader), 5 contacts each. Hard-skips customers, partners,
   OOB accounts, active opps, recent outreach (60 days), and closed-lost cooling (60 days).
@@ -21,7 +21,7 @@ rule you followed and which you set aside. Never silently pick one.
 
 ## Overview
 
-Automated outbound pipeline across Andrew's full book of business (690 accounts ranked by composite score). 4 sequences per account (Seq A: Engineering Leader, Seq B: Executive Sponsor, Seq C: Product Leader, Seq D: AI/ML Leader), 5 contacts each (20 per account), 3 accounts per night. ~15 min per account.
+Automated outbound pipeline across Andrew's full book of business (every account he owns, ranked by composite score; 7,878 on 2026-10-28). 4 sequences per account (Seq A: Engineering Leader, Seq B: Executive Sponsor, Seq C: Product Leader, Seq D: AI/ML Leader), 5 contacts each (20 per account), 3 accounts per night. ~15 min per account.
 
 ## Invocation
 
@@ -399,6 +399,11 @@ Next batch: [list of next 8-10 pending accounts]
 
 If the file is missing or needs a full reset, generate it from the rankings CSV and upload to Drive.
 
+**To refresh scores without losing history, merge instead of resetting.** Keep every account whose
+status is not `pending` exactly as it is (completed, skipped, failed, deferred), keep `pipeline.run_halted`
+and `next_batch`, update `score` on pending accounts, and add new accounts as `pending`. The script below
+is for a true reset only: it sets every account back to pending.
+
 ```python
 import json, csv
 from datetime import datetime
@@ -482,6 +487,7 @@ All rules from CLAUDE.md apply. Critical reminders:
 
 | Date | Change | Reason |
 |------|--------|--------|
+| 2026-10-28 | Book size wording no longer hardcodes 690; added merge-not-reset rule for refreshing territory-progress.json | Andrew's book grew to 7,878 accounts and the queue was refreshed by merge, keeping the 20 completed and all skipped/failed entries |
 | 2026-06-02 | Changelog initialized | Tracking all skill changes going forward |
 | (prior) | Added PRE-PHASE SKIP GATE CHECK before Phase 0 | Skip gate logic was being bypassed; accounts with skip_until dates were still running CTD and incurring API costs |
 | (prior) | Added mandatory apollo_people_bulk_match enrichment in Phase 3 | apollo_mixed_people_api_search returns `has_email: true` flag only, not the actual email; contacts were being enrolled without verified email addresses |

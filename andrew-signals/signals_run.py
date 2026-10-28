@@ -3,7 +3,7 @@ signals_run.py — Daily usage burst alerts for Andrew Miller-McKeever's account
 
 Forked from Nick Opderbeck's signals_run.py (NOpderbeck/prospecting).
 Scoped to accounts owned by Andrew (OwnerId filter) instead of tier-filtered accounts,
-so it covers his full 690-account territory regardless of how they're tagged in SFDC.
+so it covers his full territory (7,878 accounts on 2026-10-28) regardless of how they're tagged in SFDC.
 
 Detects four signals:
   1. New users added to any of Andrew's accounts (CreatedDate within lookback)

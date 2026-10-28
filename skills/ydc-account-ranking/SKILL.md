@@ -1,7 +1,7 @@
 ---
 name: ydc-account-ranking
 description: >-
-  Ranks all of Andrew's Salesforce accounts by likelihood to close. Pulls all ~700 SFDC accounts
+  Ranks all of Andrew's Salesforce accounts by likelihood to close. Pulls every SFDC account he owns (7,878 on 2026-10-28)
   (with parent company data for competitor exclusion), merges Product_User__c API usage data,
   CTD warm intro scores for the top 40, and Slack signals. Scores each account using a weighted
   model and outputs ALL scored accounts to a ranked CSV with per-user API detail. Run weekly
@@ -38,7 +38,7 @@ procurement goes through Salesforce.
 
 ```bash
 sf data query \
-  --query "SELECT Id, Name, NumberOfEmployees, Website, Industry, OwnerId, Target_Account__c, Account_Tier__c, Tier_Label__c, Account_Score__c, Account_Score_Rationale__c, Parent.Name, (SELECT StageName FROM Opportunities WHERE IsClosed = false LIMIT 1) FROM Account WHERE OwnerId = '{SFDC_USER_ID}' ORDER BY Account_Score__c DESC NULLS LAST LIMIT 700" \
+  --query "SELECT Id, Name, NumberOfEmployees, Website, Industry, OwnerId, Target_Account__c, Account_Tier__c, Tier_Label__c, Account_Score__c, Account_Score_Rationale__c, Parent.Name, (SELECT StageName FROM Opportunities WHERE IsClosed = false LIMIT 1) FROM Account WHERE OwnerId = '{SFDC_USER_ID}' ORDER BY Account_Score__c DESC NULLS LAST" \
   --result-format json \
   --target-org andrew.miller-mckeever@you.com \
   2>/dev/null > /tmp/sfdc_raw.json
@@ -54,8 +54,13 @@ SELECT Id, Name, NumberOfEmployees, Website, Industry, OwnerId,
 FROM Account
 WHERE OwnerId = '{SFDC_USER_ID}'
 ORDER BY Account_Score__c DESC NULLS LAST
-LIMIT 700
 ```
+
+**No LIMIT on the account pull.** Andrew owns 7,878 accounts as of 2026-10-28, and a `LIMIT 700`
+here capped every ranking at ~690 from June to October. If a tool returns at most 2,000 rows per
+call, page instead: add `AND Id > '{last_id}'`, order by `Id`, `LIMIT 2000`, and repeat until a
+page comes back short. Confirm the row count matches
+`SELECT COUNT() FROM Account WHERE OwnerId = ...` before scoring.
 
 Parse with Python:
 
@@ -118,7 +123,7 @@ FROM Product_User__c
 WHERE Account__r.OwnerId = '{SFDC_USER_ID}'
 AND Email_Free_Provider__c = false
 ORDER BY API_Calls_Last_30_Days__c DESC NULLS LAST
-LIMIT 200
+LIMIT 2000
 ```
 
 **Query B — New signups last 7 days:**
@@ -131,7 +136,7 @@ WHERE Signup_Date__c = LAST_N_DAYS:7
 AND Email_Free_Provider__c = false
 AND Account__r.OwnerId = '{SFDC_USER_ID}'
 ORDER BY Signup_Date__c DESC
-LIMIT 100
+LIMIT 500
 ```
 
 **Query C — New signups last 30 days:**
@@ -144,7 +149,7 @@ WHERE Signup_Date__c = LAST_N_DAYS:30
 AND Email_Free_Provider__c = false
 AND Account__r.OwnerId = '{SFDC_USER_ID}'
 ORDER BY Signup_Date__c DESC
-LIMIT 100
+LIMIT 500
 ```
 
 Save each query result to `/tmp/usage_a.json`, `/tmp/usage_b.json`, `/tmp/usage_c.json`
@@ -573,6 +578,7 @@ On re-runs: the script overwrites `ydc_account_rankings.csv`. Previous version i
 
 | Date | Change | Reason |
 |------|--------|--------|
+| 2026-10-28 | Removed `LIMIT 700` from the account pull, added paging note, raised usage query limits (200 to 2000, 100 to 500), description count updated | Andrew's book grew to 7,878 accounts; the cap had frozen rankings and the territory queue at ~690 since June |
 | 2026-06-02 | Changelog initialized | Tracking all skill changes going forward |
 | (prior) | Added `SFDC_BAD_PARENT_DATA` exclusion list; Wilson Elser added | SFDC incorrectly listed Wilson Elser (law firm) as an Alphabet subsidiary |
 | (prior) | Removed "exa" from `COMPETITOR_ACCOUNTS` | SFDC has an "EXA" under Uniguest (hospitality tech) — not exa.ai; was incorrectly excluded |
