@@ -114,10 +114,8 @@ fill-all-abm.js
 # existed was "Scrub account identifiers and prospect data from the public repo".
 account-plans/
 
-# State of the Union: customer data and generated pages stay local (public repo)
-state-of-the-union/data/
-state-of-the-union/*.html
-state-of-the-union/plans/
+# State of the Union: customer data, briefs and generated pages stay local (public repo)
+state-of-the-union/
 
 # Customer and personal material kept local (2026-10-28). Public repo.
 deloitte-demo/
@@ -126,3 +124,4 @@ warm-intros/
 grounded_inference_*.xlsx
 bofa-knowledge-infosheet-design-prompt.md
 databricks-partnership-deck-prompt.md
+inference-router-outreach-*.md
