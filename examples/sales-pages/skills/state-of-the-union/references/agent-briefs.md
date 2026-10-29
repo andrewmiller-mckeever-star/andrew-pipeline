@@ -56,7 +56,10 @@ Bands: moving = furthest along, live pricing, recent contact. watch = real movem
 quiet = no contact in 45+ days, or stalled with no path. A dead deal gets next_step "No reply by {date}: RECOMMEND CLOSE".
 NEVER recommend closing a Renewal opp. Renewals stay open until the renewal date unless the customer says they will
 not renew. No usage or no reply on a renewal gets a check-in task, not a close.
-2-4 tasks per opp, up to 10 things_to_do per key account. why_stuck and next_step 1-3 sentences each.
+2-4 tasks per opp, up to 10 things_to_do per key account (more only for a named person's list the AE asked to keep whole).
+TASK FORMAT: one action per task, 20 words max. Status and history go in why_stuck, not the task text. Owners use first
+names, 3 max, slash between their side and ours ("Priya, Tom / Sam"). Done items keep "done": true and shrink to
+"Done M/D: <what>". why_stuck and next_step 1-3 sentences each.
 No pricing discussed: pricing.text = "No pricing discussed yet", live=false.
 ```
 

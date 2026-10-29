@@ -49,7 +49,7 @@ Read it before every publish and update in place, so links never change.
 ## Part 1: State of the Union (weekly)
 
 **Layout.** A masthead with five KPI tiles: pipeline and weighted pipeline, open opps by band,
-close rate (leaving out deals lost in Discovery), year target and quota split. Below that come key
+close rate (won vs all lost, including deals that died in Discovery), year target and quota split. Below that come key
 account cards, "Open with these three", band filters, then a board of deals grouped by quarter and
 month. Renewals sit behind their own filter.
 
@@ -60,23 +60,37 @@ month. Renewals sit behind their own filter.
 
 **Step 1. Salesforce (`soqlQuery`).**
 ```sql
-SELECT Id, Name, Account.Name, Account.Domain__c, StageName, Amount, Probability, CloseDate, Type, NextStep,
-       (SELECT Contact.Name, Contact.Title, Role FROM OpportunityContactRoles)
+-- open opps
+SELECT Id, Name, Account.Name, Account.Domain__c, StageName, Amount, Probability, CloseDate, Type,
+       NextStep, Description,
+       (SELECT Contact.Name, Contact.Title, Role, IsPrimary FROM OpportunityContactRoles)
 FROM Opportunity WHERE OwnerId = '{SFDC_OWNER_ID}' AND IsClosed = false ORDER BY CloseDate
 
-SELECT Id, IsWon, (SELECT OldValue, NewValue FROM Histories WHERE Field = 'StageName')
+-- close rate: every loss counts, Discovery losses included. Still split lost_after_discovery and
+-- lost_in_discovery (read the last StageName history row) so the tile can say how many died in Discovery
+SELECT Id, Account.Name, Amount, CloseDate, IsWon, Type,
+       (SELECT OldValue, NewValue FROM Histories WHERE Field = 'StageName')
 FROM Opportunity WHERE OwnerId = '{SFDC_OWNER_ID}' AND IsClosed = true
+
+-- last real contact
+SELECT WhatId, Subject, ActivityDate, Type FROM Task
+WHERE (WhatId IN :oppIds OR WhatId IN :accountIds) AND Status = 'Completed' AND ActivityDate <= TODAY
+ORDER BY ActivityDate DESC
+SELECT WhatId, Subject, ActivityDate FROM Event
+WHERE (WhatId IN :oppIds OR WhatId IN :accountIds) AND ActivityDate <= TODAY ORDER BY ActivityDate DESC
 ```
-Last real contact is the newest completed Task or Event with `ActivityDate <= TODAY`, found by
-`WhatId` on the opp and on the Account. Never use `Opportunity.LastActivityDate`, because future-dated
-tasks pollute it. Read API usage by email domain, not by Account link.
+Never use `Opportunity.LastActivityDate`, because future-dated tasks pollute it. Read API usage by
+email domain, not by Account link.
 
 **Step 2. Gmail.** Run `search_threads` with `from:@domain OR to:@domain newer_than:45d`, then
-`get_thread` on the newest real thread. Sequence and marketing emails are not real contact.
+`get_thread` on the newest real thread. Last two-way contact is the newest thread where they replied.
+On every moving or watch deal, read the newest thread for pricing sent, redlines and promised dates.
+Sequence, cohort, welcome and marketing emails are not real contact.
 
 **Step 3. Slack.** Read each account's `#int-*` and `#ext-*` channels directly with
 `slack_read_channel` and `slack_read_thread`, because search misses recent posts. Also search the
-account name over the last 30 days, and your own messages since the last build.
+account name over the last 30 days, your deal-desk and legal channels, and your own messages since
+the last build. Confirm with `slack_read_channel` before saying nothing happened.
 
 **Step 4. Calendar and meeting notes.** Booked meetings fill the "booked" chip. Call notes supply
 "Why we're stuck", "Next step" and the tasks.
@@ -91,14 +105,38 @@ python3 -I builders/tools/assemble.py open-opps.json 2026-10-09
 python3 -I builders/build_sotu.py
 ```
 Pick "Open with these three" from the top moving deals. Year target and quota come from the AE.
-Never guess them.
+Never guess them. The tiles say "Add your target" until the AE gives them.
 
-**Step 7. Publish** `pages/state-of-the-union.html` and save the URL in the manifest. Every company
-name links to its Plan of Attack automatically when the manifest has one.
+Check the assembled data before building:
+- Set `name_on_card` to the account name. Research agents often paste the full Salesforce opp name.
+- Set `amount` as a number from Salesforce. Fix or flag any opp whose Amount does not match its name.
+- When an account has several opps, keep one card per opp. The key-account card covers the whole account.
+- Read `data/unknowns.json` and bring the important ones to the AE.
 
-**Weekly upkeep.** Re-run Step 1 in full. Re-research only accounts touched since the last build plus
-every moving or watch deal. Carry open tasks forward. Checkboxes on the page save only in the
-viewer's browser, so ask the AE which ones are done.
+**Step 7. Publish** `pages/state-of-the-union.html`. Read `data/manifest.json` first. On the first
+publish, save the URL. After that, always publish to the saved URL, never without it, or you make a
+second page. Every company name links to its Plan of Attack automatically when the manifest has one.
+Deal cards also get "Plan of attack" and "Joint plan" buttons from `manifest.plans` and
+`manifest.jeps`, and the filter bar gets an "All plans of attack" button when `manifest.index_sheet`
+is set.
+
+**Weekly upkeep.**
+1. Re-run Step 1 in full. It is cheap.
+2. Re-research only accounts touched since the last build, plus every moving or watch deal.
+3. Carry each open task forward unless the sources show it is done. Checkboxes save only in the
+   viewer's browser, so ask the AE which ones are done. Drop done tasks from the JSON.
+4. Re-pick "Open with these three" from the top three moving deals.
+5. Rebuild and republish to the same URL. Post nothing to Slack unless the AE asks.
+
+**Task and checklist formatting.** Every task list must read at normal size and stay compact.
+- **Task text:** one action, 20 words max. Status and history go in "Why we're stuck", not in the task.
+- **Owners:** first names, 3 max, with a slash between their side and ours ("Priya, Tom / Sam").
+  Use a full name only when two people share a first name.
+- **Done items** stay on the list, pre-checked (`"done": true`), trimmed to "Done M/D: <what>".
+- **Named lists:** a list from a named person keeps its `group` heading ("Morgan's list (10/9)").
+  New items go under "New since M/D".
+- **Layout:** the owner sits on its own wrapping line under the task text. Never give it a separate
+  column or stop it wrapping, or a long owner list squeezes the task into a thin column.
 
 ---
 
@@ -112,6 +150,21 @@ Slack channel the AE posts in. Small PayGo renewals use LITE depth.
 Deal thesis, Path to partnership (legal, finance and signature are always the last three steps), an
 Org map built around who decides, and More details (the room, surfaces, commercials, watch list,
 back pocket, data hygiene traps).
+
+**Sources per section.**
+
+| Section | Where it comes from |
+|---|---|
+| Masthead, Opportunity | Salesforce opp and Account |
+| Top of mind | Web news search (last month), Slack, Gmail |
+| Blockers, Next action, Path | Slack int/ext channels, Gmail, meeting notes, deal-desk and legal channels |
+| Business map, surfaces | A research tool on public filings and products, Salesforce opps per unit |
+| The eval | Slack eval threads, meeting notes. Confidence is the AE's estimate, so say so |
+| Org map, the room | Salesforce Contacts and OpportunityContactRoles, Gmail participants, ext-channel members. Build it around who decides, not Salesforce recency |
+| Commercials | Usage by email domain, pricing from the deal-desk channel |
+| Watch list, hygiene | Everything above. Salesforce mismatches go here, never in the body |
+
+Keep the As-of date equal to the newest update-log entry.
 
 **Run.** Launch one agent per account with the prompt
 `Read and follow references/plan-brief.md. Depth: FULL|LITE. JEP: YES|NO.` plus the account, slug,

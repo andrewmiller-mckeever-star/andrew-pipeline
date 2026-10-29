@@ -168,7 +168,7 @@ h1,h2,h3,h4{margin:0}
 .tasks dt{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .task-count{font-size:11px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-3);background:var(--surface-2);padding:1px 8px;border-radius:999px}
 .tasklist{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:4px}
-.tasklist li{position:relative;display:flex;align-items:flex-start;gap:6px;padding:6px 6px 6px 2px;border-radius:var(--radius-sm);border:1px solid transparent;background:var(--surface);transition:background .12s,opacity .12s}
+.tasklist li{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:6px;row-gap:2px;align-items:start;padding:6px 6px 6px 2px;border-radius:var(--radius-sm);border:1px solid transparent;background:var(--surface);transition:background .12s,opacity .12s}
 .tasklist li:hover{background:var(--surface-2)}
 .tasklist li.dragging{opacity:.45;border-style:dashed;border-color:var(--accent)}
 .tasklist li.drop-above{box-shadow:inset 0 3px 0 var(--accent)}
@@ -176,9 +176,15 @@ h1,h2,h3,h4{margin:0}
 .task-grip{flex:none;cursor:grab;color:var(--ink-3);font-size:11px;letter-spacing:-3px;line-height:20px;padding:0 6px 0 2px;user-select:none;opacity:.55}
 .tasklist li:hover .task-grip{opacity:1}
 .task-grip:active{cursor:grabbing}
-.tasklist label{flex:1;display:flex;gap:8px;align-items:flex-start;font-size:13.5px;cursor:pointer;min-width:0;overflow-wrap:anywhere}
+.tasklist label{grid-column:2;grid-row:1;display:flex;gap:8px;align-items:flex-start;font-size:13.5px;cursor:pointer;min-width:0;overflow-wrap:anywhere}
 .tasklist input[type="checkbox"]{flex:none;width:16px;height:16px;margin:2px 0 0;accent-color:var(--accent);cursor:pointer}
-.task-owner{flex:none;font-size:11px;font-weight:600;padding:2px 7px;border-radius:999px;background:var(--surface-2);color:var(--ink-2);border:1px solid var(--rule-soft);max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Owner sits on its own line under the task text and wraps, so long owner lists never squeeze the task */
+.task-owner{grid-column:2;grid-row:2;justify-self:start;padding-left:24px;font-size:11px;font-weight:700;line-height:1.35;color:var(--ink-3);white-space:normal;overflow-wrap:anywhere;cursor:default}
+.task-grip{grid-column:1;grid-row:1}
+.task-x{grid-column:3;grid-row:1}
+.tasklist li.task-group{display:block;padding:6px 2px 0;background:none;font-size:9.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:var(--accent);border:0;border-top:1px dashed var(--rule-soft);border-radius:0}
+.tasklist li.task-group:first-child{border-top:0;padding-top:0}
+.tasklist li.task-group:hover{background:none}
 .task-x{flex:none;font:inherit;font-size:16px;line-height:1;width:22px;height:22px;border:0;border-radius:6px;background:transparent;color:var(--ink-3);cursor:pointer;opacity:.5}
 .tasklist li:hover .task-x,.task-x:focus-visible{opacity:1}
 .task-x:hover{background:var(--stop-soft);color:var(--stop)}

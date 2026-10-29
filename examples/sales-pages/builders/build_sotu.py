@@ -81,11 +81,18 @@ def score(o, today):
 
 
 def task_items(tasks, deal_id, account):
+    # A task may carry "group" (a list name shown as a heading when it changes) and
+    # "done": true (shown pre-checked until the viewer unchecks it).
     out = []
+    group = None
     for t in tasks:
         text = t["text"]
+        if t.get("group") and t["group"] != group:
+            group = t["group"]
+            out.append(f'<li class="task-group">{e(group)}</li>')
+        done = bool(t.get("done"))
         out.append(
-            f'<li draggable="true" data-deal="{e(deal_id)}" data-text="{e(text)}">\n'
+            f'<li draggable="true" data-deal="{e(deal_id)}" data-text="{e(text)}" data-default="{"done" if done else "open"}">\n'
             f'        <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>\n'
             f'        <label><input type="checkbox" data-deal="{e(deal_id)}" data-account="{e(account)}" data-text="{e(text)}"><span>{e(text)}</span></label>\n'
             f'        <span class="task-owner" title="{e(t.get("source", ""))}">{e(t.get("owner", "TBD"))}</span>\n'
@@ -95,6 +102,26 @@ def task_items(tasks, deal_id, account):
 
 
 PLAN_URLS = {}
+JEP_URLS = {}
+INDEX_URL = [None]
+
+
+def jep_for(name):
+    key = (name or "").lower().split(" (")[0]
+    for acct, url in JEP_URLS.items():
+        if acct.lower().split(" (")[0] == key:
+            return url
+    return None
+
+
+def plan_buttons(account):
+    p, j = plan_for(account), jep_for(account)
+    b = []
+    if p:
+        b.append(f'<a class="pbtn" href="{e(p)}" target="_blank" rel="noopener">Plan of attack &#8599;</a>')
+    if j:
+        b.append(f'<a class="pbtn pbtn-2" href="{e(j)}" target="_blank" rel="noopener">Joint plan &#8599;</a>')
+    return ''.join(b)
 
 
 def plan_for(name):
@@ -112,7 +139,9 @@ def linked(name, url):
 def deal_card(o, today):
     b = band(o, today)
     purl = plan_for(o.get("account"))
-    foot = f'<a class="plan-foot" href="{e(purl)}" target="_blank" rel="noopener">Plan of attack</a>' if purl else ""
+    foot = ""
+    btns = plan_buttons(o.get("account"))
+    btn_row = f'  <div class="pbtns">{btns}</div>\n' if btns else ''
     n = stage_num(o.get("stage"))
     rail = "".join(f'<i class="{"on" if i < n else ""}"></i>' for i in range(5))
     amt = o.get("amount_display") or "PayGo"
@@ -145,6 +174,7 @@ def deal_card(o, today):
         f'    <div class="deal-name">\n      <h4>{linked(o.get("name_on_card") or o.get("account"), purl)}{tag}</h4>\n'
         f'      <div class="stage"><span class="rail">{rail}</span>{e(stage_label(o.get("stage")))}</div>\n    </div>\n'
         f'    <div class="amt">{amt_html}</div>\n  </div>\n'
+        f'{btn_row}'
         f'  <dl class="facts">\n'
         f'    <div><dt>Champion</dt><dd>{e(champ.get("name") or "Not named")}<span>{e(champ.get("title"))}</span></dd></div>\n'
         f'    <div><dt>Pricing</dt><dd class="{pcls}">{e(price.get("text") or "No pricing discussed yet")}</dd></div>\n  </dl>\n'
@@ -191,8 +221,10 @@ def key_account(k):
         f'<div class="w-stat"><dt>{label}</dt>\n      <dd>{e(k[f]["value"])}</dd><p>{e(k[f].get("note"))}</p></div>'
         for label, f in [("Billed so far", "billed_so_far"), ("Contract rates", "contract_rates"),
                          ("Usage, last 30 days", "usage_30d"), ("Where it stalls", "where_it_stalls")])
-    plan = (f'\n      <a class="w-plan" href="{e(k["plan_url"])}" target="_blank" rel="noopener">Plan of attack</a>'
+    plan = (f'\n      <a class="w-plan" href="{e(k["plan_url"])}" target="_blank" rel="noopener">Plan of attack &#8599;</a>'
             if k.get("plan_url") else "")
+    if jep_for(k["account"]):
+        plan += f'\n      <a class="w-plan" href="{e(jep_for(k["account"]))}" target="_blank" rel="noopener">Joint plan &#8599;</a>'
     todos = k.get("things_to_do") or []
     return (
         f'<article class="whale">\n    <header class="w-top">\n'
@@ -209,7 +241,10 @@ def build(data):
     today = d(data["as_of"])
     man = ROOT / "data" / "manifest.json"
     if man.exists():
-        PLAN_URLS.update(json.load(open(man)).get("plans", {}))
+        mj = json.load(open(man))
+        PLAN_URLS.update(mj.get("plans", {}))
+        JEP_URLS.update(mj.get("jeps", {}))
+        INDEX_URL[0] = mj.get("index_sheet")
     for k in data["key_accounts"]:
         k["plan_url"] = plan_for(k["account"]) or k.get("plan_url")
     opps = data["opps"]
@@ -220,7 +255,8 @@ def build(data):
     weighted = sum((o.get("amount") or 0) * (o.get("probability") or 0) / 100 for o in new)
     k = data["kpis"]
     won, lost, disc = k["won"], k["lost_after_discovery"], k["lost_in_discovery"]
-    rate = round(100 * won / (won + lost)) if won + lost else 0
+    # Every loss counts, including deals that died in Discovery
+    rate = round(100 * won / (won + lost + disc)) if won + lost + disc else 0
     target = k.get("year_target")
     pct = round(100 * k["closed_won_amount"] / target) if target else None
     target_html = (
@@ -244,7 +280,7 @@ def build(data):
     return f"""<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{e(first(owner))} and {e(first(manager))} 1:1</title>
 {css}
-<style>.plan-link{{color:inherit;text-decoration:none;border-bottom:1px dotted var(--ink-3)}}.plan-link:hover{{color:var(--accent);border-bottom-color:var(--accent)}}.plan-foot{{margin-left:auto;color:var(--accent);text-decoration:none}}.plan-foot:hover{{text-decoration:underline}}</style>
+<style>.plan-link{{color:inherit;text-decoration:none;border-bottom:1px dotted var(--ink-3)}}.plan-link:hover{{color:var(--accent);border-bottom-color:var(--accent)}}.plan-foot{{margin-left:auto;color:var(--accent);text-decoration:none}}.plan-foot:hover{{text-decoration:underline}}.pbtns{{display:flex;flex-wrap:wrap;gap:6px;padding-bottom:11px}}.pbtn{{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:800;text-decoration:none;color:#fff;background:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:4px 11px;white-space:nowrap}}.pbtn:hover{{filter:brightness(1.08)}}.pbtn:focus-visible{{outline:2px solid var(--accent);outline-offset:2px}}.pbtn-2{{background:var(--accent-soft);color:var(--accent)}}.pbtn-all{{padding:6px 13px;font-size:12px}}</style>
 
 <header class="mast">
   <div class="wrap">
@@ -263,7 +299,7 @@ def build(data):
       <div class="kpi"><dt>Open opps</dt><dd>{len(new)}</dd>
         <div class="note">{bands['moving']} moving &middot; {bands['watch']} watch &middot; {bands['quiet']} quiet</div></div>
       <div class="kpi"><dt>Close rate</dt><dd>{rate}%</dd>
-        <div class="note">{won} won vs {lost} lost, excluding {disc} that died in Discovery</div></div>
+        <div class="note">{won} won vs {lost + disc} lost, including {disc} that died in Discovery</div></div>
       <div class="kpi"><dt>Year target</dt>{target_html}</div>
       <div class="kpi"><dt>Quota split</dt>{quota_html}</div>
     </dl>
@@ -293,6 +329,7 @@ def build(data):
       <button type="button" id="f-watch" data-f="watch" aria-pressed="false">Watch {bands['watch']}</button>
       <button type="button" id="f-quiet" data-f="quiet" aria-pressed="false">Quiet {bands['quiet']}</button>
       <button type="button" id="f-renewals" data-f="renewals" class="renewals-btn" aria-pressed="false">Renewals {len(ren)}</button>
+      {f'<a class="pbtn pbtn-all" href="{e(INDEX_URL[0])}" target="_blank" rel="noopener">All plans of attack &#8599;</a>' if INDEX_URL[0] else ''}
     </div>
   </div>
 </div>
@@ -332,19 +369,21 @@ def build(data):
   function save(){{ try {{ localStorage.setItem(KEY, JSON.stringify(state)); }} catch (err) {{}} }}
   function recount(ul){{
     var block = ul.closest('.tasks');
-    var open = ul.querySelectorAll('li:not(.done):not(.cancelled)').length;
+    var open = ul.querySelectorAll('li[data-text]:not(.done):not(.cancelled)').length;
     var c = block && block.querySelector('.task-count');
     if (c) c.textContent = open + ' open';
   }}
-  document.querySelectorAll('.tasklist li').forEach(function(li){{
+  document.querySelectorAll('.tasklist li[data-text]').forEach(function(li){{
     var id = li.dataset.deal + '|' + li.dataset.text;
     var cb = li.querySelector('input[type="checkbox"]');
     var x = li.querySelector('.task-x');
-    if (state[id] === 'done') {{ li.classList.add('done'); cb.checked = true; }}
+    var preDone = li.dataset.default === 'done';
+    if (state[id] === 'done' || (preDone && state[id] === undefined)) {{ li.classList.add('done'); cb.checked = true; }}
     if (state[id] === 'cancelled') li.classList.add('cancelled');
     cb.addEventListener('change', function(){{
       li.classList.toggle('done', cb.checked);
-      if (cb.checked) state[id] = 'done'; else delete state[id];
+      if (cb.checked) {{ if (preDone) delete state[id]; else state[id] = 'done'; }}
+      else {{ if (preDone) state[id] = 'open'; else delete state[id]; }}
       save(); recount(li.parentNode);
     }});
     x.addEventListener('click', function(){{
@@ -360,7 +399,7 @@ def build(data):
   function clearMarks(ul){{ ul.querySelectorAll('.drop-above,.drop-below').forEach(function(n){{ n.classList.remove('drop-above','drop-below'); }}); }}
   document.querySelectorAll('.tasklist').forEach(function(ul){{
     ul.addEventListener('dragstart', function(ev){{
-      var li = ev.target.closest && ev.target.closest('li'); if (!li) return;
+      var li = ev.target.closest && ev.target.closest('li[data-text]'); if (!li) return;
       dragLi = li; li.classList.add('dragging');
       ev.dataTransfer.effectAllowed = 'move'; ev.dataTransfer.setData('text/plain', li.dataset.text);
     }});

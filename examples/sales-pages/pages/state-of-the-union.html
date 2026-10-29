@@ -170,7 +170,7 @@ h1,h2,h3,h4{margin:0}
 .tasks dt{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .task-count{font-size:11px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink-3);background:var(--surface-2);padding:1px 8px;border-radius:999px}
 .tasklist{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:4px}
-.tasklist li{position:relative;display:flex;align-items:flex-start;gap:6px;padding:6px 6px 6px 2px;border-radius:var(--radius-sm);border:1px solid transparent;background:var(--surface);transition:background .12s,opacity .12s}
+.tasklist li{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:6px;row-gap:2px;align-items:start;padding:6px 6px 6px 2px;border-radius:var(--radius-sm);border:1px solid transparent;background:var(--surface);transition:background .12s,opacity .12s}
 .tasklist li:hover{background:var(--surface-2)}
 .tasklist li.dragging{opacity:.45;border-style:dashed;border-color:var(--accent)}
 .tasklist li.drop-above{box-shadow:inset 0 3px 0 var(--accent)}
@@ -178,9 +178,15 @@ h1,h2,h3,h4{margin:0}
 .task-grip{flex:none;cursor:grab;color:var(--ink-3);font-size:11px;letter-spacing:-3px;line-height:20px;padding:0 6px 0 2px;user-select:none;opacity:.55}
 .tasklist li:hover .task-grip{opacity:1}
 .task-grip:active{cursor:grabbing}
-.tasklist label{flex:1;display:flex;gap:8px;align-items:flex-start;font-size:13.5px;cursor:pointer;min-width:0;overflow-wrap:anywhere}
+.tasklist label{grid-column:2;grid-row:1;display:flex;gap:8px;align-items:flex-start;font-size:13.5px;cursor:pointer;min-width:0;overflow-wrap:anywhere}
 .tasklist input[type="checkbox"]{flex:none;width:16px;height:16px;margin:2px 0 0;accent-color:var(--accent);cursor:pointer}
-.task-owner{flex:none;font-size:11px;font-weight:600;padding:2px 7px;border-radius:999px;background:var(--surface-2);color:var(--ink-2);border:1px solid var(--rule-soft);max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Owner sits on its own line under the task text and wraps, so long owner lists never squeeze the task */
+.task-owner{grid-column:2;grid-row:2;justify-self:start;padding-left:24px;font-size:11px;font-weight:700;line-height:1.35;color:var(--ink-3);white-space:normal;overflow-wrap:anywhere;cursor:default}
+.task-grip{grid-column:1;grid-row:1}
+.task-x{grid-column:3;grid-row:1}
+.tasklist li.task-group{display:block;padding:6px 2px 0;background:none;font-size:9.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:var(--accent);border:0;border-top:1px dashed var(--rule-soft);border-radius:0}
+.tasklist li.task-group:first-child{border-top:0;padding-top:0}
+.tasklist li.task-group:hover{background:none}
 .task-x{flex:none;font:inherit;font-size:16px;line-height:1;width:22px;height:22px;border:0;border-radius:6px;background:transparent;color:var(--ink-3);cursor:pointer;opacity:.5}
 .tasklist li:hover .task-x,.task-x:focus-visible{opacity:1}
 .task-x:hover{background:var(--stop-soft);color:var(--stop)}
@@ -231,7 +237,7 @@ h1,h2,h3,h4{margin:0}
 }
 </style>
 
-<style>.plan-link{color:inherit;text-decoration:none;border-bottom:1px dotted var(--ink-3)}.plan-link:hover{color:var(--accent);border-bottom-color:var(--accent)}.plan-foot{margin-left:auto;color:var(--accent);text-decoration:none}.plan-foot:hover{text-decoration:underline}</style>
+<style>.plan-link{color:inherit;text-decoration:none;border-bottom:1px dotted var(--ink-3)}.plan-link:hover{color:var(--accent);border-bottom-color:var(--accent)}.plan-foot{margin-left:auto;color:var(--accent);text-decoration:none}.plan-foot:hover{text-decoration:underline}.pbtns{display:flex;flex-wrap:wrap;gap:6px;padding-bottom:11px}.pbtn{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:800;text-decoration:none;color:#fff;background:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:4px 11px;white-space:nowrap}.pbtn:hover{filter:brightness(1.08)}.pbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.pbtn-2{background:var(--accent-soft);color:var(--accent)}.pbtn-all{padding:6px 13px;font-size:12px}</style>
 
 <header class="mast">
   <div class="wrap">
@@ -249,8 +255,8 @@ h1,h2,h3,h4{margin:0}
         <div class="note">$152K weighted by probability</div></div>
       <div class="kpi"><dt>Open opps</dt><dd>7</dd>
         <div class="note">3 moving &middot; 2 watch &middot; 2 quiet</div></div>
-      <div class="kpi"><dt>Close rate</dt><dd>67%</dd>
-        <div class="note">6 won vs 3 lost, excluding 5 that died in Discovery</div></div>
+      <div class="kpi"><dt>Close rate</dt><dd>43%</dd>
+        <div class="note">6 won vs 8 lost, including 5 that died in Discovery</div></div>
       <div class="kpi"><dt>Year target</dt><dd>$600K</dd>
         <div class="bar"><i style="width:52%"></i></div>
         <div class="note">$312,400 closed won, 52% of target</div></div>
@@ -267,7 +273,8 @@ h1,h2,h3,h4{margin:0}
       <span class="mark"><span class="mark-text">NA</span></span>
       <div class="w-name"><h3>Northwind Analytics</h3><div class="w-sub">Customer since Mar 3, 2026 &middot; $60K Search API annual commit plus PayGo overage. A $120K Research API expansion is in Agreement.</div></div>
       <span class="w-badge">Key account</span>
-      <a class="w-plan" href="northwind-analytics.html" target="_blank" rel="noopener">Plan of attack</a>
+      <a class="w-plan" href="northwind-analytics.html" target="_blank" rel="noopener">Plan of attack &#8599;</a>
+      <a class="w-plan" href="northwind-analytics-jep.html" target="_blank" rel="noopener">Joint plan &#8599;</a>
     </header>
     <dl class="w-stats"><div class="w-stat"><dt>Billed so far</dt>
       <dd>$84.2K invoiced</dd><p>$60K commit paid upfront in March. $24.2K in overage billed for July through September.</p></div><div class="w-stat"><dt>Contract rates</dt>
@@ -278,22 +285,22 @@ h1,h2,h3,h4{margin:0}
     <div class="block tasks w-tasks">
       <dt>Things to do<span class="task-count">4 open</span></dt>
       <ul class="tasklist">
-        <li draggable="true" data-deal="006EXAMPLE000001" data-text="Send the security questionnaire to Ravi by 10/13">
+        <li draggable="true" data-deal="006EXAMPLE000001" data-text="Send the security questionnaire to Ravi by 10/13" data-default="open">
         <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
         <label><input type="checkbox" data-deal="006EXAMPLE000001" data-account="Northwind Analytics" data-text="Send the security questionnaire to Ravi by 10/13"><span>Send the security questionnaire to Ravi by 10/13</span></label>
         <span class="task-owner" title="Slack #int-northwind 10/8">Sam Taylor / Leo Park</span>
         <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000001" data-account="Northwind Analytics" data-text="Send the security questionnaire to Ravi by 10/13">&times;</button>
-      </li><li draggable="true" data-deal="006EXAMPLE000001" data-text="Confirm the commit start date of Dec 1 with Chris">
+      </li><li draggable="true" data-deal="006EXAMPLE000001" data-text="Confirm the commit start date of Dec 1 with Chris" data-default="open">
         <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
         <label><input type="checkbox" data-deal="006EXAMPLE000001" data-account="Northwind Analytics" data-text="Confirm the commit start date of Dec 1 with Chris"><span>Confirm the commit start date of Dec 1 with Chris</span></label>
         <span class="task-owner" title="Gmail thread with Ravi Mehta 10/7">Chris Wu</span>
         <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000001" data-account="Northwind Analytics" data-text="Confirm the commit start date of Dec 1 with Chris">&times;</button>
-      </li><li draggable="true" data-deal="006EXAMPLE000001" data-text="Ask Elena for an intro to Grace Kim before signature">
+      </li><li draggable="true" data-deal="006EXAMPLE000001" data-text="Ask Elena for an intro to Grace Kim before signature" data-default="open">
         <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
         <label><input type="checkbox" data-deal="006EXAMPLE000001" data-account="Northwind Analytics" data-text="Ask Elena for an intro to Grace Kim before signature"><span>Ask Elena for an intro to Grace Kim before signature</span></label>
         <span class="task-owner" title="Call with Elena Brooks 10/8">Sam Taylor</span>
         <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000001" data-account="Northwind Analytics" data-text="Ask Elena for an intro to Grace Kim before signature">&times;</button>
-      </li><li draggable="true" data-deal="006EXAMPLE000001" data-text="Plan the Contents API eval for the Pricing Intelligence team">
+      </li><li draggable="true" data-deal="006EXAMPLE000001" data-text="Plan the Contents API eval for the Pricing Intelligence team" data-default="open">
         <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
         <label><input type="checkbox" data-deal="006EXAMPLE000001" data-account="Northwind Analytics" data-text="Plan the Contents API eval for the Pricing Intelligence team"><span>Plan the Contents API eval for the Pricing Intelligence team</span></label>
         <span class="task-owner" title="Slack #int-northwind 10/2">Priya Nair</span>
@@ -307,7 +314,7 @@ h1,h2,h3,h4{margin:0}
       <span class="mark"><span class="mark-text">CA</span></span>
       <div class="w-name"><h3>Contoso AI</h3><div class="w-sub">Customer since Nov 18, 2025 &middot; $150K Search API annual commit. Renews Dec 15, 2026.</div></div>
       <span class="w-badge">Key account</span>
-      <a class="w-plan" href="contoso-ai-living-plan.html" target="_blank" rel="noopener">Plan of attack</a>
+      <a class="w-plan" href="contoso-ai-living-plan.html" target="_blank" rel="noopener">Plan of attack &#8599;</a>
     </header>
     <dl class="w-stats"><div class="w-stat"><dt>Billed so far</dt>
       <dd>$162.5K invoiced</dd><p>$150K commit paid in two parts. $12.5K in overage billed in August.</p></div><div class="w-stat"><dt>Contract rates</dt>
@@ -318,17 +325,17 @@ h1,h2,h3,h4{margin:0}
     <div class="block tasks w-tasks">
       <dt>Things to do<span class="task-count">3 open</span></dt>
       <ul class="tasklist">
-        <li draggable="true" data-deal="006EXAMPLE000002" data-text="Get Morgan&#x27;s call on a $2.35 floor for 3 years">
+        <li draggable="true" data-deal="006EXAMPLE000002" data-text="Get Morgan&#x27;s call on a $2.35 floor for 3 years" data-default="open">
         <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
         <label><input type="checkbox" data-deal="006EXAMPLE000002" data-account="Contoso AI" data-text="Get Morgan&#x27;s call on a $2.35 floor for 3 years"><span>Get Morgan&#x27;s call on a $2.35 floor for 3 years</span></label>
         <span class="task-owner" title="Slack #deal-desk 10/7">Morgan Chen</span>
         <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000002" data-account="Contoso AI" data-text="Get Morgan&#x27;s call on a $2.35 floor for 3 years">&times;</button>
-      </li><li draggable="true" data-deal="006EXAMPLE000002" data-text="Ask Marcus which workload moved and why">
+      </li><li draggable="true" data-deal="006EXAMPLE000002" data-text="Ask Marcus which workload moved and why" data-default="open">
         <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
         <label><input type="checkbox" data-deal="006EXAMPLE000002" data-account="Contoso AI" data-text="Ask Marcus which workload moved and why"><span>Ask Marcus which workload moved and why</span></label>
         <span class="task-owner" title="Usage dashboard 10/6">Sam Taylor</span>
         <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000002" data-account="Contoso AI" data-text="Ask Marcus which workload moved and why">&times;</button>
-      </li><li draggable="true" data-deal="006EXAMPLE000002" data-text="Book a quality check with Priya on the moved workload">
+      </li><li draggable="true" data-deal="006EXAMPLE000002" data-text="Book a quality check with Priya on the moved workload" data-default="open">
         <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
         <label><input type="checkbox" data-deal="006EXAMPLE000002" data-account="Contoso AI" data-text="Book a quality check with Priya on the moved workload"><span>Book a quality check with Priya on the moved workload</span></label>
         <span class="task-owner" title="Slack #int-contoso 10/6">Priya Nair</span>
@@ -369,6 +376,7 @@ h1,h2,h3,h4{margin:0}
       <button type="button" id="f-watch" data-f="watch" aria-pressed="false">Watch 2</button>
       <button type="button" id="f-quiet" data-f="quiet" aria-pressed="false">Quiet 2</button>
       <button type="button" id="f-renewals" data-f="renewals" class="renewals-btn" aria-pressed="false">Renewals 3</button>
+      <a class="pbtn pbtn-all" href="https://example.com/account-plans-index" target="_blank" rel="noopener">All plans of attack &#8599;</a>
     </div>
   </div>
 </div>
@@ -401,6 +409,7 @@ h1,h2,h3,h4{margin:0}
     </div>
     <div class="amt">$120K</div>
   </div>
+  <div class="pbtns"><a class="pbtn" href="northwind-analytics.html" target="_blank" rel="noopener">Plan of attack &#8599;</a><a class="pbtn pbtn-2" href="northwind-analytics-jep.html" target="_blank" rel="noopener">Joint plan &#8599;</a></div>
   <dl class="facts">
     <div><dt>Champion</dt><dd>Elena Brooks<span>VP Data Platform</span></dd></div>
     <div><dt>Pricing</dt><dd class="price-live">Research API at $9 per 1,000 calls, $120K annual commit. Search API stays at $2.40 CPM, $2.10 above 200 QPS.</dd></div>
@@ -416,17 +425,17 @@ h1,h2,h3,h4{margin:0}
   <div class="block tasks">
     <dt>Outstanding<span class="task-count">3 open</span></dt>
     <ul class="tasklist">
-      <li draggable="true" data-deal="006EXAMPLE000001" data-text="Finish the security questionnaire with Leo and send it to Ravi">
+      <li draggable="true" data-deal="006EXAMPLE000001" data-text="Finish the security questionnaire with Leo and send it to Ravi" data-default="open">
         <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
         <label><input type="checkbox" data-deal="006EXAMPLE000001" data-account="Northwind Analytics" data-text="Finish the security questionnaire with Leo and send it to Ravi"><span>Finish the security questionnaire with Leo and send it to Ravi</span></label>
         <span class="task-owner" title="Slack #int-northwind 10/8">Sam Taylor / Leo Park</span>
         <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000001" data-account="Northwind Analytics" data-text="Finish the security questionnaire with Leo and send it to Ravi">&times;</button>
-      </li><li draggable="true" data-deal="006EXAMPLE000001" data-text="Confirm the $120K commit starts Dec 1, not on signature">
+      </li><li draggable="true" data-deal="006EXAMPLE000001" data-text="Confirm the $120K commit starts Dec 1, not on signature" data-default="open">
         <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
         <label><input type="checkbox" data-deal="006EXAMPLE000001" data-account="Northwind Analytics" data-text="Confirm the $120K commit starts Dec 1, not on signature"><span>Confirm the $120K commit starts Dec 1, not on signature</span></label>
         <span class="task-owner" title="Gmail thread with Ravi Mehta 10/7">Chris Wu</span>
         <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000001" data-account="Northwind Analytics" data-text="Confirm the $120K commit starts Dec 1, not on signature">&times;</button>
-      </li><li draggable="true" data-deal="006EXAMPLE000001" data-text="Send Elena the 10/14 agenda and the trial results deck">
+      </li><li draggable="true" data-deal="006EXAMPLE000001" data-text="Send Elena the 10/14 agenda and the trial results deck" data-default="open">
         <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
         <label><input type="checkbox" data-deal="006EXAMPLE000001" data-account="Northwind Analytics" data-text="Send Elena the 10/14 agenda and the trial results deck"><span>Send Elena the 10/14 agenda and the trial results deck</span></label>
         <span class="task-owner" title="Call with Elena Brooks 10/8">Sam Taylor</span>
@@ -438,7 +447,7 @@ h1,h2,h3,h4{margin:0}
     <span>Close Nov 20</span>
     <span class="">1 days since contact</span>
     <span class="booked">Oct 14 booked</span>
-    <a class="plan-foot" href="northwind-analytics.html" target="_blank" rel="noopener">Plan of attack</a>
+    
   </footer>
 </article><article class="deal moving" data-band="moving" data-renewal="0" data-score="94">
   <header class="deal-top">
@@ -468,12 +477,12 @@ h1,h2,h3,h4{margin:0}
   <div class="block tasks">
     <dt>Outstanding<span class="task-count">2 open</span></dt>
     <ul class="tasklist">
-      <li draggable="true" data-deal="006EXAMPLE000005" data-text="Answer the retention and liability redlines">
+      <li draggable="true" data-deal="006EXAMPLE000005" data-text="Answer the retention and liability redlines" data-default="open">
         <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
         <label><input type="checkbox" data-deal="006EXAMPLE000005" data-account="Litware Health" data-text="Answer the retention and liability redlines"><span>Answer the retention and liability redlines</span></label>
         <span class="task-owner" title="Gmail redlines from Litware legal 10/2">Dana Ruiz</span>
         <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000005" data-account="Litware Health" data-text="Answer the retention and liability redlines">&times;</button>
-      </li><li draggable="true" data-deal="006EXAMPLE000005" data-text="Book the 10/13 call with Sara and their counsel">
+      </li><li draggable="true" data-deal="006EXAMPLE000005" data-text="Book the 10/13 call with Sara and their counsel" data-default="open">
         <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
         <label><input type="checkbox" data-deal="006EXAMPLE000005" data-account="Litware Health" data-text="Book the 10/13 call with Sara and their counsel"><span>Book the 10/13 call with Sara and their counsel</span></label>
         <span class="task-owner" title="Slack #int-litware 10/2">Sam Taylor</span>
@@ -522,12 +531,12 @@ h1,h2,h3,h4{margin:0}
   <div class="block tasks">
     <dt>Outstanding<span class="task-count">2 open</span></dt>
     <ul class="tasklist">
-      <li draggable="true" data-deal="006EXAMPLE000003" data-text="Turn on Contents API for the Fabrikam eval key">
+      <li draggable="true" data-deal="006EXAMPLE000003" data-text="Turn on Contents API for the Fabrikam eval key" data-default="open">
         <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
         <label><input type="checkbox" data-deal="006EXAMPLE000003" data-account="Fabrikam Labs" data-text="Turn on Contents API for the Fabrikam eval key"><span>Turn on Contents API for the Fabrikam eval key</span></label>
         <span class="task-owner" title="Slack #int-fabrikam 10/7">Leo Park</span>
         <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000003" data-account="Fabrikam Labs" data-text="Turn on Contents API for the Fabrikam eval key">&times;</button>
-      </li><li draggable="true" data-deal="006EXAMPLE000003" data-text="Draft a 300+ QPS tier for Morgan to approve">
+      </li><li draggable="true" data-deal="006EXAMPLE000003" data-text="Draft a 300+ QPS tier for Morgan to approve" data-default="open">
         <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
         <label><input type="checkbox" data-deal="006EXAMPLE000003" data-account="Fabrikam Labs" data-text="Draft a 300+ QPS tier for Morgan to approve"><span>Draft a 300+ QPS tier for Morgan to approve</span></label>
         <span class="task-owner" title="Call with Hannah Osei 9/30">Sam Taylor / Morgan Chen</span>
@@ -586,12 +595,12 @@ h1,h2,h3,h4{margin:0}
   <div class="block tasks">
     <dt>Outstanding<span class="task-count">2 open</span></dt>
     <ul class="tasklist">
-      <li draggable="true" data-deal="006EXAMPLE000004" data-text="Ask Kenji who signs software spend">
+      <li draggable="true" data-deal="006EXAMPLE000004" data-text="Ask Kenji who signs software spend" data-default="open">
         <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
         <label><input type="checkbox" data-deal="006EXAMPLE000004" data-account="Tailspin Robotics" data-text="Ask Kenji who signs software spend"><span>Ask Kenji who signs software spend</span></label>
         <span class="task-owner" title="Gmail thread with Kenji Watanabe 9/24">Sam Taylor</span>
         <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000004" data-account="Tailspin Robotics" data-text="Ask Kenji who signs software spend">&times;</button>
-      </li><li draggable="true" data-deal="006EXAMPLE000004" data-text="Send PayGo setup steps and the rate card">
+      </li><li draggable="true" data-deal="006EXAMPLE000004" data-text="Send PayGo setup steps and the rate card" data-default="open">
         <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
         <label><input type="checkbox" data-deal="006EXAMPLE000004" data-account="Tailspin Robotics" data-text="Send PayGo setup steps and the rate card"><span>Send PayGo setup steps and the rate card</span></label>
         <span class="task-owner" title="Slack #int-tailspin 9/24">Sam Taylor</span>
@@ -633,12 +642,12 @@ h1,h2,h3,h4{margin:0}
   <div class="block tasks">
     <dt>Outstanding<span class="task-count">2 open</span></dt>
     <ul class="tasklist">
-      <li draggable="true" data-deal="006EXAMPLE000009" data-text="Find out who the new head of product is">
+      <li draggable="true" data-deal="006EXAMPLE000009" data-text="Find out who the new head of product is" data-default="open">
         <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
         <label><input type="checkbox" data-deal="006EXAMPLE000009" data-account="Proseware" data-text="Find out who the new head of product is"><span>Find out who the new head of product is</span></label>
         <span class="task-owner" title="Proseware careers page 10/1">Sam Taylor</span>
         <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000009" data-account="Proseware" data-text="Find out who the new head of product is">&times;</button>
-      </li><li draggable="true" data-deal="006EXAMPLE000009" data-text="Close as lost on 11/1 if no path">
+      </li><li draggable="true" data-deal="006EXAMPLE000009" data-text="Close as lost on 11/1 if no path" data-default="open">
         <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
         <label><input type="checkbox" data-deal="006EXAMPLE000009" data-account="Proseware" data-text="Close as lost on 11/1 if no path"><span>Close as lost on 11/1 if no path</span></label>
         <span class="task-owner" title="Pipeline review 10/9">Sam Taylor</span>
@@ -687,12 +696,12 @@ h1,h2,h3,h4{margin:0}
   <div class="block tasks">
     <dt>Outstanding<span class="task-count">2 open</span></dt>
     <ul class="tasklist">
-      <li draggable="true" data-deal="006EXAMPLE000006" data-text="Send a last note with the earnings news use case">
+      <li draggable="true" data-deal="006EXAMPLE000006" data-text="Send a last note with the earnings news use case" data-default="open">
         <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
         <label><input type="checkbox" data-deal="006EXAMPLE000006" data-account="Adatum Finance" data-text="Send a last note with the earnings news use case"><span>Send a last note with the earnings news use case</span></label>
         <span class="task-owner" title="Salesforce activity 8/11">Sam Taylor</span>
         <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000006" data-account="Adatum Finance" data-text="Send a last note with the earnings news use case">&times;</button>
-      </li><li draggable="true" data-deal="006EXAMPLE000006" data-text="Close as lost on 10/24 if no reply">
+      </li><li draggable="true" data-deal="006EXAMPLE000006" data-text="Close as lost on 10/24 if no reply" data-default="open">
         <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
         <label><input type="checkbox" data-deal="006EXAMPLE000006" data-account="Adatum Finance" data-text="Close as lost on 10/24 if no reply"><span>Close as lost on 10/24 if no reply</span></label>
         <span class="task-owner" title="Pipeline review 10/9">Sam Taylor</span>
@@ -741,12 +750,12 @@ h1,h2,h3,h4{margin:0}
   <div class="block tasks">
     <dt>Outstanding<span class="task-count">2 open</span></dt>
     <ul class="tasklist">
-      <li draggable="true" data-deal="006EXAMPLE000007" data-text="Ask Rosa for monthly call volume and 20 sample queries">
+      <li draggable="true" data-deal="006EXAMPLE000007" data-text="Ask Rosa for monthly call volume and 20 sample queries" data-default="open">
         <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
         <label><input type="checkbox" data-deal="006EXAMPLE000007" data-account="Wingtip Data" data-text="Ask Rosa for monthly call volume and 20 sample queries"><span>Ask Rosa for monthly call volume and 20 sample queries</span></label>
         <span class="task-owner" title="Call with Rosa Delgado 9/30">Sam Taylor</span>
         <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000007" data-account="Wingtip Data" data-text="Ask Rosa for monthly call volume and 20 sample queries">&times;</button>
-      </li><li draggable="true" data-deal="006EXAMPLE000007" data-text="Share the Contents API docs page with Rosa">
+      </li><li draggable="true" data-deal="006EXAMPLE000007" data-text="Share the Contents API docs page with Rosa" data-default="open">
         <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
         <label><input type="checkbox" data-deal="006EXAMPLE000007" data-account="Wingtip Data" data-text="Share the Contents API docs page with Rosa"><span>Share the Contents API docs page with Rosa</span></label>
         <span class="task-owner" title="Slack #int-wingtip 9/30">Priya Nair</span>
@@ -808,12 +817,12 @@ h1,h2,h3,h4{margin:0}
   <div class="block tasks">
     <dt>Outstanding<span class="task-count">2 open</span></dt>
     <ul class="tasklist">
-      <li draggable="true" data-deal="006EXAMPLE000008" data-text="Check the renewal form is signed">
+      <li draggable="true" data-deal="006EXAMPLE000008" data-text="Check the renewal form is signed" data-default="open">
         <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
         <label><input type="checkbox" data-deal="006EXAMPLE000008" data-account="Woodgrove Retail" data-text="Check the renewal form is signed"><span>Check the renewal form is signed</span></label>
         <span class="task-owner" title="Gmail thread with Megan Fox-Reid 10/5">Sam Taylor</span>
         <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000008" data-account="Woodgrove Retail" data-text="Check the renewal form is signed">&times;</button>
-      </li><li draggable="true" data-deal="006EXAMPLE000008" data-text="Set up the new invoice for Nov 1">
+      </li><li draggable="true" data-deal="006EXAMPLE000008" data-text="Set up the new invoice for Nov 1" data-default="open">
         <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
         <label><input type="checkbox" data-deal="006EXAMPLE000008" data-account="Woodgrove Retail" data-text="Set up the new invoice for Nov 1"><span>Set up the new invoice for Nov 1</span></label>
         <span class="task-owner" title="Slack #int-woodgrove 10/5">Chris Wu</span>
@@ -847,6 +856,7 @@ h1,h2,h3,h4{margin:0}
     </div>
     <div class="amt">$180K</div>
   </div>
+  <div class="pbtns"><a class="pbtn" href="contoso-ai-living-plan.html" target="_blank" rel="noopener">Plan of attack &#8599;</a></div>
   <dl class="facts">
     <div><dt>Champion</dt><dd>Marcus Lee<span>Head of AI Platform</span></dd></div>
     <div><dt>Pricing</dt><dd class="price-live">Renewal quote at $2.50 CPM on a $180K annual commit. Marcus asked for $2.25 and a 3-year option.</dd></div>
@@ -862,17 +872,17 @@ h1,h2,h3,h4{margin:0}
   <div class="block tasks">
     <dt>Outstanding<span class="task-count">3 open</span></dt>
     <ul class="tasklist">
-      <li draggable="true" data-deal="006EXAMPLE000002" data-text="Get Morgan&#x27;s call on a $2.35 floor for a 3-year term">
+      <li draggable="true" data-deal="006EXAMPLE000002" data-text="Get Morgan&#x27;s call on a $2.35 floor for a 3-year term" data-default="open">
         <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
         <label><input type="checkbox" data-deal="006EXAMPLE000002" data-account="Contoso AI" data-text="Get Morgan&#x27;s call on a $2.35 floor for a 3-year term"><span>Get Morgan&#x27;s call on a $2.35 floor for a 3-year term</span></label>
         <span class="task-owner" title="Slack #deal-desk 10/7">Morgan Chen</span>
         <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000002" data-account="Contoso AI" data-text="Get Morgan&#x27;s call on a $2.35 floor for a 3-year term">&times;</button>
-      </li><li draggable="true" data-deal="006EXAMPLE000002" data-text="Ask Marcus which workload moved and why">
+      </li><li draggable="true" data-deal="006EXAMPLE000002" data-text="Ask Marcus which workload moved and why" data-default="open">
         <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
         <label><input type="checkbox" data-deal="006EXAMPLE000002" data-account="Contoso AI" data-text="Ask Marcus which workload moved and why"><span>Ask Marcus which workload moved and why</span></label>
         <span class="task-owner" title="Usage dashboard 10/6">Sam Taylor</span>
         <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000002" data-account="Contoso AI" data-text="Ask Marcus which workload moved and why">&times;</button>
-      </li><li draggable="true" data-deal="006EXAMPLE000002" data-text="Build the 1-year vs 3-year quote side by side">
+      </li><li draggable="true" data-deal="006EXAMPLE000002" data-text="Build the 1-year vs 3-year quote side by side" data-default="open">
         <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
         <label><input type="checkbox" data-deal="006EXAMPLE000002" data-account="Contoso AI" data-text="Build the 1-year vs 3-year quote side by side"><span>Build the 1-year vs 3-year quote side by side</span></label>
         <span class="task-owner" title="Slack #int-contoso 10/6">Sam Taylor / Chris Wu</span>
@@ -884,7 +894,7 @@ h1,h2,h3,h4{margin:0}
     <span>Close Dec 15</span>
     <span class="">3 days since contact</span>
     
-    <a class="plan-foot" href="contoso-ai-living-plan.html" target="_blank" rel="noopener">Plan of attack</a>
+    
   </footer>
 </article><article class="deal quiet" data-band="quiet" data-renewal="1" data-score="26">
   <header class="deal-top">
@@ -914,12 +924,12 @@ h1,h2,h3,h4{margin:0}
   <div class="block tasks">
     <dt>Outstanding<span class="task-count">2 open</span></dt>
     <ul class="tasklist">
-      <li draggable="true" data-deal="006EXAMPLE000010" data-text="Send the renewal quote to Ivy">
+      <li draggable="true" data-deal="006EXAMPLE000010" data-text="Send the renewal quote to Ivy" data-default="open">
         <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
         <label><input type="checkbox" data-deal="006EXAMPLE000010" data-account="Lucerne Media" data-text="Send the renewal quote to Ivy"><span>Send the renewal quote to Ivy</span></label>
         <span class="task-owner" title="Salesforce renewal date 12/31">Sam Taylor</span>
         <button type="button" class="task-x" title="Cancel this task" aria-label="Cancel task" data-deal="006EXAMPLE000010" data-account="Lucerne Media" data-text="Send the renewal quote to Ivy">&times;</button>
-      </li><li draggable="true" data-deal="006EXAMPLE000010" data-text="Find a second contact on their ops team">
+      </li><li draggable="true" data-deal="006EXAMPLE000010" data-text="Find a second contact on their ops team" data-default="open">
         <span class="task-grip" title="Drag to reorder: top task is next" aria-hidden="true">&#8942;&#8942;</span>
         <label><input type="checkbox" data-deal="006EXAMPLE000010" data-account="Lucerne Media" data-text="Find a second contact on their ops team"><span>Find a second contact on their ops team</span></label>
         <span class="task-owner" title="Slack #int-lucerne 9/2">Sam Taylor</span>
@@ -969,19 +979,21 @@ h1,h2,h3,h4{margin:0}
   function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (err) {} }
   function recount(ul){
     var block = ul.closest('.tasks');
-    var open = ul.querySelectorAll('li:not(.done):not(.cancelled)').length;
+    var open = ul.querySelectorAll('li[data-text]:not(.done):not(.cancelled)').length;
     var c = block && block.querySelector('.task-count');
     if (c) c.textContent = open + ' open';
   }
-  document.querySelectorAll('.tasklist li').forEach(function(li){
+  document.querySelectorAll('.tasklist li[data-text]').forEach(function(li){
     var id = li.dataset.deal + '|' + li.dataset.text;
     var cb = li.querySelector('input[type="checkbox"]');
     var x = li.querySelector('.task-x');
-    if (state[id] === 'done') { li.classList.add('done'); cb.checked = true; }
+    var preDone = li.dataset.default === 'done';
+    if (state[id] === 'done' || (preDone && state[id] === undefined)) { li.classList.add('done'); cb.checked = true; }
     if (state[id] === 'cancelled') li.classList.add('cancelled');
     cb.addEventListener('change', function(){
       li.classList.toggle('done', cb.checked);
-      if (cb.checked) state[id] = 'done'; else delete state[id];
+      if (cb.checked) { if (preDone) delete state[id]; else state[id] = 'done'; }
+      else { if (preDone) state[id] = 'open'; else delete state[id]; }
       save(); recount(li.parentNode);
     });
     x.addEventListener('click', function(){
@@ -997,7 +1009,7 @@ h1,h2,h3,h4{margin:0}
   function clearMarks(ul){ ul.querySelectorAll('.drop-above,.drop-below').forEach(function(n){ n.classList.remove('drop-above','drop-below'); }); }
   document.querySelectorAll('.tasklist').forEach(function(ul){
     ul.addEventListener('dragstart', function(ev){
-      var li = ev.target.closest && ev.target.closest('li'); if (!li) return;
+      var li = ev.target.closest && ev.target.closest('li[data-text]'); if (!li) return;
       dragLi = li; li.classList.add('dragging');
       ev.dataTransfer.effectAllowed = 'move'; ev.dataTransfer.setData('text/plain', li.dataset.text);
     });
