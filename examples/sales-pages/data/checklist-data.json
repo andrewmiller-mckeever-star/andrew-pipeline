@@ -1,0 +1,47 @@
+{
+ "owner": "Sam Taylor",
+ "as_of": "Fri Oct 9, morning",
+ "sources": "State of the Union refreshed Fri 10/9, Salesforce, Slack, Gmail and meeting notes through 10/9 morning",
+ "sections": [
+  {"id": "1on1", "title": "Morgan 1:1 · Fri 10/9, 10am", "note": "In order. Decisions first, then updates."},
+  {"id": "sfdc", "title": "Fix in Salesforce before Fri 10/16", "note": "Two opps close this month and three next steps are older than two weeks."},
+  {"id": "top", "title": "Most important this week", "note": "In priority order."},
+  {"id": "today", "title": "Also today and Monday", "note": ""},
+  {"id": "overdue", "title": "Overdue follow-ups", "note": "Gmail shows none of these sent yet. One short email each."},
+  {"id": "renew", "title": "Renewal check-ins", "note": "Renewals stay open until their renewal date."},
+  {"id": "week", "title": "Next week", "note": "Rest of the week."},
+  {"id": "admin", "title": "Salesforce and housekeeping", "note": "For when you have a gap."},
+  {"id": "done", "title": "Done since last week", "note": "Taken from Gmail, Slack, meeting notes and the State of the Union since Mon 10/5."}
+ ],
+ "items": [
+  {"id": "x1", "sec": "1on1", "acct": "Contoso AI", "text": "Decide the floor price for Contoso's 3-year term", "note": "Marcus wants $2.25 CPM. Sam proposes a $2.35 floor. Quotes go out once you decide, by 10/15.", "tags": ["decision", "$180K"], "hot": true, "done": false},
+  {"id": "x2", "sec": "1on1", "acct": "Northwind Analytics", "text": "Confirm who signs Northwind's order form on our side", "note": "Procurement has the form. Elena expects a signer named before the 10/14 call.", "tags": ["decision", "$120K"], "hot": true, "done": false},
+  {"id": "x3", "sec": "1on1", "acct": "Q4 number", "text": "Walk through what can close in Q4", "note": "Q4 shows $0 of $200K closed. Candidates: Northwind $120K, Litware $45K and Woodgrove $36K.", "tags": ["forecast"], "hot": false, "done": false},
+  {"id": "x4", "sec": "1on1", "acct": "Fabrikam Labs", "text": "Share the Fabrikam eval midpoint", "note": "Half the test queries are scored. Readout with Hannah is 10/16.", "tags": ["update"], "hot": false, "done": false},
+
+  {"id": "s1", "sec": "sfdc", "acct": "Close dates", "text": "Move Woodgrove's close date if the form isn't signed by 10/20", "note": "It still reads 10/30, which only holds if Chris signs this month.", "tags": ["by Tue 10/20"], "hot": true, "done": false},
+  {"id": "s2", "sec": "sfdc", "acct": "Next steps", "text": "Refresh next steps on Contoso, Litware and Tailspin", "note": "Each still reads late September. Use the State of the Union lines.", "tags": [], "hot": false, "done": false},
+
+  {"id": "t1", "sec": "top", "acct": "Northwind Analytics", "text": "Send the finished security questionnaire to Elena", "note": "She needs it before procurement will book the 10/14 call.", "tags": ["by Tue 10/13"], "hot": true, "done": false},
+  {"id": "t2", "sec": "top", "acct": "Litware Health", "text": "Get Dana's answers on the two redlines, then book Sara and their counsel", "note": "Both redlines are on liability. Dana promised answers by 10/10.", "tags": ["close 11/13"], "hot": true, "done": false},
+  {"id": "t3", "sec": "top", "acct": "Fabrikam Labs", "text": "Check Leo turned on Contents API for the eval key", "note": "The eval stalls without it. It was due 10/10.", "tags": ["Sat 10/10"], "hot": true, "done": false},
+
+  {"id": "m1", "sec": "today", "acct": "Tailspin Robotics", "text": "Ask Kenji who owns software spend", "note": "Offer a short PayGo start so usage can prove the case.", "tags": [], "hot": false, "done": false},
+  {"id": "m2", "sec": "today", "acct": "Wingtip Data", "text": "Get Rosa's monthly call count and 20 sample queries", "note": "", "tags": [], "hot": false, "done": false},
+
+  {"id": "o1", "sec": "overdue", "acct": "Adatum Finance", "text": "Send Liam one last note with the finance use case", "note": "No reply since 9/1. If nothing by 10/24, close it out.", "tags": ["overdue"], "hot": true, "done": false},
+  {"id": "o2", "sec": "overdue", "acct": "Proseware", "text": "Find the new head of product and introduce yourself", "note": "Daniel left. If nothing by 11/1, close it out.", "tags": ["overdue"], "hot": false, "done": false},
+
+  {"id": "r1", "sec": "renew", "acct": "Lucerne Media", "text": "Send Ivy the renewal quote and copy their ops lead", "note": "Ask for a 15-minute check-in on usage.", "tags": ["renewal"], "hot": false, "done": false},
+
+  {"id": "w1", "sec": "week", "acct": "Contoso AI", "text": "Send Marcus the 1-year and 3-year quotes", "note": "Waits on Morgan's floor-price decision.", "tags": [], "hot": false, "done": false},
+  {"id": "w2", "sec": "week", "acct": "Northwind Analytics", "text": "Run the 10/14 call with Elena and Ravi", "note": "Walk them through the order form and the security answers.", "tags": ["Wed 10/14"], "hot": false, "done": false},
+
+  {"id": "a1", "sec": "admin", "acct": "Call notes", "text": "Log the 10/6 Fabrikam call and the 10/7 Litware call", "note": "", "tags": [], "hot": false, "done": false},
+  {"id": "a2", "sec": "admin", "acct": "Contacts", "text": "Add Ravi to Northwind and Chris to Woodgrove", "note": "", "tags": [], "hot": false, "done": false},
+
+  {"id": "d1", "sec": "done", "acct": "Woodgrove Retail", "text": "Sent the updated order form to Megan (10/7)", "note": "", "tags": [], "hot": false, "done": true},
+  {"id": "d2", "sec": "done", "acct": "Fabrikam Labs", "text": "Held the eval kickoff with Hannah (10/6)", "note": "", "tags": [], "hot": false, "done": true},
+  {"id": "d3", "sec": "done", "acct": "Contoso AI", "text": "Got Marcus's counter on price (10/5)", "note": "", "tags": [], "hot": false, "done": true}
+ ]
+}

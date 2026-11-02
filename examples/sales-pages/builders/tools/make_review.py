@@ -34,12 +34,11 @@ PICK = {
     "CVO_in_Contract_Scope__c": ["Yes", "No", "N/A"],
     "Loss_Reason__c": ["Lost to Competitor", "No Budget / Lost Funding", "No Decision / Non-Responsive", "Price", "Other"],
     "Close_Reason__c": ["Unresponsive/No Decision", "Poor Fit/Low Volume", "Timing/Priority Change", "Lost to Competitor", "Pricing/Cost", "Feature Gap/Capability Limitation", "Unqualified/Fake Opportunity"],
-    "Incumbent_Provider__c": ["None", "Unkown", "Brave", "Exa", "Google - Search API", "Parallel", "Perplexity", "Tavily", "SerpAPI", "Other"],
-    "Primary_API_Endpoint__c": ["Search API", "Contents API", "Research API - Lite", "Research API - Standard", "Research API - Deep", "Research API - Exhaustive", "Eco Search API", "People Company API", "Monitor API"],
+    "Incumbent_Provider__c": ["None", "Unknown", "Competitor A", "Competitor B", "Competitor C", "Other"],
+    "Primary_API_Endpoint__c": ["Search API", "Contents API", "Research API - Lite", "Research API - Standard", "Research API - Deep"],
     "Eval_Status__c": ["In Progress", "Complete", "Deferred", "Not Required"],
 }
-COMPETITION = {"Brave", "Exa", "Google - Search API", "Microsoft - Bing Search API", "Parallel", "Perplexity", "Tavily",
-               "Amazon Web Services", "Anthropic", "Cohere", "Glean", "Google - Cloud AI", "Harvey", "Hebbia"}
+COMPETITION = {"Competitor A", "Competitor B", "Competitor C", "Partner A", "Partner B"}
 LABEL = {
     "StageName": "Stage", "CloseDate": "Close Date", "NextStep": "Next Step", "Next_Step_Date__c": "Next Step Date",
     "Defined_Use_Case__c": "Defined Use Case", "Competition__c": "Competition", "Volume_Estimate_API_Monthly_Calls__c": "API Calls/Month",

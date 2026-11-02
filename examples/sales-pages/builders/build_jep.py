@@ -54,11 +54,11 @@ def build(j):
         rows.append(f'<tr><td colspan="6" style="background:{SOFT};color:{NAVY};font-weight:bold;padding:6px 8px;font-size:10pt">{e(ph["name"])}</td></tr>')
         for r in ph["rows"]:
             st = r.get("status", "Pending")
-            rows.append(f'<tr>{td(r["activity"])}{td(r.get("date"))}{td(r.get("seller", r.get("ydc")))}{td(r.get("account"))}{td(st, color=STATUS.get(st))}{td(r.get("notes"))}</tr>')
+            rows.append(f'<tr>{td(r["activity"])}{td(r.get("date"))}{td(r.get("seller"))}{td(r.get("account"))}{td(st, color=STATUS.get(st))}{td(r.get("notes"))}</tr>')
     out.append(table(["Activity", "Date", seller, buyer, "Status", "Notes"], rows))
     out.append(h2("KEY CONTACTS"))
     rows = [f'<tr><td colspan="5" style="background:{SOFT};color:{NAVY};font-weight:bold;padding:6px 8px;font-size:10pt">{e(seller.upper())}</td></tr>']
-    rows += [f'<tr>{td(c["name"])}{td(seller)}{td(c.get("title"))}{td(c.get("role"))}{td(c.get("email"))}</tr>' for c in (j["contacts"].get("seller") or j["contacts"].get("ydc") or [])]
+    rows += [f'<tr>{td(c["name"])}{td(seller)}{td(c.get("title"))}{td(c.get("role"))}{td(c.get("email"))}</tr>' for c in (j["contacts"].get("seller") or [])]
     rows.append(f'<tr><td colspan="5" style="background:{SOFT};color:{NAVY};font-weight:bold;padding:6px 8px;font-size:10pt">{e(buyer.upper())}</td></tr>')
     rows += [f'<tr>{td(c["name"])}{td(buyer)}{td(c.get("title"))}{td(c.get("role"))}{td(c.get("email"))}</tr>' for c in j["contacts"]["buyer"]]
     out.append(table(["Name", "Company", "Title", "Role", "Email / notes"], rows))

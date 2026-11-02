@@ -5,10 +5,22 @@ description: Builds and maintains an AE's weekly State of the Union page for the
 
 # State of the Union, Plans of Attack, JEPs and Pipeline Cleanup
 
-This is the public, de-identified version of a working skill. Fill in the config block once, then
+This is the public, de-identified version of a working skill. Fill in the config once, then
 everything below runs as written. Example output built from fake data is in `../../pages/`.
+The `week-checklist` skill shows the same work as a daily to-do list. Refresh it after this page.
 
-## Config (fill in once)
+## Working folder (first run)
+
+Run everything from a folder of your own, never from the installed plugin folder, because plugin
+updates replace it. On first run:
+1. Copy `builders/` and `styles/` from this plugin's root into a working folder (for example
+   `~/sales-pages/`), and make an empty `data/` and `pages/` there.
+2. Ask the user for the config values below and save them to `data/config.json`.
+3. Keep that folder out of any public repo. `data/` and `pages/` will hold real names and deals.
+
+Every later run starts by reading `data/config.json` and `data/manifest.json`.
+
+## Config (fill in once, saved to `data/config.json`)
 
 | Key | Example | Used for |
 |---|---|---|

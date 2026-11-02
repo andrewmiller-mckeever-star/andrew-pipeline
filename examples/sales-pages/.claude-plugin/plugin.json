@@ -1,0 +1,6 @@
+{
+  "name": "ae-weekly-view",
+  "version": "0.1.0",
+  "description": "Two views of an AE's book from Salesforce, Gmail, Slack, the calendar and meeting notes: a weekly State of the Union (deal by deal, for the manager 1:1) and a Week Checklist (the same work as a to-do list). Also builds Plans of Attack, Joint Execution Plans and a Pipeline Cleanup Review.",
+  "keywords": ["sales", "pipeline", "salesforce", "1:1", "checklist", "to-do"]
+}

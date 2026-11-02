@@ -73,6 +73,5 @@ pricing debates, competitor names, risk ratings and anything about other reps. S
  "next_steps":[{"owner":"[Buyer]|[Seller AE]|[Seller]|[Joint]","text":""}]}
 Use the five phases from the template: INTRODUCTIONS, EVALUATION, COMMERCIAL, LEGAL & PROCUREMENT,
 ONBOARDING & GO-LIVE, named "PHASE n: NAME". No em dashes anywhere. Mark real past steps Done with real
-dates. 2-3 CVOs grounded in what the buyer said they need. Template reference:
-https://docs.google.com/document/d/1J_AhhTwHDcIURw4lX89iPIxKov9-awuM/edit (Drive read_file_content id
-1J_AhhTwHDcIURw4lX89iPIxKov9-awuM).
+dates. 2-3 CVOs grounded in what the buyer said they need. If your team has a JEP template doc, read
+it first and match its phase names. The example JEP is `pages/northwind-analytics-jep.html`.

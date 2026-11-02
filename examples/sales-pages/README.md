@@ -1,11 +1,12 @@
-# Sales pages: State of the Union, Plans of Attack, JEPs and Pipeline Cleanup
+# Sales pages: State of the Union, Week Checklist, Plans of Attack, JEPs and Pipeline Cleanup
 
 A set of Claude Code skills and small Python builders for running a sales book from evidence. They
-read Salesforce, email, Slack, the calendar and meeting notes, then publish five kinds of page:
+read Salesforce, email, Slack, the calendar and meeting notes, then publish six kinds of page:
 
 | Page | Who reads it | Example (fake data) |
 |---|---|---|
 | **State of the Union** | AE and manager, weekly 1:1 | [pages/state-of-the-union.html](pages/state-of-the-union.html) |
+| **Week Checklist** | AE, daily. The same work as a to-do list | [pages/week-checklist.html](pages/week-checklist.html) |
 | **Plan of Attack** | AE and exec sponsor, per account | [pages/northwind-analytics.html](pages/northwind-analytics.html) |
 | **Joint Execution Plan** | Shared with the buyer, Stage 3+ | [pages/northwind-analytics-jep.html](pages/northwind-analytics-jep.html) |
 | **Living Account Plan** | Execs, long-running accounts | [pages/contoso-ai-living-plan.html](pages/contoso-ai-living-plan.html) |
@@ -49,6 +50,7 @@ flowchart LR
 ```bash
 cd examples/sales-pages
 python3 -I builders/build_sotu.py                                   # pages/state-of-the-union.html
+python3 -I builders/build_checklist.py                              # pages/week-checklist.html
 builders/tools/qa_build.sh northwind-analytics                      # plan + JEP, checks writing rules
 python3 -I builders/build_living_plan.py data/living/contoso-ai.json
 python3 -I builders/build_review.py                                 # pages/pipeline-cleanup-review.html
@@ -58,12 +60,15 @@ Slack, Calendar and Drive connected, plus the `sf` CLI for applying cleanup chan
 
 ## Use it on your own book
 
-1. Copy `skills/state-of-the-union` and `skills/living-account-plan` into `~/.claude/skills/`.
-2. Fill in the config table at the top of `skills/state-of-the-union/SKILL.md`: your name, manager,
-   Salesforce owner ID, Slack user ID, company name and Drive folder.
-3. Point the builders at your own `data/` folder. **Keep real data out of git.** Add your `data/`,
-   `pages/` and `upload/` folders to `.gitignore`.
-4. Ask Claude: "update my state of the union", "plan of attack for <account>", or "pipeline cleanup".
+This folder is a Claude Code plugin (`ae-weekly-view`). Install it from your organization's plugin
+library if it's there. Otherwise copy the folders under `skills/` into `~/.claude/skills/`.
+
+1. Ask Claude "update my state of the union". On the first run it copies `builders/` and `styles/`
+   into a working folder of your own and asks for your name, manager, Salesforce owner ID, Slack
+   user ID, company name and Drive folder. It saves them to `data/config.json` there.
+2. **Keep real data out of git.** The working folder's `data/`, `pages/` and `upload/` hold real
+   names and deals.
+3. Then ask: "update my to-do list", "plan of attack for <account>", or "pipeline cleanup".
 
 The skill files list every tool call: the SOQL queries, Gmail and Slack searches, calendar reads,
 agent briefs, build commands and publish steps.
@@ -74,6 +79,7 @@ agent briefs, build commands and publish steps.
 skills/
   state-of-the-union/SKILL.md          the full process (Parts 1-5) and config
   state-of-the-union/references/       agent briefs for research and for plans
+  week-checklist/SKILL.md              the to-do list view of the same work
   living-account-plan/SKILL.md         the 16-section living plan contract
 builders/                              one Python file per page type
 builders/tools/                        assemble, extract, QA, index, cleanup make/apply
