@@ -269,14 +269,14 @@ Generate 2 sequences, each with 7 touches:
 
 Full rules in ydc-outreach/references/writing-rules.md. Key updates for territory pipeline:
 
-- **Opener: 80-120 words** (tightened from 100-150)
-- **Follow-ups: 80-120 words**
+- **Opener: 60-90 words, 3 to 5 sentences** (see ydc-sales-voice, Cold Outbound Copy Rules 2026-11-06)
+- **Follow-ups: shorter than the email before**
 - **Subject lines: under 6 words**
 - **Each follow-up adds NEW context** (new proof point or new angle, never rephrase)
 - No em dashes. Plain text only. 5th-7th grade reading level.
 - AIDA structure on every email touch
-- Interest-based CTAs only (no time-based asks)
-- Tentative language in Interest section
+- Concrete-asset CTAs only (side-by-side, raw JSON, credits), no time-based asks
+- Problem stated directly, no hedge phrases
 - Every email opens with "Hi {{first_name}}," on its own line
 - At least one touch references Socher. At least one touch uses a public proof point.
 - Never name competitors. Never reference specific evals.
@@ -478,7 +478,7 @@ All rules from CLAUDE.md apply. Critical reminders:
 - Search API always leads. Contents API and Research API are supporting angles.
 - NEVER reference PRAG/AI Factory/Chat/ESL/Apex in prospect-facing output
 - Sequences ALWAYS left INACTIVE (sequence toggle off, individual steps active)
-- Interest-based CTAs only in cold outreach
+- Concrete-asset CTAs only in cold outreach (see ydc-sales-voice, Cold Outbound Copy Rules 2026-11-06)
 - Product knowledge: ~/.claude/projects/-Users-andrew-Downloads-Claud-Code-folder--YDCpipeline/memory/product-knowledge.md
 
 ---

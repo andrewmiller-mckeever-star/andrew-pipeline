@@ -15,7 +15,7 @@ Sequences are built via Apollo REST API (cloud-native). No local JSON file is wr
         {
           "type": "manual_email",
           "subject": "Subject line under 6 words",
-          "body": "Hi {{first_name}},\n\nFirst paragraph (Attention — hook).\n\nSecond paragraph (Interest + proof point).\n\nThird paragraph (Desire — tentative CTA).\n\nThanks,\nAndrew\nYou.com"
+          "body": "Hi {{first_name}},\n\nFirst paragraph (Attention — hook).\n\nSecond paragraph (Interest + proof point).\n\nThird paragraph (Action — concrete offer).\n\nThanks,\nAndrew\nYou.com"
         },
         {
           "type": "auto_email",
@@ -72,11 +72,11 @@ Whale pipeline: Seq A: Engineering Leader / Seq B: Executive Sponsor / Seq C: Pr
 ## Writing Rules (all apply)
 
 - Touch 1 and Touch 8 subjects: under 6 words
-- Touch 1 body: 50-90 words, AIDA structure, opens with "Hi {{first_name}},"
-- Follow-ups: 80-120 words, each adds NEW proof point or angle (never rephrase). Touch 12 breakup: two sentences
+- Touch 1 body: 60-90 words, 3 to 5 sentences, You.com named with the proof point, opens with "Hi {{first_name}},"
+- Follow-ups: each shorter than the last, each adds a NEW proof point or angle (never rephrase). Touch 12 breakup: two sentences
 - No em dashes. Plain text only. 5th-7th grade reading level.
-- Interest-based CTAs only (no time-based asks), except the Touch 10 meeting ask
-- Tentative language in Interest section
+- Concrete-asset CTAs only (side-by-side, raw JSON, credits), no time-based asks except the Touch 10 meeting ask
+- Problem stated directly, no hedge phrases (see ydc-sales-voice, Cold Outbound Copy Rules 2026-11-06)
 - At least one Socher reference per sequence
 - At least one public proof point per sequence
 - Never name competitors. Never reference specific evals.

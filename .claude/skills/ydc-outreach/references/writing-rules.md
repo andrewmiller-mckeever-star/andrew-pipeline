@@ -44,7 +44,7 @@ This section applies to post-call recaps, warm thread replies, and any email sen
 4. **Founder credibility in every sequence.** At least one touch in every sequence must reference Richard Socher's background. Only use Socher for prospect-facing founder credibility (Bryan McCann is internal context only). Vary the placement.
 5. **Include third-party validation proof.** At least one touch should reference named public case studies (Harvey, Windsurf, Salesforce, Databricks), benchmark data, or generic traction stats (1B+ queries/month, 5K+ customers, 57% Fortune 500). NEVER reference specific evaluations (even anonymized) or name competitors. NEVER name confidential customers or active evaluations.
 7. **Subject lines only on Touches 1 and 8.** Under the 12-touch cadence (2026-10-27) Touch 1 opens thread A and Touch 8 opens thread B. Each gets a unique, specific subject line (reference company name, initiative, or provocative insight). Every other email is a reply in its thread. Never use generic subjects like "Quick question" or "Following up."
-8. **Keep emails concise.** Touch 1 is 50-90 words. Follow-ups are 80-120 words. The Touch 12 breakup is two sentences. Gong data from 28M+ emails shows shorter wins; 50-80 words is the sweet spot.
+8. **Keep emails concise.** Touch 1 is 60-90 words, 3 to 5 sentences. Each follow-up is shorter than the one before. The Touch 12 breakup is two sentences. Gong data from 28M+ emails shows shorter wins; 50-80 words is the sweet spot.
 9. **LinkedIn connect notes: none.** Since 2026-10-08 connection requests go out with no note. Do not write, draft or review connect-note copy. The Touch 2 step body is an empty string. See references/linkedin-rules.md.
 10. **Each touch should have:** a labeled subject line, the full email body, and any special instructions (e.g., "Do Not Cold Outreach, Warm Intro Only" for CEOs).
 11. **Include a Founder Credibility Toolkit section** at the top of the document for quick reference.
@@ -83,16 +83,16 @@ Hi {{first_name}},
 
 [A - Attention: Personal hook from research. 1-2 sentences max. Must reference something specific to them, not generic.]
 
-[I - Interest: Their problem or opportunity, framed as a hypothesis. 1-2 sentences connecting their situation to a relevant challenge. Use tentative language: "usually when teams do X, they tend to hit Y" or "typically this indicates..." Never diagnose their pain as fact. Leaving room to be slightly wrong invites the prospect to correct you, which starts a conversation.]
+[I - Interest: The retrieval problem their product runs into, stated directly as a field pattern ("Agents that run for weeks tend to act on whatever they read at step one."). 1-2 sentences. No hedge phrases ("Guessing", "Could be off base"). Never assert an unverified private fact about them.]
 
 [D - Desire: One proof point. Customer case study, anonymized eval data, benchmark results, or founder credibility. Never more than one per email. Never name confidential customers.]
 
-[A - Action: Interest-based CTA only. One ask only. Never stack multiple CTAs. NEVER use time-based CTAs in cold outreach ("15 minutes," "quick call this week," "Tuesday at 2pm"). Instead use micro-commitment asks: "Is this something you're evaluating?" / "Worth a conversation?" / "Are you open to exploring this?"]
+[A - Action: One concrete, easy-to-decline offer: "Open to comparing the JSON?" / "Worth running 50 of your queries through it?" / "Want credits to test it against your current source?" Never a broad interview question, never time-based.]
 
 [Signature]
 ```
 
-For follow-up emails (80-120 words), compress to: New hook + new proof point + CTA. No re-introduction needed. These are replies to the original thread (no new subject line). CRITICAL: each follow-up must add a genuinely NEW reason to respond (new proof point, new angle, new context). Never rephrase the same ask in different words. Gong data: repeating the same pitch kills sequences.
+For follow-up emails (shorter than the one before), compress to: New hook + new proof point + CTA. No re-introduction needed. These are replies to the original thread (no new subject line). CRITICAL: each follow-up must add a genuinely NEW reason to respond (new proof point, new angle, new context). Never rephrase the same ask in different words. Gong data: repeating the same pitch kills sequences.
 
 Escalation gate (12-touch cadence, 2026-10-27): Touches 1, 3, 6, 8 and 10 each need a distinct angle: the problem, a new fact, a proof point, real API output, and a meeting ask. Confirm each is substantively different before writing it. If the account cannot support five distinct angles, stop and tell Andrew before building. A shorter sequence with fresh angles beats a full sequence that repeats itself.
 

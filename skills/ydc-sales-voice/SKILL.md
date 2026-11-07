@@ -202,7 +202,90 @@ Every message resolves to one of four things: an ack, a question, a commitment, 
 
 ---
 
+## Cold Outbound Copy Rules (2026-11-06) — SUPERSEDES older cold rules below
+
+Andrew's call on 2026-11-06, after a Gemini review of two Amplemarket account drafts found
+Claude's cold copy "slightly off": it read like an SDR reciting a dossier, hedged too much, hid who
+was writing, and closed on broad interview questions. This section is the source of truth for
+**cold outbound only**: sequence emails (Apollo and Amplemarket), LinkedIn DMs, LinkedIn video
+scripts, and one-off cold emails. It does NOT change warm replies, post-meeting follow-ups, Slack,
+internal docs, or the Casual Cold-Outreach Variant. Where the older sections below (Cold Outbound
+Rules, AIDA, hook ladder, word counts, CTA guidance) disagree with this one, this one wins. Pipeline
+skills (ydc-outreach, ydc-pipeline, ydc-territory-pipeline, and any Amplemarket build) point here.
+
+**Who we are writing as.** An AI systems engineer writing to a peer: direct, technically precise,
+understated, respectful of their time. Never a marketing vendor, never an SDR who read their profile.
+
+**The core story.** Agents rarely fail because the model can't reason. They fail because outside
+retrieval is too slow (anything over about 2 seconds hurts an agent loop), stale (old crawls, cached
+pages), or badly shaped (raw HTML eating the context window). You.com is search infrastructure built
+for agents: Web Search, Contents, Highlights and News, with sub-second p50 latency, strong SimpleQA
+and FRAMES accuracy, and LLM-ready Markdown or JSON. Pick the ONE failure mode that fits their
+product and write about that.
+
+**Openers.**
+- Lead with one engineering or operational observation about their product or technical surface:
+  what their agent does, where it reaches outside the company, what that implies for retrieval.
+- For execs and non-engineering product leaders, the same rule applies, adapted: open on the
+  product surface they own (the support agent, the prior auth agent, the trip planner), not on code.
+- NEVER: "You spoke at...", "I noticed...", "Congrats on...", "About nine months after you
+  joined...", "Your post said...", or two résumé or news facts stacked back to back. Their talks,
+  posts, job history and tenure are research inputs, not opening lines.
+- Still never start an email with I, We, Our, or You.com.
+
+**No hedging.** Banned: "Guessing...", "Could be off base, but...", "I'd imagine...", "Probably...",
+"Curious whether...". State the technical challenge directly, as a problem common in the field
+("Long-running agents tend to act on whatever they read at step one."). Never state a private fact
+about their company that you have not verified. Make it a field pattern instead.
+
+**Say who you are in email 1.** Name You.com naturally where the proof point or capability comes
+in ("At You.com, we built the search API so...", "We cut Factory's median search latency at
+You.com from..."). No anonymous "our API" in email 1. Later touches can say "we" or "our".
+
+**Proof points: at most one per message, matched to their domain,** and email 1 always carries one.
+Show-work and breakup touches usually carry none. Never repeat a proof point in one person's sequence. Only these numbers:
+- Enterprise or agents at scale: DuckDuckGo (replaced a legacy search API, 10M+ daily queries) or
+  Salesforce (grounds Slackbot AI and Prompt Builder in public web results next to internal data).
+- Voice or latency-sensitive agents: Factory (median web search from over 5 s to under 1 s,
+  99.9%+ reliability). MobiTech (search timeouts gone) for reliability.
+- Accuracy or multi-step reasoning: SimpleQA 95.35% at 720 ms p50 (You.com's own run, open-source
+  harness) or FRAMES 71% F1 (Research Lite, multi-hop). Check the newest monthly pitch deck first.
+- Financial, compliance, adverse media: real-time News Search and source attribution.
+
+**The ask.** A concrete, low-friction asset that is easy to decline: a 50-query side-by-side on
+their queries, raw JSON for a query their agent would send, or test credits. Examples: "Open to
+comparing the JSON?", "Worth running 50 of your queries through it?", "Want credits to test it
+against your current source?". "Worth running..." is allowed; "worth a chat", "worth a look" and
+"quick" anything stay banned. NEVER a broad or philosophical interview question ("How do you
+decide X?", "Where does Y fit in your architecture?", "Which matters most this quarter?"). The
+meeting-ask touch (calendar line) is the only time-based ask.
+
+**Show-work touches.** The query must be one their agents or users would actually send. NEVER
+search the prospect's own company, launches, press releases, Wikipedia page or leaderboard position
+to "prove search works". Report only real output from a real run, dated, and keep it true for when
+it sends.
+
+**Shape.**
+- Email 1: 60 to 90 words, 3 to 5 sentences, varied rhythm, no link.
+- Each later email is shorter. Breakup: 1 to 2 sentences.
+- LinkedIn messages stand alone (never "thanks for connecting", "my email", "sent you"), under
+  about 250 characters, one observation and one concrete offer, no link.
+- Em dashes stay banned (Andrew, 2026-11-06), as do semicolons, exclamation points, bullets and
+  bold in outbound copy. Parentheticals are fine when they read naturally.
+
+**Banned words and tropes (cold outbound).** leverage, streamline, robust, seamless, unlock, delve,
+comprehensive, enhance, utilize, platform, solution, cutting-edge, end-to-end, game-changing,
+revolutionize, best-in-class, quick chat, 15 minutes, demo, touching base, circling back, following
+up, checking in, hope this finds you well, bumping this.
+
+**Check before showing Andrew.** Run `tools/check_cold_copy.py` on the copy JSON (YDCpipeline
+repo) and fix every hit. A clean checker run does not replace reading the copy as the recipient.
+
+---
+
 ## Cold Outbound Rules (Sequences & LinkedIn Only)
+
+> **2026-11-06:** the Cold Outbound Copy Rules section above supersedes this section wherever they conflict (hedging, openers, naming You.com in email 1, CTAs, word counts, show-work queries).
 
 These rules apply ONLY when writing cold outreach sequences, LinkedIn DMs, and first-touch prospecting. LinkedIn connection requests carry no note (2026-10-08), so there is no copy to write for them. They do NOT apply to warm replies, partner emails, internal comms, or other non-cold writing. The Universal Writing Style section above always applies in addition to these.
 
@@ -240,6 +323,8 @@ These rules apply ONLY when writing cold outreach sequences, LinkedIn DMs, and f
 ---
 
 ## Email Writing Structure (AIDA) — Cold Outbound Only
+
+> **2026-11-06:** the Cold Outbound Copy Rules section above supersedes this section wherever they conflict (hedging, openers, naming You.com in email 1, CTAs, word counts, show-work queries).
 
 The following structure applies to cold outreach sequences only (the email touches: 1, 3, 6). Do NOT apply AIDA, hook prioritization, or interest-based CTAs to warm replies, partner emails, or internal comms. For non-cold writing, follow the Universal Writing Style section above.
 

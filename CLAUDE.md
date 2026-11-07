@@ -25,6 +25,17 @@ content itself moved to `ydc-sales-voice`; the precedence rule is unchanged, jus
 Skills carry older copies of some writing rules. When they disagree with `ydc-sales-voice`,
 `ydc-sales-voice` is newer and authoritative.
 
+**Settled 2026-11-06 — Cold outbound copy rules.** `ydc-sales-voice` now has a "Cold Outbound
+Copy Rules (2026-11-06)" section that supersedes every older cold-copy rule (in that skill and in
+ydc-outreach, ydc-pipeline, ydc-territory-pipeline and any Amplemarket build). Scope is cold
+outbound only: sequence emails, LinkedIn DMs, video scripts. In short: peer engineer tone, open on
+an observation about their product (no résumé or "you spoke at" openers), no hedge phrases, name
+You.com in email 1 with one domain-matched proof point, end on a concrete asset (side-by-side, raw
+JSON, credits), 60 to 90 words, em dashes still banned. Check copy with
+`tools/check_cold_copy.py`.
+- Why: Andrew and a Gemini review agreed two Amplemarket account drafts read like an
+  SDR reciting a dossier.
+
 **Settled 2026-10-08 — LinkedIn automation policy.** This supersedes the 2026-08-27
 connect-note close rule and every earlier connect-note rule.
 - LinkedIn connection requests (Touch 2, `linkedin_step_connect`) NEVER carry a note. No skill

@@ -69,14 +69,14 @@ Before writing sequences, check the CRM Intelligence Brief (Section 9 of researc
 
 | Touch | Day | Channel | Type | What it does |
 |-------|-----|---------|------|--------------|
-| 1 | Day 1 | Email | automatic_email, new_thread (thread A) | Their problem in their words, one question. 50-90 words |
+| 1 | Day 1 | Email | automatic_email, new_thread (thread A) | One product observation, You.com named with one proof point, one concrete ask. 60-90 words (see ydc-sales-voice, Cold Outbound Copy Rules 2026-11-06) |
 | 2 | Day 2 | LinkedIn | linkedin_connect, empty body | No note |
 | 3 | Day 4 | Email | reply to thread A | A new fact, never a reworded Touch 1 |
 | 4 | Day 7 | Call | phone_call | Task note holds a 20-second script |
 | 5 | Day 9 | LinkedIn | linkedin_interact_post | Like most recent post, automated |
 | 6 | Day 12 | Email | reply to thread A | Proof: the current benchmark (see `current-benchmark-source` memory) or the closest named public case study. Socher credibility can live here |
 | 7 | Day 15 | LinkedIn | linkedin_message, manual | DM Andrew sends by hand, only if they accepted. No pitch |
-| 8 | Day 19 | Email | automatic_email, new_thread (thread B) | Show work: a real You.com API result we ran for their use case, pasted in. New subject |
+| 8 | Day 19 | Email | automatic_email, new_thread (thread B) | Show work: a real You.com API result for a query their agents would send (never a search on their own company), pasted in. New subject |
 | 9 | Day 22 | Call | phone_call | Script refers to the Touch 8 result |
 | 10 | Day 26 | Email | reply to thread B | Meeting ask: a named event, city or time. The one touch where a time-based ask is allowed |
 | 11 | Day 31 | LinkedIn | linkedin_interact_post | Automated |
@@ -217,7 +217,7 @@ If `hook_type: "role_pain"` for more than 3 contacts in an account, flag this in
 
 Touch 1 is an `automatic_email` step (`email_type: "new_thread"`) — same templated body per sequence, sent automatically when the sequence activates. The email touches fire automatically once Andrew activates the sequence in Apollo. The LinkedIn and call steps become tasks. Touch 2 (no-note connect) and Touch 5 are worked by `apollo-linkedin-connect.js`. Touch 7 is always sent by hand.
 
-**Word count: 80-120 words. Plain text only. Opens with "Hi {{first_name}}," on its own line.**
+**Word count: 60-90 words, 3 to 5 sentences (see ydc-sales-voice, Cold Outbound Copy Rules 2026-11-06). Plain text only. Opens with "Hi {{first_name}}," on its own line.**
 
 **A — Attention (1-2 sentences)**
 The person-level hook. Fact-to-consequence bridge. Never a compliment. The personalization must connect directly to a problem — if it dead-ends as praise, cut it.
@@ -225,7 +225,7 @@ The person-level hook. Fact-to-consequence bridge. Never a compliment. The perso
 - GOOD: "Inception building its own reasoning stack means the retrieval layer either keeps pace with live events or becomes the accuracy bottleneck."
 
 **I — Interest (1-2 sentences)**
-Hypothesis about their probable problem. Tentative language always — never diagnose pain as fact.
+State the problem directly as a field pattern (slow, stale or badly shaped retrieval). No hedge phrases ("Guessing", "Could be off base", "I'd imagine"). Never assert an unverified private fact about them.
 - "Usually when teams are building at this layer, retrieval freshness becomes the limiting factor before model quality does."
 - NOT: "You're clearly struggling with X."
 
@@ -240,13 +240,13 @@ One proof point only. Use the closest named case study from this table:
 | Data platforms, Databricks customers | Databricks |
 | Retail, consumer products, e-commerce | Strauss |
 
-**If no case study fits cleanly: skip Desire entirely and go straight to Action.** Do not force a mismatched proof point. A clean 3-part email beats a 4-part email with a poor-fit case study.
+**Superseded 2026-11-06:** every email carries exactly one proof point, matched to their domain, and Touch 1 names You.com with it ("At You.com, we..."). Use the domain map in ydc-sales-voice, Cold Outbound Copy Rules 2026-11-06, which wins over this table.
 
 **A — Action (1 sentence)**
-Interest-based CTA only. Never time-based ("15 minutes," "quick call this week").
-- "Is this something you're evaluating?"
-- "Worth a conversation?"
-- "Open to exploring this?"
+A concrete, easy-to-decline offer. Never a broad interview question, never time-based ("15 minutes," "quick call this week").
+- "Open to comparing the JSON?"
+- "Worth running 50 of your queries through it?"
+- "Want credits to test it against your current source?"
 
 ---
 
@@ -265,9 +265,9 @@ See references/writing-rules.md for full detail. Non-negotiables:
 - NEVER use em dashes. Use commas, periods, colons, semicolons, or pipes instead.
 - Plain text only in email bodies. No markdown (no bold, italic, headers, numbered lists).
 - AIDA structure required for every email touch (see references/writing-rules.md).
-- Every opener starts with THEM, never "I," "We," "Our," or "At You.com."
-- Word counts: Touch 1 email 50-90 words. Other email touches 80-120 words, except the Touch 12 breakup (two sentences).
-- Interest-based CTAs only. No time-based asks ("15 minutes," "quick call this week"). The one exception is Touch 10, the meeting ask.
+- Every opener starts with an observation about their product, never "I," "We," "Our," or "At You.com." You.com is named later in Touch 1, with the proof point.
+- Word counts: Touch 1 email 60-90 words, 3 to 5 sentences. Each later email shorter than the one before. Touch 12 breakup: 1 to 2 sentences.
+- Concrete-asset asks only (50-query side-by-side, raw JSON, test credits). No broad interview questions, no time-based asks. The one exception is Touch 10, the meeting ask.
 - One proof point per email, one CTA per email. Never stack.
 - 5th-7th grade reading level. Short sentences, no compound-complex structures.
 - Strip corporate suffixes ("Teradata" not "Teradata Corporation").
@@ -293,8 +293,8 @@ After generating all 4 sequences but BEFORE writing the JSON file, explicitly ch
 | Per-contact Touch 1 fields present | Every contact has `touch1_subject`, `touch1_body`, `touch1_hook`, `touch1_hook_type`. |
 | Touch 1 hook bridges to a problem | No compliment dead-ends. Every hook connects to a consequence or pain point. |
 | Openers start with THEM | No email begins with "I," "We," "Our," or "At You.com." |
-| Interest = hypothesis | "Usually when teams do X..." not "You're clearly struggling with X." |
-| Interest-based CTA only | No "15 minutes," "quick call this week," or day/time asks, except Touch 10. |
+| Problem stated directly | Field pattern stated plainly ("Long-running agents tend to act on whatever they read first."). No "Guessing", "Could be off base", "I'd imagine". |
+| Concrete-asset CTA | 50-query side-by-side, raw JSON or credits. No broad interview questions, no day/time asks except Touch 10. |
 | One proof point per email | Never two case studies or two stats in a single touch. |
 | One CTA per email | Never stack asks. |
 | No AI glazing | Every research hook bridges to a problem. No compliment dead-ends. |
@@ -304,7 +304,7 @@ After generating all 4 sequences but BEFORE writing the JSON file, explicitly ch
 | No banned openers | Check against 8 banned openers in references/writing-rules.md. |
 | Socher credibility present | At least one touch per sequence references Socher (not McCann). |
 | Public proof point present | At least one touch per sequence uses named case study (Harvey, Windsurf, Salesforce, Databricks, Strauss) or traction stats. |
-| Word counts | Touch 1: 50-90 words. Touches 3, 6, 8, 10: 80-120 words. Touch 12: two sentences. (Gong 28M analysis: 50-80 is the sweet spot.) LinkedIn connect (Touch 2): no note, empty body. LinkedIn DM (Touch 7): under 300 chars. |
+| Word counts | Touch 1: 60-90 words. Later emails shorter each time. Touch 12: two sentences. (Gong 28M analysis: 50-80 is the sweet spot.) LinkedIn connect (Touch 2): no note, empty body. LinkedIn DM (Touch 7): under 300 chars. |
 | Follow-up qualifier openers | Touches 3, 6, 10 and 12: body after greeting starts with the new hook. No qualifier phrases: "Last note," "One more thing," "One more angle," "Closing the loop," "Quick follow-up," "Additional context." |
 | New reason in every follow-up | Touches 1, 3, 6, 8 and 10 each carry a different angle (problem, new fact, proof, real output, meeting ask). Never reword an earlier email. If the account cannot support five distinct angles, say so and ask Andrew before building. |
 | No hide-the-company language | No "our APIs," "our founder," "our case studies." Every product/founder reference names You.com explicitly. |

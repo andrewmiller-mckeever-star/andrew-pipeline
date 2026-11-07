@@ -16,7 +16,7 @@ Before delivering outputs for any account, verify:
 - [ ] Founder credibility appears in at least one touch per sequence
 - [ ] Third-party validation included in at least one sequence (anonymized evals, case studies, or benchmarks; NEVER name confidential customers)
 - [ ] Subject lines are specific (reference company name or initiative)
-- [ ] Email word counts within guidelines (opener 100-150, follow-up 80-120, breakup 80-120)
+- [ ] Email word counts within guidelines (Touch 1 60-90 words, each follow-up shorter, breakup 1-2 sentences)
 - [ ] LinkedIn connect (T2) step has an empty body. No connect-note copy anywhere (policy 2026-10-08)
 - [ ] LinkedIn DM (T7) copy is drafted into the step as a manual task for Andrew to send by hand
 - [ ] No generic/templated language that could apply to any company
@@ -27,8 +27,8 @@ Before delivering outputs for any account, verify:
 - [ ] Each email contains exactly one proof point and one CTA, never more
 - [ ] Hook prioritization followed: trigger events used when available, not defaulting to role-based pain
 - [ ] Paragraphs in email copy are 2-3 sentences max
-- [ ] Interest-based CTAs only in cold outreach (no time-based asks like "15 minutes" or "Tuesday at 2pm")
-- [ ] Tentative hypothesis language used in Interest section (not asserting pain as fact)
+- [ ] Concrete-asset CTAs only in cold outreach (side-by-side, raw JSON, credits). No broad interview questions, no time-based asks
+- [ ] Problem stated directly as a field pattern, no hedge phrases ("Guessing", "Could be off base"), You.com named in Touch 1 (see ydc-sales-voice, Cold Outbound Copy Rules 2026-11-06)
 - [ ] Zero AI-ism vocabulary (utilize, comprehensive, enhance, delve, embark, robust, streamline)
 - [ ] No AI glazing: every research hook bridges to a problem or opportunity we solve. Never a compliment that dead-ends ("strong signal," "that's rare," "impressive achievement"). State what they did, tie it to relevance.
 - [ ] 5th-7th grade reading level (short sentences, no compound-complex structures)
