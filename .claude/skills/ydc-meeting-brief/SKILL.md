@@ -168,6 +168,8 @@ Search terms to run (separate calls):
 
 Pull relevant threads from: `#api-gtm-team`, `#esl-api-sales`, `#sales-team`.
 
+**Then read the account's own channels in full (coverage rule, Andrew 2026-10-29).** Run `slack_search_channels` on the company name and short variants to find `#ext-*`, `#int-*`, `#internal-*` or partner channels. The keyword hits above also show private channels. Read each one with `slack_read_channel` for the last 30 days, and run `slack_read_thread` on every message with replies. Customer-side news, like new contacts, load tests, open questions and bugs, lives in the ext channel and is often missed by keyword search. Put anything said there that bears on the meeting in the brief.
+
 Summarize any relevant context: deal notes, competitive mentions, prior conversations, internal opinions. If nothing found, note: "No Slack history found."
 
 ### 3F: Prior Briefs and Open Loops
