@@ -10,8 +10,8 @@ registries such as Companies House): over 900M people and 100M companies. It is 
 Web Search API, turned on with `knowledge.mode: "pro"`. Sources: Notion Atlas Wiki pages
 "[gtm] People + Company in Knowledge" and "[prd] Tako People+Company data", 2026-11-13.
 
-The old `POST /v1/people/search` endpoint is no longer supported. Never call it, even as a
-fallback (Andrew, 2026-11-13).
+The old `POST /v1/people/search` endpoint is no longer supported. It is allowed ONLY as a
+temporary fallback, through 2026-12-13 (see below).
 
 ## Status (check first)
 
@@ -20,10 +20,37 @@ fallback (Andrew, 2026-11-13).
 | `POST /v1/search` with `knowledge: {"mode": "pro"}` | 422, not enabled yet. Rolling out per account soon |
 | `POST /v1/enrich` (paid contact data) | 403, not enabled |
 
-If pro still returns 422, stop and tell Andrew it isn't on for our key yet. Do not swap in
-another endpoint. If the person or company question still needs an answer, offer a regular
-Web Search or Research API call instead, clearly labeled as web results, not people data.
+Always call pro first. If it returns 422:
+- **On or before 2026-12-13:** fall back to the old endpoint (Temporary fallback section) and
+  say in your answer that the results came from the old endpoint because pro isn't on yet.
+- **After 2026-12-13:** do not call the old endpoint. Tell Andrew pro still isn't on for our
+  key. If the question still needs an answer, offer a regular Web Search or Research API call,
+  clearly labeled as web results, not people data. Also delete the Temporary fallback section
+  from this skill and the fallback line in `~/.claude/CLAUDE.md`.
+
 When pro starts returning 200, update this table and the note in `~/.claude/CLAUDE.md`.
+
+## Temporary fallback: old endpoint (expires 2026-12-13)
+
+Only after a pro call returns 422, and only through 2026-12-13 (Andrew, 2026-11-13).
+
+```bash
+curl -sS -X POST "https://ydc-index.io/v1/people/search" \
+  -H "X-API-Key: $YDC_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "Head of AI at Example Corp", "count": 10}'
+```
+
+- `query`: role, company, location or skill in plain words, or a LinkedIn URL, GitHub URL or
+  work email for a known person. `count`: 1 to 25, default 10.
+- Each result: `name`, `headline`, `bio`, `location`, `current_position` {company, title,
+  function, start_date, months_in_role}, `past_positions[]`, `years_experience`, `skills`,
+  `industries`, `education[]`, `linkedin`, `emails_work`, `has_work_email`.
+- People only, no company records. For company questions after a pro 422, use a regular Web
+  Search call instead.
+- It can return work emails. Same data-handling rules apply: outreach contact details still
+  come from Apollo or Salesforce.
+- Worked on 2026-11-13. If it returns 404 or 410, it's been shut off: tell Andrew and stop.
 
 ## Data handling
 
@@ -95,7 +122,8 @@ with `enrich_values: true` without Andrew's explicit go.
 
 ## Errors
 
-- `422` on a pro call: pro isn't enabled for our key yet (or a bad parameter). Tell Andrew.
+- `422` on a pro call: pro isn't enabled for our key yet (or a bad parameter). Through
+  2026-12-13 use the temporary fallback; after that, tell Andrew.
 - `403` / `404`: endpoint not enabled. Don't retry; tell Andrew.
 - `503` / `504`: retry up to 3 times with backoff.
 - Never print the raw error body or the key.
@@ -109,3 +137,4 @@ with `enrich_values: true` without Andrew's explicit go.
 | 2026-09-21 | Skill created for the `/v1/people/search` endpoint | New prod endpoint, internal testing |
 | 2026-11-13 | Rewritten around Web Search `knowledge.mode: "pro"`, plus enrich, company fields and data-handling rules | Notion "[gtm] People + Company in Knowledge" and "[prd] Tako People+Company data"; live tests: pro 422, enrich 403 |
 | 2026-11-13 | Removed `/v1/people/search` entirely, no fallback | Andrew: old endpoint is no longer supported, pro is coming soon |
+| 2026-11-13 | Re-added `/v1/people/search` as a fallback on pro 422 only, expiring 2026-12-13 | Andrew: keep working for 30 days while pro rolls out, then stop |
